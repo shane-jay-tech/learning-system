@@ -1,0 +1,36 @@
+title: "拆解一个简单需求"
+topic: "09_decompose"
+difficulty: 1
+tags: ["decompose", "basics", "planning"]
+judge_mode: "ai_open"
+statement: |
+  需求：「做一个 Python 脚本，读取 data.csv，统计每列的缺失值数量，输出到 missing_report.txt」
+
+  请将这个需求拆解为 2-4 个可独立验收的子任务。每个子任务需包含：
+  - 任务名称
+  - 输入和输出
+  - 验收标准
+
+rubric: |
+  评分维度：
+  - 拆解合理性（40%）：子任务是否覆盖完整需求，步骤之间逻辑清晰
+  - 可独立验收（30%）：每步是否有明确的验收标准
+  - 输入输出明确（30%）：每步的输入是什么、输出是什么
+
+  通过标准：拆为 2-4 步，步骤覆盖从读取到输出的完整流程，每步有验收标准
+
+reference_answer: |
+  **子任务 1：读取 CSV**
+  - 输入：data.csv 文件路径
+  - 输出：DataFrame 对象
+  - 验收：print(df.shape) 输出正确的行列数
+
+  **子任务 2：统计缺失值**
+  - 输入：DataFrame
+  - 输出：每列缺失值计数（Series 或 dict）
+  - 验收：手动检查某一列的缺失数是否正确
+
+  **子任务 3：写入报告文件**
+  - 输入：缺失值统计结果
+  - 输出：missing_report.txt
+  - 验收：文件存在且内容包含所有列名和对应缺失数

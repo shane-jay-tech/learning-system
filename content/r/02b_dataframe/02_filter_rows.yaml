@@ -1,0 +1,22 @@
+title: "筛选高分学生"
+topic: "02b_dataframe"
+difficulty: 2
+tags: ["data.frame", "filter"]
+statement: |
+  数据框 `df` 已替你写好（4 个学生）。请筛选出 `score >= 80` 的行，**只输出他们的 name**，每行一个。
+
+  期望输出 Alice / Cathy（按原顺序，2 人）。
+starter_code: |
+  df <- data.frame(
+    name = c("Alice", "Bob", "Cathy", "David"),
+    score = c(92, 78, 85, 60)
+  )
+  # 筛选 score >= 80 的行，输出 name
+
+expected_output: |
+  Alice
+  Cathy
+hints:
+  - "subset <- df[df$score >= 80, ]"
+  - "writeLines(as.character(subset$name)) —— 一行搞定，每名一行无空格"
+  - "如果用 cat 要加 sep=\"\" 防止空格：cat(n, \"\\n\", sep=\"\")"

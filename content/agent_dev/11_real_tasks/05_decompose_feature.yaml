@@ -1,0 +1,58 @@
+title: "拆解一个真实功能需求"
+topic: "11_real_tasks"
+difficulty: 4
+tags: ["decompose", "spec", "real-task"]
+judge_mode: ai_open
+
+statement: |
+  产品经理说："给我们的学习平台加一个'成就系统'——用户完成一定数量的题目后解锁成就徽章，在个人主页展示。"
+
+  请把这个需求拆成 AI agent 可以逐个完成的子任务清单。
+
+  要求：
+  - 至少拆成 4 个子任务
+  - 每个子任务要足够小（agent 一次能做完）
+  - 标明依赖关系（哪个要先做）
+  - 每个子任务有明确的验收标准（怎么算做完了）
+
+starter_code: |
+  # 在这里写你的任务拆解
+
+rubric:
+  - "拆成 4+ 个合理的子任务（不重叠、不遗漏关键环节）得 20 分"
+  - "每个子任务有明确的验收标准（可检验的完成条件）得 25 分"
+  - "依赖关系合理（数据层先于展示层，定义先于触发）得 20 分"
+  - "粒度合理（不会太大导致 agent 跑偏，不会太碎导致上下文丢失）得 20 分"
+  - "考虑了边界情况（如成就定义可配置、已有用户的回溯等）得 15 分"
+
+reference_answer: |
+  ## 成就系统任务拆解
+
+  ### Task 1: 定义成就数据模型（无依赖）
+  - 新建 achievements.yaml：定义 5-10 个成就（名称、图标、触发条件、描述）
+  - 例：first_blood（完成第 1 题）、streak_7（连续 7 天）、python_master（Python 全通过）
+  - **验收**：YAML 文件格式正确，能被 yaml.safe_load 读取，每个成就有 id/title/icon/condition
+
+  ### Task 2: 数据库存储层（依赖 Task 1）
+  - 在 progress.db 新增 user_achievements 表（achievement_id, unlocked_at）
+  - DAO 方法：unlock_achievement()、list_unlocked()、is_unlocked()
+  - **验收**：单元测试覆盖增删查；重复解锁不报错
+
+  ### Task 3: 触发检测引擎（依赖 Task 1 + 2）
+  - 在 judge 流程中，每次通过题目后检查是否触发新成就
+  - 条件求值器：读取 achievements.yaml 的 condition 字段，对比当前进度
+  - **验收**：完成第 1 题时解锁 first_blood；连续 7 天时解锁 streak_7
+
+  ### Task 4: UI 展示（依赖 Task 2 + 3）
+  - Dashboard 新增"我的成就"区域，已解锁的显示彩色图标+日期，未解锁的灰色
+  - 解锁瞬间弹一个 st.balloons() 或 toast
+  - **验收**：能看到至少 5 个成就位；解锁后刷新页面仍显示
+
+  ### Task 5: 回溯历史用户（依赖 Task 3）
+  - 首次启用时扫描已有 progress.db，把应解锁的成就补发
+  - **验收**：老用户首次进入有成就的页面时不会全空
+
+hints:
+  - "想想 agent 做一个子任务需要哪些上下文？太大了它会跑偏"
+  - "验收标准要可检验——'做好了'不算，'XX 测试通过'才算"
+  - "哪些任务可以并行？哪些必须串行？"

@@ -1,0 +1,23 @@
+title: "lmer 固定效应系数"
+topic: "06_mixed_apa"
+difficulty: 3
+tags: ["lme4", "mixed-effects"]
+statement: |
+  10 个员工分 2 部门。请用 `lmer` 拟合 `score ~ years + (1 | dept)`，输出 years 的固定效应系数（保留 2 位小数）。
+
+  应约 1.00（每多 1 年工龄，分数 +1）。
+starter_code: |
+  suppressMessages(library(lme4))
+  df <- data.frame(
+    score = c(60,65,70,75,80, 55,60,65,70,75),
+    years = c(1,2,3,4,5, 1,2,3,4,5),
+    dept = factor(rep(c("A","B"), each=5))
+  )
+  # lmer(score ~ years + (1|dept))，cat(fixef[2])
+
+expected_output: |
+  5
+hints:
+  - "fit <- lmer(score ~ years + (1|dept), data=df)"
+  - "cat(round(fixef(fit)[\"years\"], 2), \"\\n\")"
+  - "fixef() 给固定效应系数；ranef() 给随机效应"

@@ -1,0 +1,35 @@
+title: "vector::at 越界 + out_of_range"
+topic: "11_exceptions"
+difficulty: 2
+tags: ["out_of_range", "vector"]
+statement: |
+  vector v 长度 3。从输入读 i，访问 `v.at(i)`：
+  - 在范围内输出 `v[i]`
+  - 越界（抛 out_of_range）输出 `oob`
+
+  输入 `5`，输出 `oob`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <stdexcept>
+  using namespace std;
+
+  int main() {
+      vector<int> v = {10, 20, 30};
+      int i; cin >> i;
+      try {
+          cout << v.at(i) << endl;
+      } catch (const out_of_range& e) {
+          cout << "oob" << endl;
+      }
+      return 0;
+  }
+expected_output: |
+  oob
+tests:
+  - stdin: "5\n"
+    expected_output: "oob\n"
+hints:
+  - "v.at(i) 越界抛 out_of_range；v[i] 不抛（未定义行为）"
+  - "需要 #include <stdexcept>"
+  - "这是 v.at 比 v[i] 安全的原因"

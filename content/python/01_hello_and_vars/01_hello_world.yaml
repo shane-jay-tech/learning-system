@@ -1,0 +1,19 @@
+title: "打印 Hello, World!"
+topic: "01_hello_and_vars"
+difficulty: 1
+tags: ["io", "starter"]
+statement: |
+  请用 `print` 函数输出**恰好一行**：
+  ```
+  Hello, World!
+  ```
+  注意大小写、逗号、空格和感叹号都要和上面完全一致。
+starter_code: |
+  # 在下面写你的代码
+
+expected_output: |
+  Hello, World!
+hints:
+  - "用 print() 函数；括号里写要打印的内容"
+  - "字符串用引号括起来，单引号或双引号都行"
+  - "注意大小写：H 和 W 都是大写"

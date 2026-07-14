@@ -1,0 +1,37 @@
+title: "抽象类（纯虚）"
+topic: "08_inheritance"
+difficulty: 3
+tags: ["abstract", "pure-virtual"]
+statement: |
+  Shape 是抽象类（含 `area() = 0`）。请定义 Circle : public Shape，半径 r，重写 area 返回 `3.14159 * r * r`。
+  从输入读 r（浮点），构造 Circle，输出 area 保留 2 位小数。
+
+  输入 `5`，输出 `78.54`。
+starter_code: |
+  #include <iostream>
+  #include <iomanip>
+  using namespace std;
+
+  class Shape {
+  public:
+      virtual double area() = 0;
+      virtual ~Shape() = default;
+  };
+
+  // 在这里定义 Circle
+
+  int main() {
+      double r; cin >> r;
+      Circle c(r);
+      cout << fixed << setprecision(2) << c.area() << endl;
+      return 0;
+  }
+expected_output: |
+  78.54
+tests:
+  - stdin: "5\n"
+    expected_output: "78.54\n"
+hints:
+  - "class Circle : public Shape { double r; public: Circle(double r) : r(r) {} double area() override { return 3.14159 * r * r; } };"
+  - "纯虚函数子类必须重写"
+  - "fixed + setprecision(2) 保留 2 位小数"

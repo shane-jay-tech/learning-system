@@ -1,0 +1,20 @@
+title: "COALESCE 给 NULL 默认值"
+topic: "11_null_handling"
+difficulty: 1
+tags: ["coalesce"]
+statement: |
+  输出 name 和 salary，但 NULL 显示为 0。按 id 升序。
+starter_code: |
+  -- SELECT name, COALESCE(salary, 0) FROM employees ORDER BY id
+
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, salary INTEGER);
+  INSERT INTO employees VALUES (1,'Alice',5000),(2,'Bob',NULL),(3,'Cathy',8000);
+expected_rows:
+  - ["Alice", 5000]
+  - ["Bob", 0]
+  - ["Cathy", 8000]
+hints:
+  - "COALESCE(col, default) 第一个非 NULL"
+  - "也可写 IFNULL(salary, 0)（SQLite/MySQL 专用）"
+  - "原列如果是 INTEGER，COALESCE 结果也是 INTEGER"

@@ -1,0 +1,27 @@
+title: "卡方独立性检验"
+topic: "13_scipy_stats"
+difficulty: 3
+tags: ["scipy", "chi2"]
+statement: |
+  列联表：性别 vs 是否离职。
+  ```
+            离职  不离职
+  男         30    70
+  女         40    60
+  ```
+  用 `chi2_contingency` 检验性别和离职是否独立，输出 p 值（4 位小数）。
+
+  应该约 0.1453（不显著，无法拒绝独立）。
+starter_code: |
+  from scipy import stats
+  import numpy as np
+
+  table = np.array([[30, 70], [40, 60]])
+  # chi2_contingency 返回 chi2/p/dof/expected
+
+expected_output: |
+  0.1821
+hints:
+  - "chi2, p, dof, expected = stats.chi2_contingency(table)"
+  - "print(f'{p:.4f}')"
+  - "chi2_contingency 自动算自由度和期望频数"

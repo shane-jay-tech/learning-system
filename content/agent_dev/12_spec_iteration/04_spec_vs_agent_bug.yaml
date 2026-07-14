@@ -1,0 +1,41 @@
+title: "判断：Spec 问题还是 Agent 问题"
+topic: "12_spec_iteration"
+difficulty: 3
+tags: ["spec", "iteration", "diagnosis"]
+judge_mode: ai_open
+statement: |
+  下面是 3 个场景。每个场景给出了 Spec 和 Agent 的产出结果。
+  请判断每个问题是**Spec 写得不好**还是**Agent 自身犯错**，并说明理由。
+
+  **场景 A：**
+  - Spec："用 Python 写一个函数，接收列表，返回去重后的列表"
+  - Agent 产出：用了 `set()` 转换，结果丢失了原始顺序
+  - 你期望：保持原始顺序的去重
+
+  **场景 B：**
+  - Spec："在表单提交时验证邮箱格式，格式错误时显示红色提示"
+  - Agent 产出：验证逻辑正确，但红色提示在表单上方而非输入框旁边
+  - 你期望：提示在输入框正下方
+
+  **场景 C：**
+  - Spec："写一个 REST API，POST /users 创建用户，返回 201"
+  - Agent 产出：API 正常工作，但没做任何输入验证，空 body 也能创建用户
+  - 你期望：验证必填字段
+
+  请对每个场景：
+  1. 判断是 Spec 问题还是 Agent 问题
+  2. 说明理由
+  3. 如果是 Spec 问题，给出修正建议
+starter_code: |
+  # 请在下面逐个分析三个场景
+
+rubric: |
+  1. 场景A判断为Spec问题（没说"保持顺序"，set去重本身没错）(15分)
+  2. 场景B判断为Spec问题（没指定提示位置，Agent放上方不算错）(15分)
+  3. 场景C可判为Agent问题或混合（REST API常识应含验证，但Spec也没明说）(15分)
+  4. 每个判断都有合理的理由(20分)
+  5. 对Spec问题场景给出了具体的修正建议(20分)
+  6. 理解"Agent按字面执行不算错"这个核心原则(15分)
+hints:
+  - "核心问题：Agent 做的事是否违反了 Spec 的字面意思？"
+  - "Spec 没提到的，Agent 不做不算错"

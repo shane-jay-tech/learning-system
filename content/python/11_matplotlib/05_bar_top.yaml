@@ -1,0 +1,20 @@
+title: "柱状排序后输出最大类"
+topic: "11_matplotlib"
+difficulty: 2
+tags: ["plot", "argmax"]
+statement: |
+  各部门人数：HR=10, Eng=25, Sales=15, Mkt=8。画柱状图保存 `top.png`，再输出**人数最多的部门名**（应为 `Eng`）。
+starter_code: |
+  import matplotlib
+  matplotlib.use("Agg")
+  import matplotlib.pyplot as plt
+
+  data = {"HR": 10, "Eng": 25, "Sales": 15, "Mkt": 8}
+  # 画柱状图保存 top.png，再 print 人数最多的部门名
+
+expected_output: |
+  Eng
+hints:
+  - "plt.bar(list(data.keys()), list(data.values()))"
+  - "plt.savefig('top.png'); plt.close()"
+  - "print(max(data, key=data.get)) 拿到 value 最大的 key"

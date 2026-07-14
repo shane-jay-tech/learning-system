@@ -1,0 +1,17 @@
+title: "查看简洁历史"
+topic: "01_git_basics"
+difficulty: 1
+tags: ["git", "log"]
+statement: |
+  你想看历史，每个 commit 一行。请输出对应命令。
+
+  期望：`git log --oneline`。
+starter_code: |
+  command = "..."
+  print(command)
+expected_output: |
+  git log --oneline
+hints:
+  - "git log 看历史"
+  - "--oneline 让每个 commit 一行"
+  - "默认 git log 一个 commit 占 5-6 行，太长"

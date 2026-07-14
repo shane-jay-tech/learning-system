@@ -1,0 +1,29 @@
+title: "中文 csv 写后读"
+topic: "12_io_excel"
+difficulty: 2
+tags: ["csv", "utf-8", "encoding"]
+statement: |
+  把含中文的数据 `[("张三", 90), ("李四", 75), ("王五", 88)]` 写到 `cn.csv`（utf-8），
+  再读出来输出每行 `姓名 分数`，按原顺序，每行一个。
+
+  期望：
+  ```
+  张三 90
+  李四 75
+  王五 88
+  ```
+starter_code: |
+  import pandas as pd
+
+  data = [("张三", 90), ("李四", 75), ("王五", 88)]
+  df = pd.DataFrame(data, columns=["name", "score"])
+  # 写 cn.csv（utf-8，无 index），读出来按行输出 "姓名 分数"
+
+expected_output: |
+  张三 90
+  李四 75
+  王五 88
+hints:
+  - "df.to_csv('cn.csv', index=False, encoding='utf-8')"
+  - "df2 = pd.read_csv('cn.csv', encoding='utf-8')"
+  - "for _, r in df2.iterrows(): print(r['name'], r['score'])"

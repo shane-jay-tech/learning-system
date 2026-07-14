@@ -1,0 +1,25 @@
+title: "unique_ptr 自动释放"
+topic: "07_pointers_class"
+difficulty: 3
+tags: ["smart-pointer", "unique_ptr"]
+statement: |
+  用 `make_unique<int>` 构造一个 unique_ptr 指向值 42，然后输出它的值。
+
+  期望输出 `42`。
+starter_code: |
+  #include <iostream>
+  #include <memory>
+  using namespace std;
+
+  int main() {
+      // unique_ptr<int> p = make_unique<int>(42);
+      // 输出 *p
+
+      return 0;
+  }
+expected_output: |
+  42
+hints:
+  - "auto p = make_unique<int>(42);"
+  - "cout << *p << endl;"
+  - "离开作用域 unique_ptr 自动释放，不需要 delete"

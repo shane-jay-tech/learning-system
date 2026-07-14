@@ -1,0 +1,21 @@
+title: "ggplot 散点图 + 输出 max"
+topic: "04_ggplot"
+difficulty: 1
+tags: ["ggplot", "scatter"]
+statement: |
+  数据 df 已建好（age vs score）。请用 ggplot 画散点图，保存到 `scatter.png`，再 cat 输出 score 的最大值（应为 95）。
+starter_code: |
+  library(ggplot2)
+  df <- data.frame(
+    name = c("Alice","Bob","Cathy","David","Eve"),
+    age = c(20, 22, 19, 25, 21),
+    score = c(85, 92, 78, 88, 95)
+  )
+  # 画散点图，ggsave 到 scatter.png，再 cat 最大 score
+
+expected_output: |
+  95
+hints:
+  - "p <- ggplot(df, aes(x=age, y=score)) + geom_point()"
+  - "ggsave(\"scatter.png\", p, width=4, height=3)"
+  - "cat(max(df$score), \"\\n\")"

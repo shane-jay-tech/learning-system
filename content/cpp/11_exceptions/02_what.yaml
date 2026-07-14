@@ -1,0 +1,32 @@
+title: "拿到 e.what() 错误信息"
+topic: "11_exceptions"
+difficulty: 2
+tags: ["exception", "what"]
+statement: |
+  从输入读 a b。如果 b=0 抛 `runtime_error("divide by zero")`，catch 后输出 `Error: <e.what()>`。
+
+  输入 `10 0`，输出 `Error: divide by zero`。
+starter_code: |
+  #include <iostream>
+  #include <stdexcept>
+  using namespace std;
+
+  int main() {
+      int a, b; cin >> a >> b;
+      try {
+          if (b == 0) throw runtime_error("divide by zero");
+          cout << (a / b) << endl;
+      } catch (const runtime_error& e) {
+          // cout << "Error: " << e.what() << endl;
+      }
+      return 0;
+  }
+expected_output: |
+  Error: divide by zero
+tests:
+  - stdin: "10 0\n"
+    expected_output: "Error: divide by zero\n"
+hints:
+  - "cout << \"Error: \" << e.what() << endl;"
+  - "what() 返回 const char*"
+  - "throw 时传字符串到构造函数即可"

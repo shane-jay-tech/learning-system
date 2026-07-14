@@ -1,0 +1,34 @@
+title: "找一组数里的最大值"
+topic: "03_loops"
+difficulty: 3
+tags: ["for", "compare", "input"]
+statement: |
+  从标准输入读两行：
+  - 第 1 行是一个整数 `N`，表示总共有几个数
+  - 第 2 行是 N 个整数，**用空格分隔**
+
+  请输出这 N 个数里的最大值。
+
+  例如输入：
+  ```
+  6
+  3 8 -1 12 5 7
+  ```
+  应输出 `12`。
+starter_code: |
+  n = int(input())
+  parts = input().split()
+  nums = [int(x) for x in parts]
+
+  # 用循环找出最大值
+
+starter_code_note: ""
+expected_output: |
+  12
+tests:
+  - stdin: "6\n3 8 -1 12 5 7\n"
+    expected_output: "12\n"
+hints:
+  - "先把第一个数当成临时最大值：m = nums[0]"
+  - "for x in nums[1:]: if x > m: m = x"
+  - "进阶：直接 print(max(nums)) 也对，但建议先用 for 体会一遍"

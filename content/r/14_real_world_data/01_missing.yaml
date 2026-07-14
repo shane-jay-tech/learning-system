@@ -1,0 +1,23 @@
+title: "数缺失的敬业度评分"
+topic: "14_real_world_data"
+difficulty: 2
+tags: ["base-r", "missing", "real-data"]
+statement: |
+  这份员工敬业度调查里，有人没填 **engagement（敬业度评分）**，在 R 里是 `NA`。
+
+  请数出 `engagement` 列**有多少个缺失值（NA）**，输出一个数字。
+starter_code: |
+  df <- data.frame(
+    emp_id = c(1001,1002,1003,1004,1005,1006,1007,1002,1008),
+    name = c("Alice","Bob","Cathy","David","Eve","Frank","Grace","Bob","Heidi"),
+    department = c("Sales","sales ","Engineering"," Engineering","HR","hr","Sales","sales ","Engineering"),
+    engagement = c(4,5,NA,3,5,2,4,5,1),
+    stringsAsFactors = FALSE
+  )
+  # 在下面写代码：数 engagement 列的缺失个数，cat 出来
+expected_output: |
+  1
+hints:
+  - "is.na(df$engagement) 得到一列 TRUE/FALSE"
+  - "sum(...) 对 TRUE 计数"
+  - 'cat(sum(is.na(df$engagement)), "\n", sep="")'

@@ -1,0 +1,29 @@
+title: "输出特征重要性排名"
+topic: "23_sklearn_advanced"
+difficulty: 4
+tags: ["sklearn", "feature-importance", "random-forest"]
+statement: |
+  用随机森林对 iris 数据集建模，输出 4 个特征的重要性排名（从高到低）。
+  格式为每行一个：`特征名: 重要性(保留3位小数)`
+
+  iris 的 4 个特征名为：sepal length, sepal width, petal length, petal width
+
+  使用 `RandomForestClassifier(n_estimators=100, random_state=42)`。
+starter_code: |
+  from sklearn.datasets import load_iris
+  from sklearn.ensemble import RandomForestClassifier
+
+  iris = load_iris()
+  X, y = iris.data, iris.target
+  names = ["sepal length", "sepal width", "petal length", "petal width"]
+
+  # 训练并输出特征重要性（从高到低）
+expected_output: |
+  petal width: 0.458
+  petal length: 0.413
+  sepal length: 0.099
+  sepal width: 0.030
+hints:
+  - "model.feature_importances_ 获取重要性数组"
+  - "用 zip + sorted 按重要性降序排列"
+  - "sorted(zip(names, importances), key=lambda x: -x[1])"

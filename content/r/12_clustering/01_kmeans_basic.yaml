@@ -1,0 +1,24 @@
+title: "kmeans 基础"
+topic: "12_clustering"
+difficulty: 2
+tags: ["kmeans"]
+statement: |
+  对 6 个点（年龄+工资）做 `kmeans(centers=2, nstart=10)`（先 set.seed(42)），
+  输出**簇 1 和簇 2 的样本数**（空格分隔）。
+
+  应为 `3 3`（小年龄/低工资 一簇、大年龄/高工资 一簇）。
+starter_code: |
+  df <- data.frame(
+    age = c(22, 25, 23, 40, 42, 45),
+    salary = c(4000, 4500, 4200, 12000, 13000, 12500)
+  )
+  set.seed(42)
+  km <- kmeans(df, centers = 2, nstart = 10)
+  # cat sort(table(km$cluster))
+
+expected_output: |
+  3 3
+hints:
+  - "tab <- sort(as.numeric(table(km$cluster)))"
+  - "cat(tab, \"\\n\")"
+  - "set.seed 让结果可重现"

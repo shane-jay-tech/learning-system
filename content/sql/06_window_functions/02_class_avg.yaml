@@ -1,0 +1,24 @@
+title: "每行加一列班平均分"
+topic: "06_window_functions"
+difficulty: 2
+tags: ["window", "avg"]
+statement: |
+  给每个学生加一列 `class_avg`（其所在班的平均分）。输出 `name class score class_avg` 四列，按 id 升序。
+
+  A 班均值 (92+75+95)/3=87.33；B 班 (87+60)/2=73.5。
+starter_code: |
+  -- AVG(score) OVER (PARTITION BY class)
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER, class TEXT);
+  INSERT INTO students VALUES (1,'Alice',92,'A'),(2,'Bob',87,'B'),(3,'Cathy',75,'A'),(4,'David',60,'B'),(5,'Eve',95,'A');
+expected_rows:
+  - ["Alice", "A", 92, 87.33333333333333]
+  - ["Bob", "B", 87, 73.5]
+  - ["Cathy", "A", 75, 87.33333333333333]
+  - ["David", "B", 60, 73.5]
+  - ["Eve", "A", 95, 87.33333333333333]
+hints:
+  - "SELECT name, class, score, AVG(score) OVER (PARTITION BY class) AS class_avg FROM students ORDER BY id"
+  - "和 GROUP BY 不一样——所有 5 行都保留"
+  - "AVG 出来的精度看数据库，不要转 ROUND（题目期望原值）"

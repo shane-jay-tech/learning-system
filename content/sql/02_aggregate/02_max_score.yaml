@@ -1,0 +1,19 @@
+title: "找最高分"
+topic: "02_aggregate"
+difficulty: 1
+tags: ["aggregate", "max"]
+statement: |
+  请查询 `students` 表中**最高的成绩**（不需要姓名，只要分数本身）。
+  返回一行一列，值为 95。
+starter_code: |
+  -- 用 MAX(score)
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - [95]
+hints:
+  - "SELECT MAX(score) FROM students;"
+  - "MAX 自动忽略 NULL"
+  - "不需要 WHERE / GROUP BY"

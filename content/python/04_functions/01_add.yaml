@@ -1,0 +1,27 @@
+title: "写一个 add 函数"
+topic: "04_functions"
+difficulty: 1
+tags: ["def", "return"]
+statement: |
+  请定义一个名叫 `add` 的函数，它接受两个整数参数 `a` 和 `b`，**返回**它们的和。
+  然后从标准输入读两个空格分隔的整数，调用 `add` 并 `print` 结果。
+
+  例如输入 `3 5`，输出 `8`。
+starter_code: |
+  def add(a, b):
+      # 在这里写 return 语句
+      pass
+
+  parts = input().split()
+  a = int(parts[0])
+  b = int(parts[1])
+  print(add(a, b))
+expected_output: |
+  8
+tests:
+  - stdin: "3 5\n"
+    expected_output: "8\n"
+hints:
+  - "把 starter_code 里的 pass 换成 return a + b"
+  - "return 的值才能被 print 接住；用 print 不算返回"
+  - "调用 add(a, b) 已经替你写好了"

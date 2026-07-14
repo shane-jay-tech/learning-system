@@ -1,0 +1,22 @@
+title: "LEFT JOIN 找无部门学生"
+topic: "04_joins"
+difficulty: 2
+tags: ["left-join", "null"]
+statement: |
+  请用 LEFT JOIN 找出**没有部门**的学生（dept_id IS NULL，对应右表 d.name 也为 NULL），输出 name 列。
+
+  期望 1 行：David。
+starter_code: |
+  -- SELECT s.name FROM students s LEFT JOIN departments d ON ... WHERE d.name IS NULL
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1, 'HR'), (2, 'Eng');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',2),(3,'Cathy',1),(4,'David',NULL),(5,'Eve',2);
+expected_rows:
+  - ["David"]
+hints:
+  - "LEFT JOIN 保留左表所有行；右边没匹配填 NULL"
+  - "WHERE d.id IS NULL 筛出没匹配的"
+  - "也可以直接 WHERE s.dept_id IS NULL，结果一样"

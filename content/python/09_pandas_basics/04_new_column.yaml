@@ -1,0 +1,26 @@
+title: "新增 grade 列"
+topic: "09_pandas_basics"
+difficulty: 2
+tags: ["pandas", "where"]
+statement: |
+  对 DataFrame 加一列 `grade`：score ≥ 90 是 `A`，80-89 是 `B`，否则 `C`。
+  输出 `grade` 列各取值的**计数**（A 多少 B 多少 C 多少），按 A→B→C 顺序，每行格式 `字母 个数`。
+
+  数据中 score 是 [85,92,78,88,95]，所以 A=2(92,95), B=2(85,88), C=1(78)。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+  })
+  # 加 grade 列，输出 A B C 三个分类的人数
+
+expected_output: |
+  A 2
+  B 2
+  C 1
+hints:
+  - "用 numpy.where 或 apply：df['grade'] = df['score'].apply(lambda s: 'A' if s>=90 else 'B' if s>=80 else 'C')"
+  - "for g in ['A','B','C']: print(g, (df['grade']==g).sum())"
+  - "(布尔 Series).sum() 数 True 的个数"

@@ -1,0 +1,18 @@
+title: "文件求和"
+topic: "08_files_exceptions"
+difficulty: 3
+tags: ["file", "sum", "int"]
+statement: |
+  把数字 `[3, 7, 11, 5, 8]` 每行一个写入 `nums.txt`，
+  然后读出来转 int 求和，输出结果（应为 `34`）。
+starter_code: |
+  nums = [3, 7, 11, 5, 8]
+  # 1) 写入 nums.txt（每行一个数字）
+  # 2) 读出来转 int 求和
+
+expected_output: |
+  34
+hints:
+  - "写：'\\n'.join(str(n) for n in nums)"
+  - "读：for line in f 然后 int(line)"
+  - "求和：sum(int(line) for line in f)"

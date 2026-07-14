@@ -1,0 +1,20 @@
+title: "GLM 预测概率"
+topic: "07_glm"
+difficulty: 3
+tags: ["predict", "probability"]
+statement: |
+  对 years=5 的员工，输出离职**概率**（保留 2 位小数）。
+starter_code: |
+  df <- data.frame(
+    leave = c(0,1,0,1,0,1,0,1),
+    years = c(10,1,8,2,7,1,9,2)
+  )
+  fit <- glm(leave ~ years, data=df, family=binomial)
+  # predict(fit, new, type="response")
+
+expected_output: |
+  0.01
+hints:
+  - "p <- predict(fit, data.frame(years=5), type=\"response\")"
+  - "cat(round(p, 2), \"\\n\")"
+  - 'type="response" 给 0-1 概率；不写默认是 logit'

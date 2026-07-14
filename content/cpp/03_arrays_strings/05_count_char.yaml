@@ -1,0 +1,36 @@
+title: "统计某字符次数"
+topic: "03_arrays_strings"
+difficulty: 2
+tags: ["string", "loop"]
+statement: |
+  从标准输入读两行：
+  - 第 1 行：一个**字符**（单字母）
+  - 第 2 行：一个字符串
+
+  输出该字符在字符串中出现的次数。
+
+  例如输入 `s\nMississippi`，输出 `4`。
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      char c;
+      string s;
+      cin >> c;
+      cin.ignore();
+      getline(cin, s);
+      // 数 c 在 s 中出现次数
+
+      return 0;
+  }
+expected_output: |
+  4
+tests:
+  - stdin: "s\nMississippi\n"
+    expected_output: "4\n"
+hints:
+  - "int n = 0; for (char ch : s) if (ch == c) n++;"
+  - "cin.ignore() 是为了吃掉读 c 后留下的换行"
+  - "cout << n << endl;"

@@ -1,0 +1,26 @@
+title: "TF-IDF 词典大小"
+topic: "15_ab_text"
+difficulty: 3
+tags: ["sklearn", "tfidf"]
+statement: |
+  3 个文档：
+  ```
+  ["I love python programming",
+   "Python is great for data analysis",
+   "Java and python are different"]
+  ```
+  用 `TfidfVectorizer` 构建 TF-IDF 矩阵，输出**词典大小**（应为 12——所有不同词数）。
+starter_code: |
+  from sklearn.feature_extraction.text import TfidfVectorizer
+
+  docs = ["I love python programming",
+          "Python is great for data analysis",
+          "Java and python are different"]
+  # vec.fit_transform(docs)，print 词典大小
+
+expected_output: |
+  12
+hints:
+  - "vec = TfidfVectorizer(); X = vec.fit_transform(docs)"
+  - "print(len(vec.get_feature_names_out()))"
+  - "默认会把单字母去掉、转小写、按空白切——12 个不同词"

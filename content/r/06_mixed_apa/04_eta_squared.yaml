@@ -1,0 +1,23 @@
+title: "ANOVA 的 eta²"
+topic: "06_mixed_apa"
+difficulty: 3
+tags: ["effectsize", "eta-squared"]
+statement: |
+  对 3 班数据做 `aov`，请用 `effectsize::eta_squared` 算 **eta²**，输出 class 这一项（保留 2 位小数）。
+
+  应约 0.92（极大效应）。
+starter_code: |
+  suppressMessages(library(effectsize))
+  df <- data.frame(
+    score = c(85,92,78,88,95, 70,72,65,60,55, 80,82,78,85,90),
+    class = factor(rep(c("A","B","C"), each=5))
+  )
+  fit <- aov(score ~ class, data=df)
+  # eta_squared(fit)，输出 Eta2 列
+
+expected_output: |
+  0.77
+hints:
+  - "es <- eta_squared(fit)"
+  - "cat(round(es$Eta2[1], 2), \"\\n\")"
+  - "η² > 0.14 是大效应"

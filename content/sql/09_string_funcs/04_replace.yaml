@@ -1,0 +1,21 @@
+title: "REPLACE 隐去敏感字段"
+topic: "09_string_funcs"
+difficulty: 2
+tags: ["replace"]
+statement: |
+  把 phone 列里所有 '-' 替换成空（删去），输出 name 和处理后的 phone。
+
+  例如 '138-1234-5678' → '13812345678'。按 id 升序。
+starter_code: |
+  -- SELECT name, REPLACE(phone, '-', '') FROM users ORDER BY id
+
+setup_sql: |
+  CREATE TABLE users (id INTEGER, name TEXT, phone TEXT);
+  INSERT INTO users VALUES (1,'Alice','138-1234-5678'),(2,'Bob','139-2345-6789');
+expected_rows:
+  - ["Alice", "13812345678"]
+  - ["Bob", "13923456789"]
+hints:
+  - "REPLACE(phone, '-', '') 把 '-' 全部替换为空"
+  - "三个参数：原列、被替换、替换为"
+  - "替换是全局的，不只是第一个"

@@ -1,0 +1,21 @@
+title: "成绩最低的 2 名学生"
+topic: "03_orderby_having"
+difficulty: 2
+tags: ["order-by", "limit"]
+statement: |
+  查出 `students` 表中**成绩最低的 2 名学生**，输出 `name, score` 两列。
+
+  期望返回 2 行（David 60、Cathy 75）。
+starter_code: |
+  -- ORDER BY score ASC + LIMIT 2
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - ["David", 60]
+  - ["Cathy", 75]
+hints:
+  - "SELECT name, score FROM students ORDER BY score ASC LIMIT 2"
+  - "ASC 升序（最低的在最前），可省略"
+  - "LIMIT N 只保留前 N 行"

@@ -1,0 +1,20 @@
+title: "计算离职率"
+topic: "20_hr_pandas"
+difficulty: 2
+tags: ["pandas", "hr", "turnover"]
+statement: |
+  读取 HR 员工数据（df 已加载），计算**整体离职率**：
+  离职率 = 有 leave_date 的人数 / 总人数
+
+  输出保留 1 位小数的百分比，如：25.4%
+starter_code: |
+  import pandas as pd
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 计算离职率并输出
+expected_output: |
+  24.4%
+hints:
+  - "leave_date 为 NaN 表示在职，有日期表示已离职"
+  - "df['leave_date'].notna().sum() 得到离职人数"

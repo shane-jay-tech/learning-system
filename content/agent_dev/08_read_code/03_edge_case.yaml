@@ -1,0 +1,41 @@
+title: "这个函数什么情况下会崩？"
+topic: "08_read_code"
+difficulty: 3
+tags: ["read-code", "edge-case", "open", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  这个函数算一组分数的平均值：
+
+  ```python
+  def average(scores):
+      total = 0
+      for s in scores:
+          total += s
+      return total / len(scores)
+  ```
+
+  代码本身逻辑没错，但在**某种输入**下会直接崩溃报错。
+
+  请回答：
+  1. 什么输入会让它崩？崩在哪一行、报什么错？
+  2. 你会怎么改，让它在这种情况下不崩、给个合理结果？
+starter_code: ""
+rubric:
+  - "找到边界：空列表 [] 会让 len(scores)==0，最后一行除以零"
+  - "说对错误：ZeroDivisionError（除以零）"
+  - "给出修复：调用前判断 if not scores: return 0（或 None / 抛有意义的提示），避免除零"
+  - "体现'读代码时主动想边界'的意识"
+reference_answer: |
+  1. **崩在空列表**：如果传进来的是 `[]`（一个分数都没有），`len(scores)` 是 0，最后一行 `total / len(scores)` 就变成 `0 / 0`，抛 **ZeroDivisionError（除以零）**。
+  2. **修复**：在做除法前先判断列表是否为空——
+     ```python
+     def average(scores):
+         if not scores:
+             return 0   # 或 return None，看业务上"没有数据"该返回什么
+         return sum(scores) / len(scores)
+     ```
+     具体返回 0 还是 None，取决于业务：如果"没人答题"应显示"暂无数据"，返回 None 更诚实；如果当 0 处理也行。关键是**别让它崩**。
+hints:
+  - "最后一行有个除法——除数会不会变成 0？"
+  - "什么样的 scores 会让 len 等于 0？"
+  - "修复就是在除法前先挡一下空的情况。"

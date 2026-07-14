@@ -1,0 +1,29 @@
+title: "HTTP 状态码速判"
+topic: "10_debug_logs"
+difficulty: 1
+tags: ["debug", "http", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  以下 5 个错误场景，分别对应什么 HTTP 状态码？
+  对每个场景说出状态码 + 一句话解释问题在谁。
+
+  1. 前端传了 `{"username": ""}` 给注册接口
+  2. 用户的 token 过期了
+  3. 用户尝试删除别人的文件（权限不够）
+  4. 后端代码里有个 bug 导致 None.split()
+  5. 后端调用 GPT API 但 OpenAI 服务器挂了
+starter_code: ""
+rubric:
+  - "400 Bad Request — 客户端传参有误"
+  - "401 Unauthorized — 认证失效"
+  - "403 Forbidden — 有权限但不够"
+  - "500 Internal Server Error — 服务端代码 bug"
+  - "502/503 — 上游服务挂了"
+reference_answer: |
+  1. 400 Bad Request — 问题在客户端（传了空用户名）
+  2. 401 Unauthorized — 问题在客户端（token 需要刷新或重新登录）
+  3. 403 Forbidden — 问题在权限设计（用户认证了但没权限操作这个资源）
+  4. 500 Internal Server Error — 问题在后端代码（NoneType 没有 split 方法）
+  5. 502 Bad Gateway — 问题在上游服务（OpenAI 不响应，我们的后端作为网关转发失败）
+hints:
+  - "4xx = 客户端/请求有问题，5xx = 服务端/上游有问题。"

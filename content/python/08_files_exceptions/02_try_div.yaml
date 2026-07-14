@@ -1,0 +1,22 @@
+title: "安全除法"
+topic: "08_files_exceptions"
+difficulty: 1
+tags: ["try-except", "ZeroDivisionError"]
+statement: |
+  从标准输入读两个空格分隔的整数 a b，输出 a/b 的整数除法（向下取整 `//`）。
+  如果 b 是 0（抛 ZeroDivisionError），输出 `cannot divide by zero`。
+
+  例如输入 `10 3` → `3`；输入 `10 0` → `cannot divide by zero`。
+starter_code: |
+  a, b = [int(x) for x in input().split()]
+  # 用 try-except 捕 ZeroDivisionError
+
+expected_output: |
+  3
+tests:
+  - stdin: "10 3\n"
+    expected_output: "3\n"
+hints:
+  - "try: print(a // b)"
+  - "except ZeroDivisionError: print('cannot divide by zero')"
+  - "// 是整数除法（向下取整）"

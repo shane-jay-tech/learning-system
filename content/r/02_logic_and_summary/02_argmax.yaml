@@ -1,0 +1,18 @@
+title: "最高分在第几位"
+topic: "02_logic_and_summary"
+difficulty: 2
+tags: ["which.max", "index"]
+statement: |
+  向量 `scores <- c(72, 88, 91, 65, 79)` 已经写好。
+  请用 `cat` 输出**最高分在第几个位置**（注意 R 下标从 1 开始）。
+  91 在第 3 位，所以应该输出 `3`。
+starter_code: |
+  scores <- c(72, 88, 91, 65, 79)
+  # 在下面用 cat 输出最高分的位置
+
+expected_output: |
+  3
+hints:
+  - "which.max(scores) 给出最大值的位置"
+  - "不要用 max()——那返回的是值不是位置"
+  - "cat(which.max(scores), \"\\n\")"

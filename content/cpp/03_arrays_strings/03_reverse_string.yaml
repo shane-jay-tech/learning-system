@@ -1,0 +1,30 @@
+title: "字符串反转"
+topic: "03_arrays_strings"
+difficulty: 2
+tags: ["string"]
+statement: |
+  读一行字符串（可能含空格），输出反转后的字符串。
+
+  例如输入 `Hello World`，输出 `dlroW olleH`。
+starter_code: |
+  #include <iostream>
+  #include <string>
+  #include <algorithm>
+  using namespace std;
+
+  int main() {
+      string s;
+      getline(cin, s);
+      // 反转 s 并输出
+
+      return 0;
+  }
+expected_output: |
+  dlroW olleH
+tests:
+  - stdin: "Hello World\n"
+    expected_output: "dlroW olleH\n"
+hints:
+  - "reverse(s.begin(), s.end()); cout << s;"
+  - "用 getline 才能读含空格的整行"
+  - "需要 #include <algorithm>"

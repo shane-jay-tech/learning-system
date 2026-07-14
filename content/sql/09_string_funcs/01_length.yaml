@@ -1,0 +1,24 @@
+title: "按姓名长度排序"
+topic: "09_string_funcs"
+difficulty: 1
+tags: ["length"]
+statement: |
+  输出每个学生的 name 和 name 的长度，按长度升序。
+
+  期望：Bob(3), Eve(3), Alice(5), Cathy(5), David(5)（按长度升序，相同长度按 id）。
+starter_code: |
+  -- SELECT name, LENGTH(name) FROM students ORDER BY LENGTH(name), id
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT);
+  INSERT INTO students VALUES (1,'Alice'),(2,'Bob'),(3,'Cathy'),(4,'David'),(5,'Eve');
+expected_rows:
+  - ["Bob", 3]
+  - ["Eve", 3]
+  - ["Alice", 5]
+  - ["Cathy", 5]
+  - ["David", 5]
+hints:
+  - "SELECT name, LENGTH(name) FROM students ORDER BY LENGTH(name), id"
+  - "ORDER BY 第一列优先，相同时按第二列"
+  - "LENGTH 返回字符数（SQLite 对 UTF-8 是字节数；ASCII 一致）"

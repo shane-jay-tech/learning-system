@@ -1,0 +1,102 @@
+title: "Agent 指挥主线"
+subtitle: "学会高效指挥 AI agent 完成项目开发"
+icon: "🤖"
+estimated_hours: 22
+
+milestones:
+  - id: a0
+    title: "编程预备"
+    description: "先补齐读懂代码所需的 Python 基础——变量、输入输出、条件、循环、函数"
+    topics:
+      - "python/01_hello_and_vars"
+      - "python/02_conditionals"
+      - "python/03_loops"
+      - "python/04_functions"
+      - "python/05_lists"
+    estimated_hours: 4
+    graduation_project: "读懂一段 30 行以内的 Python 小脚本，并解释输入、处理、输出三个阶段"
+
+  - id: a1
+    title: "Git 救命技能"
+    description: "版本管理基础 —— agent 写坏代码时如何回滚"
+    topics:
+      - "agent_dev/01_git_basics"
+    estimated_hours: 2
+    prereqs: ["a0"]
+    graduation_project: "模拟一次 agent 写坏代码后用 git revert 恢复"
+
+  - id: a2
+    title: "读懂代码"
+    description: "能看懂 agent 写出来的代码在做什么"
+    topics:
+      - "agent_dev/02_debug_read"
+      - "agent_dev/08_read_code"
+    estimated_hours: 3
+    prereqs: ["a1"]
+    graduation_project: "读一段 agent 写的 100 行代码，找出 3 个潜在问题"
+
+  - id: a3
+    title: "写需求 Spec"
+    description: "让 agent 不跑偏的核心技能"
+    topics:
+      - "agent_dev/03_spec_writing"
+      - "agent_dev/07_write_spec"
+    estimated_hours: 3
+    prereqs: ["a1"]
+    graduation_project: "为一个功能（如「加一个导出按钮」）写完整 spec 含验收标准"
+
+  - id: a4
+    title: "验收 Agent 产出"
+    description: "审代码、找问题、写反馈"
+    topics:
+      - "agent_dev/04_review_agent"
+      - "agent_dev/08_review_pr"
+    estimated_hours: 3
+    prereqs: ["a2"]
+    graduation_project: "审一份 agent 的 PR diff 并写出 3 条有价值的反馈意见"
+
+  - id: a5
+    title: "任务拆解"
+    description: "把大需求拆成 agent 能独立完成的子任务"
+    topics:
+      - "agent_dev/05_modular_config"
+      - "agent_dev/09_decompose"
+    estimated_hours: 2
+    prereqs: ["a3"]
+    graduation_project: "把「给系统加用户登录功能」拆成 5 个可独立验收的子任务"
+
+  - id: a6
+    title: "调试定位"
+    description: "从报错信息判断问题出在哪"
+    topics:
+      - "agent_dev/10_debug_logs"
+    estimated_hours: 2
+    prereqs: ["a2"]
+    graduation_project: "给 3 段报错信息分别写出「问题在哪一层」和「应该让 agent 做什么」"
+
+  - id: a7
+    title: "真实任务实战"
+    description: "把所有技能串起来——模拟真实开发场景的综合练习"
+    topics:
+      - "agent_dev/11_real_tasks"
+    estimated_hours: 3
+    prereqs: ["a3", "a4", "a6"]
+    graduation_project: "完成一次从需求到交付的全流程：写 spec → 拆任务 → 审代码 → 处理突发问题"
+
+  - id: a8
+    title: "Spec 迭代"
+    description: "从坏 Spec 出发，诊断问题、修正表述、连续改进"
+    topics:
+      - "agent_dev/12_spec_iteration"
+    estimated_hours: 2
+    prereqs: ["a3", "a7"]
+    graduation_project: "拿一个失败的真实 Spec，诊断根因并在 2 轮迭代内产出可执行版本"
+
+  - id: a9
+    title: "多轮迭代"
+    description: "需求变更、回归修复、优先级排序——真实项目中的连续决策"
+    topics:
+      - "agent_dev/13_multi_round"
+    estimated_hours: 2
+    prereqs: ["a7", "a8"]
+    graduation_project: "管理一个三轮迭代项目：v1 上线、处理反馈、增量交付 v2"

@@ -1,0 +1,18 @@
+title: "keep 过滤偶数"
+topic: "09_purrr_map"
+difficulty: 2
+tags: ["purrr", "keep"]
+statement: |
+  用 `keep(1:10, ~ .x %% 2 == 0)` 过滤出偶数，输出空格分隔。
+
+  期望：`2 4 6 8 10`。
+starter_code: |
+  suppressMessages(library(purrr))
+  # keep + cat
+
+expected_output: |
+  2 4 6 8 10
+hints:
+  - "evens <- keep(1:10, ~ .x %% 2 == 0)"
+  - "cat(evens, \"\\n\")"
+  - "discard 是反向（去掉满足条件的）"

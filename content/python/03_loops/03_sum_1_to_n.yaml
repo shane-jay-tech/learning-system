@@ -1,0 +1,23 @@
+title: "求 1+2+...+N"
+topic: "03_loops"
+difficulty: 1
+tags: ["for", "sum"]
+statement: |
+  从标准输入读一个正整数 `N`，输出 `1 + 2 + 3 + ... + N` 的值。
+
+  例如输入 `100`，应输出 `5050`。
+starter_code: |
+  n = int(input())
+  total = 0
+  # 用 for 循环累加 1 到 n
+
+  print(total)
+expected_output: |
+  5050
+tests:
+  - stdin: "100\n"
+    expected_output: "5050\n"
+hints:
+  - "累加变量 total 先要初始化为 0"
+  - "for i in range(1, n+1): total += i"
+  - "进阶：Python 自带 sum() 函数也行：print(sum(range(1, n+1)))"

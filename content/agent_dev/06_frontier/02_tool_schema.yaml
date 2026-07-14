@@ -1,0 +1,21 @@
+title: "function calling 用什么格式描述函数"
+topic: "06_frontier"
+difficulty: 2
+tags: ["frontier", "tool-use"]
+statement: |
+  Claude / GPT 的 function calling 里，函数描述用什么格式？
+  - A: YAML
+  - B: JSON Schema
+  - C: 自然语言
+  - D: TypeScript 类型
+
+  输出对应字母。
+starter_code: |
+  answer = "..."
+  print(answer)
+expected_output: |
+  B
+hints:
+  - "JSON Schema 是行业标准——LLM 看它知道函数有哪些参数、什么类型"
+  - "字段：type / properties / required"
+  - "一段 schema 通用——LLM 跨厂商基本兼容"

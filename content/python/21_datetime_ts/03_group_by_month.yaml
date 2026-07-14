@@ -1,0 +1,28 @@
+title: "按月统计入职人数"
+topic: "21_datetime_ts"
+difficulty: 4
+tags: ["datetime", "groupby"]
+statement: |
+  给定入职日期列表：
+  ```python
+  dates = ["2024-01-10", "2024-01-22", "2024-02-05", "2024-03-18", "2024-01-30"]
+  ```
+  统计每月入职人数，按月份升序输出，格式为：
+  ```
+  2024-01: 3
+  2024-02: 1
+  2024-03: 1
+  ```
+starter_code: |
+  from datetime import datetime
+
+  dates = ["2024-01-10", "2024-01-22", "2024-02-05", "2024-03-18", "2024-01-30"]
+
+  # 按月统计
+expected_output: |
+  2024-01: 3
+  2024-02: 1
+  2024-03: 1
+hints:
+  - "先用 strptime 解析，再用 strftime('%Y-%m') 提取年月"
+  - "可以用字典计数，最后 sorted() 输出"

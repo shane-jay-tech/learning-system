@@ -1,0 +1,21 @@
+title: "改 IndexError"
+topic: "02_debug_read"
+difficulty: 2
+tags: ["debug", "fix", "list"]
+statement: |
+  下面的代码越界（list 长度 3 但访问 [3]）：
+  ```python
+  v = [10, 20, 30]
+  print(v[3])
+  ```
+  请改成访问**最后一个元素**（10、20、30 中最后那个 30）。
+starter_code: |
+  v = [10, 20, 30]
+  # 改下标，输出 30
+  print(v[3])
+expected_output: |
+  30
+hints:
+  - "下标从 0 开始，最后是 v[2] 或 v[-1]"
+  - "v[-1] 永远是最后一个，最稳"
+  - "v[len(v)-1] 也可以"

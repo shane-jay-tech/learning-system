@@ -1,0 +1,19 @@
+title: "str_replace_all 屏蔽数字"
+topic: "10_stringr_lubridate"
+difficulty: 2
+tags: ["stringr", "regex"]
+statement: |
+  把 `"Phone: 138-1234-5678"` 中所有数字替换成 `*`，输出结果。
+
+  期望：`Phone: ***-****-****`。
+starter_code: |
+  suppressMessages(library(stringr))
+  s <- "Phone: 138-1234-5678"
+  # str_replace_all + cat
+
+expected_output: |
+  Phone: ***-****-****
+hints:
+  - "result <- str_replace_all(s, \"\\\\d\", \"*\")"
+  - "cat(result, \"\\n\")"
+  - "\\\\d 是匹配数字的正则；R 字符串里要双反斜杠"

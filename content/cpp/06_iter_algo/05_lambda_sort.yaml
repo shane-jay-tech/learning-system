@@ -1,0 +1,32 @@
+title: "lambda 自定义排序"
+topic: "06_iter_algo"
+difficulty: 3
+tags: ["lambda", "sort"]
+statement: |
+  读 N + N 个整数。请用 lambda 表达式 + sort，让数组**先按绝对值升序，绝对值相同时按原值升序**。
+
+  输入 `5\n-3 1 -1 2 -2`，输出 `-1 1 -2 2 -3`（绝对值 1<1<2<2<3，绝对值相同时 -1<1，-2<2）。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <algorithm>
+  #include <cstdlib>
+  using namespace std;
+
+  int main() {
+      int n; cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      // 用 lambda：先比 abs，再比原值
+
+      return 0;
+  }
+expected_output: |
+  -1 1 -2 2 -3
+tests:
+  - stdin: "5\n-3 1 -1 2 -2\n"
+    expected_output: "-1 1 -2 2 -3\n"
+hints:
+  - "sort(v.begin(), v.end(), [](int a, int b){ return abs(a) != abs(b) ? abs(a) < abs(b) : a < b; });"
+  - "lambda：[](参数){ 函数体 }"
+  - "abs() 在 <cstdlib> 里"

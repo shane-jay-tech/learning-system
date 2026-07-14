@@ -1,0 +1,24 @@
+title: "SUBSTR 取首字母"
+topic: "09_string_funcs"
+difficulty: 1
+tags: ["substr"]
+statement: |
+  输出每个学生的 name 和 name 的**首字母**（大写），按 id 升序。
+
+  Alice→A, Bob→B, Cathy→C, David→D, Eve→E。
+starter_code: |
+  -- SELECT name, UPPER(SUBSTR(name, 1, 1)) FROM students ORDER BY id
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT);
+  INSERT INTO students VALUES (1,'Alice'),(2,'Bob'),(3,'Cathy'),(4,'David'),(5,'Eve');
+expected_rows:
+  - ["Alice", "A"]
+  - ["Bob", "B"]
+  - ["Cathy", "C"]
+  - ["David", "D"]
+  - ["Eve", "E"]
+hints:
+  - "SUBSTR(name, 1, 1) 取第 1 位 1 个字符"
+  - "UPPER(...) 转大写"
+  - "SQLite SUBSTR 下标从 1 开始"

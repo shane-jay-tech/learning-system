@@ -1,0 +1,23 @@
+title: "散点图并输出平均"
+topic: "11_matplotlib"
+difficulty: 2
+tags: ["plot", "scatter"]
+statement: |
+  数据：x=[1,2,3,4,5], y=[2,4,5,4,6]。画散点图保存到 `scatter.png`，并输出 y 的均值（保留 1 位小数）。
+
+  应输出 `4.2`。
+starter_code: |
+  import matplotlib
+  matplotlib.use("Agg")
+  import matplotlib.pyplot as plt
+
+  x = [1, 2, 3, 4, 5]
+  y = [2, 4, 5, 4, 6]
+  # 画散点图保存为 scatter.png，再 print 均值（1 位小数）
+
+expected_output: |
+  4.2
+hints:
+  - "plt.scatter(x, y)"
+  - "plt.savefig('scatter.png'); plt.close()"
+  - "print(f'{sum(y)/len(y):.1f}')"

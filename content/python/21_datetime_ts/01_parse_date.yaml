@@ -1,0 +1,16 @@
+title: "解析日期字符串"
+topic: "21_datetime_ts"
+difficulty: 2
+tags: ["datetime", "strptime"]
+statement: |
+  把字符串 `"2024-03-15"` 解析成日期对象，然后用 `strftime` 输出为 `"2024年03月15日"` 格式。
+starter_code: |
+  from datetime import datetime
+
+  s = "2024-03-15"
+  # 解析并格式化输出
+expected_output: |
+  2024年03月15日
+hints:
+  - "datetime.strptime(s, '%Y-%m-%d') 解析"
+  - "dt.strftime('%Y年%m月%d日') 格式化"

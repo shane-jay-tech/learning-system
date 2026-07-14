@@ -1,0 +1,23 @@
+title: "算两日期相差天数"
+topic: "10_date_funcs"
+difficulty: 2
+tags: ["julianday", "diff"]
+statement: |
+  输出 hire_date 到 `'2026-05-29'` 的天数（向下取整为整数）。
+  按 id 升序，输出 name 和天数。
+
+  Alice 2024-01-15 → 865 天，Bob 2024-06-20 → 708，Cathy 2025-03-10 → 445。
+starter_code: |
+  -- SELECT name, CAST(JULIANDAY('2026-05-29') - JULIANDAY(hire_date) AS INTEGER) FROM employees ORDER BY id
+
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, hire_date TEXT);
+  INSERT INTO employees VALUES (1,'Alice','2024-01-15'),(2,'Bob','2024-06-20'),(3,'Cathy','2025-03-10');
+expected_rows:
+  - ["Alice", 865]
+  - ["Bob", 708]
+  - ["Cathy", 445]
+hints:
+  - "JULIANDAY(date) 返回浮点数"
+  - "相减得到天数差"
+  - "CAST(... AS INTEGER) 向下取整"

@@ -1,0 +1,44 @@
+title: "多 catch 顺序"
+topic: "11_exceptions"
+difficulty: 3
+tags: ["multi-catch"]
+statement: |
+  函数 risky(int) 接受参数：
+  - 1 → throw out_of_range("oob")
+  - 2 → throw runtime_error("rt")
+  - 0 → 不抛
+
+  按顺序写两个 catch 接住对应异常输出 `oob` / `rt`。
+
+  输入 `1`，输出 `oob`。
+starter_code: |
+  #include <iostream>
+  #include <stdexcept>
+  using namespace std;
+
+  void risky(int x) {
+      if (x == 1) throw out_of_range("oob");
+      if (x == 2) throw runtime_error("rt");
+  }
+
+  int main() {
+      int x; cin >> x;
+      try {
+          risky(x);
+          cout << "ok" << endl;
+      } catch (const out_of_range& e) {
+          // print oob
+      } catch (const runtime_error& e) {
+          // print rt
+      }
+      return 0;
+  }
+expected_output: |
+  oob
+tests:
+  - stdin: "1\n"
+    expected_output: "oob\n"
+hints:
+  - "out_of_range 是 logic_error 的子类，runtime_error 不是它的父类——所以顺序无大碍"
+  - "但派生类必须在基类之前 catch"
+  - "cout << \"oob\" << endl; 和 \"rt\" << endl;"

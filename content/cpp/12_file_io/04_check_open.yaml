@@ -1,0 +1,25 @@
+title: "判断文件存在"
+topic: "12_file_io"
+difficulty: 2
+tags: ["fstream", "is_open"]
+statement: |
+  尝试打开 `nonexistent_file.txt`，如果打不开输出 `not found`。
+
+  期望输出 `not found`。
+starter_code: |
+  #include <iostream>
+  #include <fstream>
+  using namespace std;
+
+  int main() {
+      ifstream in("nonexistent_file.txt");
+      // 用 in.is_open() 检查（最稳定的写法）
+
+      return 0;
+  }
+expected_output: |
+  not found
+hints:
+  - "if (!in.is_open()) cout << \"not found\" << endl;"
+  - "is_open() 跨编译器最一致；!in 在某些 mingw 版本不准"
+  - "更稳的判断：if (!in.is_open() || in.fail())"

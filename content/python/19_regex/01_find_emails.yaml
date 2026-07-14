@@ -1,0 +1,28 @@
+title: "找出所有邮箱"
+topic: "19_regex"
+difficulty: 2
+tags: ["regex", "findall"]
+statement: |
+  从输入读一段文字，**用 re.findall** 找出所有邮箱地址，按出现顺序每行输出一个。
+
+  例如输入 `Contact alice@x.com or bob@y.org`，输出：
+  ```
+  alice@x.com
+  bob@y.org
+  ```
+starter_code: |
+  import re
+
+  text = input()
+  # 用 re.findall(r"[\w.+-]+@[\w.-]+\.\w+", text) 找出邮箱
+
+expected_output: |
+  alice@x.com
+  bob@y.org
+tests:
+  - stdin: "Contact alice@x.com or bob@y.org\n"
+    expected_output: "alice@x.com\nbob@y.org\n"
+hints:
+  - "emails = re.findall(r'[\\w.+-]+@[\\w.-]+\\.\\w+', text)"
+  - "for e in emails: print(e)"
+  - "用 raw string r'...' 避免 \\ 转义麻烦"

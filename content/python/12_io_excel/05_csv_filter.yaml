@@ -1,0 +1,24 @@
+title: "读 csv 筛选并写新文件"
+topic: "12_io_excel"
+difficulty: 3
+tags: ["csv", "filter", "io"]
+statement: |
+  - 把 5 行（name + score）写到 `all.csv`
+  - 读出来后筛选 `score >= 80` 的行
+  - 把筛选结果写到 `pass.csv`
+  - 再读 `pass.csv` 输出**行数**（应为 4）。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+  })
+  # 写 all.csv → 读 → 筛 → 写 pass.csv → 再读 → print 行数
+
+expected_output: |
+  4
+hints:
+  - "df.to_csv('all.csv', index=False)"
+  - "all_df = pd.read_csv('all.csv'); pas = all_df[all_df['score'] >= 80]"
+  - "pas.to_csv('pass.csv', index=False); print(len(pd.read_csv('pass.csv')))"

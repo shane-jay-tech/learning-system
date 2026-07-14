@@ -1,0 +1,23 @@
+title: "多元回归"
+topic: "05_lm_anova"
+difficulty: 3
+tags: ["lm", "multivariate"]
+statement: |
+  数据：salary ~ years + age。
+  用 lm 拟合后输出**调整后 R²**（adjusted R²，保留 3 位小数）。
+
+  应约 0.966。
+starter_code: |
+  df <- data.frame(
+    salary = c(5000, 7500, 9500, 11000, 13500, 14000),
+    years = c(1, 3, 5, 7, 9, 11),
+    age = c(22, 25, 30, 33, 38, 42)
+  )
+  # lm(salary ~ years + age)，输出 adj.r.squared
+
+expected_output: |
+  0.966
+hints:
+  - "fit <- lm(salary ~ years + age, data=df)"
+  - "cat(round(summary(fit)$adj.r.squared, 3), \"\\n\")"
+  - "adj R² 调整后的；变量多时比 R² 更可靠"

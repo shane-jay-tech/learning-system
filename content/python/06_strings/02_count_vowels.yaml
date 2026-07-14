@@ -1,0 +1,21 @@
+title: "数元音字母"
+topic: "06_strings"
+difficulty: 2
+tags: ["loop", "in"]
+statement: |
+  从标准输入读一行英文字符串，输出**元音字母**（a/e/i/o/u，不区分大小写）的个数。
+
+  例如输入 `Hello World`，元音是 `e o o`，共 3 个，输出 `3`。
+starter_code: |
+  s = input()
+  # 数元音个数（不分大小写）
+
+expected_output: |
+  3
+tests:
+  - stdin: "Hello World\n"
+    expected_output: "3\n"
+hints:
+  - "统一转小写：s.lower()"
+  - "for c in s.lower(): if c in 'aeiou': count += 1"
+  - "更简洁：sum(1 for c in s.lower() if c in 'aeiou')"

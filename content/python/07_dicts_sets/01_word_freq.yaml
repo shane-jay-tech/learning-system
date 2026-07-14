@@ -1,0 +1,31 @@
+title: "词频统计"
+topic: "07_dicts_sets"
+difficulty: 2
+tags: ["dict", "split"]
+statement: |
+  从标准输入读一行英文句子（用空白分单词），输出每个单词出现的次数。
+  按**单词字典序**输出，每行一个 `单词 次数`，空格分隔。
+
+  例如输入 `apple banana apple cherry banana apple`，输出：
+  ```
+  apple 3
+  banana 2
+  cherry 1
+  ```
+starter_code: |
+  s = input()
+  words = s.split()
+  counts = {}
+  # 用 dict 统计每个单词次数；按字典序输出
+
+expected_output: |
+  apple 3
+  banana 2
+  cherry 1
+tests:
+  - stdin: "apple banana apple cherry banana apple\n"
+    expected_output: "apple 3\nbanana 2\ncherry 1\n"
+hints:
+  - "for w in words: counts[w] = counts.get(w, 0) + 1"
+  - "排序：sorted(counts.items()) 按 key 字典序"
+  - "输出每行：print(f\"{word} {count}\")"

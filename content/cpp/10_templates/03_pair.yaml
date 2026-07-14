@@ -1,0 +1,32 @@
+title: "Pair<K, V> 多参数模板"
+topic: "10_templates"
+difficulty: 2
+tags: ["template", "two-params"]
+statement: |
+  定义 `Pair<K, V>` 含 first 和 second，方法 `show()` 输出 `first second`（空格分隔）。
+  从输入读 `name age`（string + int），构造 `Pair<string, int>(name, age)` 后调 show。
+
+  输入 `Alice 25`，输出 `Alice 25`。
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  // template <typename K, typename V> class Pair { ... };
+
+  int main() {
+      string name; int age;
+      cin >> name >> age;
+      Pair<string, int> p(name, age);
+      p.show();
+      return 0;
+  }
+expected_output: |
+  Alice 25
+tests:
+  - stdin: "Alice 25\n"
+    expected_output: "Alice 25\n"
+hints:
+  - "template <typename K, typename V> class Pair { public: K first; V second; Pair(K k, V v) : first(k), second(v) {} void show() { cout << first << \" \" << second << endl; } };"
+  - "多个类型参数用逗号"
+  - "标准库的 std::pair 也是这样实现的"

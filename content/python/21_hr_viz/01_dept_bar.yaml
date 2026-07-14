@@ -1,0 +1,42 @@
+title: "部门人数柱状图"
+topic: "21_hr_viz"
+difficulty: 2
+tags: ["matplotlib", "bar", "hr"]
+judge_mode: ai_open
+statement: |
+  用 matplotlib 画一个**水平柱状图**，展示各部门人数。
+
+  要求：
+  - 读取 hr_employees.csv
+  - X 轴是人数，Y 轴是部门名
+  - 按人数从多到少排序（最多的在最上面）
+  - 加标题 "Department Headcount"
+  - 保存为 output.png
+
+  提交你的完整代码。
+starter_code: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 画水平柱状图并保存
+rubric:
+  - "正确使用了 barh（水平柱状图）"
+  - "按人数排序了（sort_values）"
+  - "设置了标题"
+  - "保存了 output.png"
+reference_answer: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  counts = df['department'].value_counts().sort_values()
+  plt.figure(figsize=(8, 5))
+  plt.barh(counts.index, counts.values)
+  plt.title("Department Headcount")
+  plt.tight_layout()
+  plt.savefig("output.png")
+hints:
+  - "plt.barh(y, width) 画水平柱状图"
+  - "sort_values() 从小到大排序后，最多的自然在最上面"

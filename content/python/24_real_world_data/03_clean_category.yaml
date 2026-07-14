@@ -1,0 +1,37 @@
+title: "把乱七八糟的部门名统一"
+topic: "24_real_world_data"
+difficulty: 3
+tags: ["pandas", "cleaning", "real-data"]
+statement: |
+  `department` 列写得乱七八糟：有 `Sales`、`sales `（带空格）、`HR`、`hr`……
+  其实是同一个部门，只是大小写和空格不统一。
+
+  请先**去掉首尾空格、再把首字母大写**（`str.strip().str.title()`），
+  然后输出清洗后**有几个不同的部门**——按字母顺序，每行一个部门名。
+
+  期望输出 Engineering / Hr / Sales。
+starter_code: |
+  import io
+  import pandas as pd
+
+  DATA = """emp_id,name,department,engagement,tenure_months,submit_date
+  1001,Alice,Sales,4,18,2026-05-01
+  1002,Bob,sales ,5,7,2026-05-01
+  1003,Cathy,Engineering,,32,2026-05-02
+  1004,David, Engineering,3,5,2026-05-02
+  1005,Eve,HR,5,48,2026-05-03
+  1006,Frank,hr,2,3,2026-05-03
+  1007,Grace,Sales,4,,2026-05-04
+  1002,Bob,sales ,5,7,2026-05-01
+  1008,Heidi,Engineering,1,14,2026-05-05"""
+
+  df = pd.read_csv(io.StringIO(DATA))
+  # 在下面写代码：规范 department，输出排序后的不同部门名，每行一个
+expected_output: |
+  Engineering
+  Hr
+  Sales
+hints:
+  - "df['department'].str.strip().str.title() 先去空格再首字母大写"
+  - "用 .drop_duplicates().sort_values() 去重并排序"
+  - "for d in cleaned: print(d)"

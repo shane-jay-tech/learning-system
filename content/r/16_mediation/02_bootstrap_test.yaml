@@ -1,0 +1,31 @@
+title: "Bootstrap 检验中介效应"
+topic: "16_mediation"
+difficulty: 3
+tags: ["mediation", "bootstrap", "lavaan"]
+judge_mode: ai_open
+statement: |
+  用 lavaan 做中介检验时，通常用 Bootstrap 方法而不是 Sobel 检验。
+
+  请回答：
+  1. 为什么 Bootstrap 比 Sobel 检验更推荐？
+  2. Bootstrap 的基本原理是什么？（用大白话解释）
+  3. 以下 lavaan 输出如何解读？
+
+  ```
+  Indirect effect (a*b):
+    Estimate = 0.23, SE = 0.06
+    95% CI [0.12, 0.35]  (Bootstrap, 5000 samples)
+  ```
+
+  中介效应显著吗？为什么？
+starter_code: ""
+rubric:
+  - "Bootstrap 不假设正态分布（间接效应的抽样分布通常偏态）"
+  - "Bootstrap 原理: 从样本反复抽样 N 千次，每次重新估计间接效应，用这些估计值构建置信区间"
+  - "CI [0.12, 0.35] 不包含 0 → 间接效应显著"
+reference_answer: |
+  1. Sobel 假设间接效应 a*b 服从正态分布，但实际上它通常是偏态的。Bootstrap 不需要这个假设，适用范围更广、统计功效更高。
+  2. 大白话: 从你的 300 人数据里「有放回地」随机抽 300 人（会有重复），重新算一次间接效应。重复 5000 次，得到 5000 个间接效应值。把这 5000 个值从小到大排列，取第 2.5% 和 97.5% 位置的值作为 95% 置信区间。
+  3. 95% CI = [0.12, 0.35]，区间不包含 0 → 间接效应显著（p < .05）。中介效应成立。
+hints:
+  - "判断显著性的关键: 置信区间是否包含 0"

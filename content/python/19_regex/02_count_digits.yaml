@@ -1,0 +1,23 @@
+title: "数字总数"
+topic: "19_regex"
+difficulty: 1
+tags: ["regex", "findall"]
+statement: |
+  从输入读一行，输出**数字字符**（0-9）的个数。
+
+  输入 `Phone: 138-1234-5678`，数字 11 个，输出 `11`。
+starter_code: |
+  import re
+
+  text = input()
+  # findall(r"\d", text) 然后 len
+
+expected_output: |
+  11
+tests:
+  - stdin: "Phone: 138-1234-5678\n"
+    expected_output: "11\n"
+hints:
+  - "print(len(re.findall(r'\\d', text)))"
+  - "\\d 匹配单个数字字符"
+  - "或者 sum(1 for c in text if c.isdigit())——纯 Python 不用 re 也行"

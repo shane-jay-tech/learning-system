@@ -1,0 +1,31 @@
+title: "去掉重复提交的问卷"
+topic: "24_real_world_data"
+difficulty: 2
+tags: ["pandas", "duplicates", "real-data"]
+statement: |
+  有人把同一份问卷**提交了两次**（整行一模一样的重复）。
+
+  请去掉**完全重复**的行，然后输出**剩下多少行**（一个数字）。
+starter_code: |
+  import io
+  import pandas as pd
+
+  DATA = """emp_id,name,department,engagement,tenure_months,submit_date
+  1001,Alice,Sales,4,18,2026-05-01
+  1002,Bob,sales ,5,7,2026-05-01
+  1003,Cathy,Engineering,,32,2026-05-02
+  1004,David, Engineering,3,5,2026-05-02
+  1005,Eve,HR,5,48,2026-05-03
+  1006,Frank,hr,2,3,2026-05-03
+  1007,Grace,Sales,4,,2026-05-04
+  1002,Bob,sales ,5,7,2026-05-01
+  1008,Heidi,Engineering,1,14,2026-05-05"""
+
+  df = pd.read_csv(io.StringIO(DATA))
+  # 在下面写代码：去掉完全重复的行，print 剩余行数
+expected_output: |
+  8
+hints:
+  - "df.drop_duplicates() 会去掉完全重复的整行"
+  - "len(...) 数行数"
+  - "print(len(df.drop_duplicates()))"

@@ -1,0 +1,30 @@
+title: "数单词个数"
+topic: "03_arrays_strings"
+difficulty: 2
+tags: ["string", "stringstream"]
+statement: |
+  读一行英文句子（可能多余空白），输出单词数。
+
+  例如输入 `  The  quick brown fox `，输出 `4`。
+starter_code: |
+  #include <iostream>
+  #include <sstream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      string line;
+      getline(cin, line);
+      // 用 stringstream 切单词计数
+
+      return 0;
+  }
+expected_output: |
+  4
+tests:
+  - stdin: "  The  quick brown fox \n"
+    expected_output: "4\n"
+hints:
+  - "stringstream ss(line); string w; int n=0; while (ss >> w) n++;"
+  - "stringstream 的 >> 自动跳过空白"
+  - "cout << n << endl;"

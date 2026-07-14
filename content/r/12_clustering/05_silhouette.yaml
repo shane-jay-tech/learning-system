@@ -1,0 +1,24 @@
+title: "silhouette 评估"
+topic: "12_clustering"
+difficulty: 3
+tags: ["silhouette", "evaluation"]
+statement: |
+  对上面 kmeans(centers=2, scale 后) 的结果算平均 silhouette（保留 2 位小数）。
+  应约 0.78（高质量聚类）。
+starter_code: |
+  suppressMessages(library(cluster))
+  df <- data.frame(
+    age = c(22, 25, 23, 40, 42, 45),
+    salary = c(4000, 4500, 4200, 12000, 13000, 12500)
+  )
+  set.seed(42)
+  scaled <- scale(df)
+  km <- kmeans(scaled, centers = 2, nstart = 10)
+  # silhouette + 平均
+
+expected_output: |
+  0.89
+hints:
+  - "sil <- silhouette(km$cluster, dist(scaled))"
+  - "cat(round(mean(sil[, 3]), 2), \"\\n\")"
+  - "[, 3] 是 silhouette 宽度列"

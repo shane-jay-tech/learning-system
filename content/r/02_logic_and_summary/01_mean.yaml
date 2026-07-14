@@ -1,0 +1,17 @@
+title: "求向量的平均值"
+topic: "02_logic_and_summary"
+difficulty: 1
+tags: ["mean", "stats"]
+statement: |
+  向量 `v <- c(85, 92, 78, 88, 95)` 已经写好。
+  请用 `cat` 输出 `v` 的平均值（精确数值是 87.6）。
+starter_code: |
+  v <- c(85, 92, 78, 88, 95)
+  # 在下面用 cat 输出 mean(v) 的结果
+
+expected_output: |
+  87.6
+hints:
+  - "mean(v) 直接给出平均数"
+  - "cat(mean(v), \"\\n\")"
+  - "记得加 \\n 换行"

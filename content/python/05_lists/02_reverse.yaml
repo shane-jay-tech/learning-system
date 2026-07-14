@@ -1,0 +1,21 @@
+title: "反转列表"
+topic: "05_lists"
+difficulty: 1
+tags: ["list", "slice"]
+statement: |
+  从标准输入读一行空格分隔的整数，**反转顺序**后用空格分隔输出在一行。
+
+  例如输入 `1 2 3 4 5`，输出 `5 4 3 2 1`。
+starter_code: |
+  nums = [int(x) for x in input().split()]
+  # 反转 nums，然后用空格拼接输出
+
+expected_output: |
+  5 4 3 2 1
+tests:
+  - stdin: "1 2 3 4 5\n"
+    expected_output: "5 4 3 2 1\n"
+hints:
+  - "切片反转：nums[::-1]"
+  - "join 拼接：' '.join(str(x) for x in reversed_nums)"
+  - "整数要先转字符串才能 join"

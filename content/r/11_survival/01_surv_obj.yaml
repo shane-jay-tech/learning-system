@@ -1,0 +1,19 @@
+title: "构造 Surv 对象"
+topic: "11_survival"
+difficulty: 2
+tags: ["survival", "Surv"]
+statement: |
+  数据：time=c(12, 24, 8, 36, 5, 18), event=c(1, 0, 1, 0, 1, 1)。
+  请构造 `Surv(time, event)` 对象，输出**事件发生（event=1）的人数**（应为 4）。
+starter_code: |
+  suppressMessages(library(survival))
+  time <- c(12, 24, 8, 36, 5, 18)
+  event <- c(1, 0, 1, 0, 1, 1)
+  # cat sum(event)
+
+expected_output: |
+  4
+hints:
+  - "cat(sum(event), \"\\n\")"
+  - "Surv 对象用于后续 survfit/coxph"
+  - "sum(event) 数 1 的个数"

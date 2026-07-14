@@ -1,0 +1,26 @@
+title: "arrange 降序排"
+topic: "03_dplyr"
+difficulty: 1
+tags: ["dplyr", "arrange"]
+statement: |
+  按 score 降序排，输出 name（每行一个）。
+
+  期望：Eve / Bob / David / Alice / Cathy（分数 95/92/88/85/78）。
+starter_code: |
+  library(dplyr)
+  df <- data.frame(
+    name = c("Alice","Bob","Cathy","David","Eve"),
+    score = c(85, 92, 78, 88, 95)
+  )
+  # arrange(desc(score)) 然后输出 name
+
+expected_output: |
+  Eve
+  Bob
+  David
+  Alice
+  Cathy
+hints:
+  - "result <- df %>% arrange(desc(score)) %>% pull(name)"
+  - "writeLines(result)"
+  - "desc() 转成降序；不写默认升序"

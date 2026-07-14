@@ -1,0 +1,22 @@
+title: "逻辑回归系数"
+topic: "07_glm"
+difficulty: 2
+tags: ["glm", "logistic"]
+statement: |
+  数据：8 个员工，是否离职 leave (0/1) ~ 工龄 years。
+  请用 `glm(leave ~ years, family=binomial)` 拟合，输出 years 系数（保留 2 位小数）。
+
+  应约 -0.96（负数：工龄越长越不离职）。
+starter_code: |
+  df <- data.frame(
+    leave = c(0,1,0,1,0,1,0,1),
+    years = c(10,1,8,2,7,1,9,2)
+  )
+  # glm 后输出 years 系数
+
+expected_output: |
+  -9.57
+hints:
+  - "fit <- glm(leave ~ years, data=df, family=binomial)"
+  - "cat(round(coef(fit)[\"years\"], 2), \"\\n\")"
+  - "binomial 是二分类家族"

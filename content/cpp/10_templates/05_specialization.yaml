@@ -1,0 +1,37 @@
+title: "模板特化（针对 string）"
+topic: "10_templates"
+difficulty: 3
+tags: ["template", "specialization"]
+statement: |
+  通用 `describe<T>` 输出 `value: <v>`。**特化** `describe<string>` 加引号：`value: "<v>"`.
+  题目分别调 describe<int>(42) 和 describe<string>("hi")。
+
+  期望：
+  ```
+  value: 42
+  value: "hi"
+  ```
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  template <typename T>
+  void describe(const T& v) {
+      cout << "value: " << v << endl;
+  }
+
+  // 在这里特化 describe<string>
+
+  int main() {
+      describe(42);
+      describe(string("hi"));
+      return 0;
+  }
+expected_output: |
+  value: 42
+  value: "hi"
+hints:
+  - "template <> void describe(const string& v) { cout << \"value: \\\"\" << v << \"\\\"\" << endl; }"
+  - "template <> 表示对特定类型完全特化"
+  - "字符串里的 \" 要转义为 \\\""

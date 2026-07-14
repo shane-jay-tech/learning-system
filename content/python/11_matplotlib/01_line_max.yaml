@@ -1,0 +1,20 @@
+title: "画折线图并输出最大值"
+topic: "11_matplotlib"
+difficulty: 1
+tags: ["plot", "line"]
+statement: |
+  请画 y=[3,5,4,7,6] 的折线图保存到 `line.png`，**然后输出 y 的最大值**（应为 7）。
+starter_code: |
+  import matplotlib
+  matplotlib.use("Agg")
+  import matplotlib.pyplot as plt
+
+  y = [3, 5, 4, 7, 6]
+  # 画折线图保存为 line.png，再 print(max(y))
+
+expected_output: |
+  7
+hints:
+  - "plt.plot(y); plt.savefig('line.png'); plt.close()"
+  - "print(max(y)) 输出最大值"
+  - "Agg 后端必须先调用，再 import pyplot"

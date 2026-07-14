@@ -1,0 +1,23 @@
+title: "1 到 N 中偶数之和"
+topic: "03_loops"
+difficulty: 2
+tags: ["for", "if", "modulo"]
+statement: |
+  从标准输入读一个正整数 `N`，把 1 到 N 之间所有 **偶数** 的和输出。
+
+  例如输入 `10`，输出 `30`（2+4+6+8+10）。
+starter_code: |
+  n = int(input())
+  total = 0
+  # 用 for 循环 + if 累加偶数
+
+  print(total)
+expected_output: |
+  30
+tests:
+  - stdin: "10\n"
+    expected_output: "30\n"
+hints:
+  - "用 if i %% 2 == 0 判断偶数（注意是 %% 一个百分号）"
+  - "或者更巧：range(2, n+1, 2) 每次走 2 步直接拿到偶数"
+  - "记得 total 初始化为 0"

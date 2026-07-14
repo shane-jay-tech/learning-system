@@ -1,0 +1,37 @@
+title: "为 Bug 修复写 Spec"
+topic: "07_write_spec"
+difficulty: 1
+tags: ["spec", "bugfix", "basics"]
+judge_mode: "ai_open"
+statement: |
+  用户报告了一个 bug：「点击保存按钮后页面没反应，控制台显示 TypeError: Cannot read property 'id' of undefined」。
+
+  请为修复这个 bug 写一份 Spec，包含：
+  1. 问题描述（当前行为 vs 期望行为）
+  2. 复现步骤
+  3. 修复的验收标准
+
+rubric: |
+  评分维度：
+  - 问题描述（30%）：是否清晰区分了当前行为和期望行为
+  - 复现步骤（30%）：是否包含具体操作步骤，别人能照着复现
+  - 验收标准（40%）：是否可客观验证（"点击保存后数据持久化，页面显示成功提示"这种具体标准）
+
+  通过标准：三个维度都有实质内容，验收标准可客观验证
+
+reference_answer: |
+  **问题描述**
+  - 当前行为：点击保存按钮后页面无反应，控制台报 TypeError: Cannot read property 'id' of undefined
+  - 期望行为：点击保存后数据成功持久化，页面显示"保存成功"提示
+
+  **复现步骤**
+  1. 打开编辑页面
+  2. 修改任意字段
+  3. 点击"保存"按钮
+  4. 观察：页面无反应，打开 F12 控制台可见 TypeError
+
+  **验收标准**
+  - 点击保存后数据写入后端，刷新页面数据仍在
+  - 保存成功时显示"保存成功"提示
+  - 控制台无 TypeError
+  - 如果保存失败，显示具体错误信息而非静默失败

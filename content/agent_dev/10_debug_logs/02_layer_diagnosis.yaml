@@ -1,0 +1,27 @@
+title: "判断问题在哪一层"
+topic: "10_debug_logs"
+difficulty: 2
+tags: ["debug", "layers", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：用户反馈"提交表单后页面一直转圈"。你能看到以下信息：
+
+  - 浏览器控制台：`POST /api/submit` 返回 `504 Gateway Timeout`
+  - 服务器日志：`[2026-06-01 10:23:45] Processing submit for user_123...`（之后无输出）
+  - 数据库监控：CPU 使用率飙到 99%
+
+  请判断：
+  1. 问题在前端、后端、还是数据库层？
+  2. 你的证据是什么？
+  3. 你会让 agent 先查什么？
+starter_code: ""
+rubric:
+  - "正确判断问题在数据库层（CPU 飙升 + 后端卡住等数据库响应）"
+  - "给出了推理链（504=后端超时 + 服务器日志无后续=卡在某个调用 + 数据库 CPU 飙=瓶颈在 DB）"
+  - "给出了下一步排查方向（如：查慢查询日志、EXPLAIN 最近的 SQL）"
+reference_answer: |
+  1. 问题在数据库层
+  2. 证据链: 前端收到 504（后端超时了）→ 后端日志开始处理但没结束（说明卡住了）→ 数据库 CPU 99%（瓶颈在 DB，可能慢查询或死锁）
+  3. 让 agent 查: SHOW PROCESSLIST 看当前执行中的 SQL，或查慢查询日志找哪条 SQL 执行超过 30 秒
+hints:
+  - "用排除法：前端能发请求（不是前端的问题）→ 后端收到了但卡住了 → 卡在哪？"

@@ -1,0 +1,22 @@
+title: "检查 Spec 完整度"
+topic: "03_spec_writing"
+difficulty: 2
+tags: ["spec", "check"]
+statement: |
+  下面这个 spec 缺了哪两个必备字段（必备的 5 个：input / output / examples / edge_cases / constraints）？
+  按字母升序输出，空格分隔。
+starter_code: |
+  spec = {
+      "input": "csv 文件",
+      "output": "DataFrame",
+      "constraints": "用 pandas",
+  }
+  required = {"input", "output", "examples", "edge_cases", "constraints"}
+  missing = sorted(required - set(spec.keys()))
+  print(' '.join(missing))
+expected_output: |
+  edge_cases examples
+hints:
+  - "set 减法：required - 已有"
+  - "sorted 后字母升序"
+  - "缺反例 + 缺正例 → agent 容易跑偏"

@@ -1,0 +1,20 @@
+title: "把硬编码 key 抽到环境变量"
+topic: "05_modular_config"
+difficulty: 2
+tags: ["config", "env"]
+statement: |
+  代码里写死了 API_KEY="sk-DEMO-12345"。请改成读环境变量 `MY_API_KEY`，
+  题目已 `os.environ['MY_API_KEY'] = 'sk-DEMO-12345'` 模拟环境，让你 print 读到的值。
+starter_code: |
+  import os
+  os.environ['MY_API_KEY'] = 'sk-DEMO-12345'  # 模拟 .env
+
+  # 改下面这行——用 os.environ 读取，不要硬编码
+  api_key = "sk-DEMO-12345"
+  print(api_key)
+expected_output: |
+  sk-DEMO-12345
+hints:
+  - "api_key = os.environ['MY_API_KEY']"
+  - "更安全：os.environ.get('MY_API_KEY', '默认值')"
+  - "实际项目用 .env.local + python-dotenv"

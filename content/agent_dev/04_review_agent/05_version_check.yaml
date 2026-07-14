@@ -1,0 +1,23 @@
+title: "Python 版本兼容感知"
+topic: "04_review_agent"
+difficulty: 3
+tags: ["review", "version"]
+statement: |
+  下面的语法 Python **3.10 才支持**：
+  ```python
+  match value:
+      case 1: ...
+      case 2: ...
+  ```
+  这是哪个语法特性的名字？
+
+  期望输出：`match-case`（小写 + 中划线）。
+starter_code: |
+  feature = "..."
+  print(feature)
+expected_output: |
+  match-case
+hints:
+  - "match/case 是结构化模式匹配"
+  - "Python 3.10 引入；3.9 及以下报 SyntaxError"
+  - "Spec 里写明 'Python 3.9+ 兼容' 能避免 agent 用太新语法"

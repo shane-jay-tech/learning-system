@@ -1,0 +1,31 @@
+title: "vector 找最大值"
+topic: "03_arrays_strings"
+difficulty: 2
+tags: ["vector", "max"]
+statement: |
+  读 N 个整数（同上格式），输出最大值。
+
+  输入 `5\n3 8 -1 12 5`，输出 `12`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  using namespace std;
+
+  int main() {
+      int n;
+      cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      // 找最大值并输出
+
+      return 0;
+  }
+expected_output: |
+  12
+tests:
+  - stdin: "5\n3 8 -1 12 5\n"
+    expected_output: "12\n"
+hints:
+  - "int m = v[0]; for (int x : v) if (x > m) m = x;"
+  - "或者 #include <algorithm>; *max_element(v.begin(), v.end())"
+  - "cout << m << endl;"

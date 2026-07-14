@@ -1,0 +1,25 @@
+title: "解析多种日期格式"
+topic: "10_stringr_lubridate"
+difficulty: 3
+tags: ["lubridate", "date_parsing", "format"]
+statement: |
+  给定三种格式的日期字符串：
+  dates <- c("2024-03-15", "15/03/2024", "March 15, 2024")
+
+  使用 lubridate 函数将它们全部解析为 Date 对象，并输出统一格式 YYYY-MM-DD，每行一个。
+
+starter_code: |
+  library(lubridate)
+
+  dates <- c("2024-03-15", "15/03/2024", "March 15, 2024")
+  # 分别用合适的 lubridate 函数解析每种格式
+
+expected_output: |
+  2024-03-15
+  2024-03-15
+  2024-03-15
+hints:
+  - "ymd() 解析 YYYY-MM-DD 格式"
+  - "dmy() 解析 DD/MM/YYYY 格式"
+  - "mdy() 解析 Month DD, YYYY 格式"
+  - "用 format(date, '%Y-%m-%d') 或直接 cat() 输出"

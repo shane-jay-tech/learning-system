@@ -1,0 +1,25 @@
+title: "dplyr filter 高分学生"
+topic: "03_dplyr"
+difficulty: 1
+tags: ["dplyr", "filter"]
+statement: |
+  用 dplyr 筛选 score ≥ 80 的学生，输出他们的 name（每行一个）。
+
+  数据：5 人 [85,92,78,88,95]，期望 4 人：Alice/Bob/David/Eve（按原顺序）。
+starter_code: |
+  library(dplyr)
+  df <- data.frame(
+    name = c("Alice","Bob","Cathy","David","Eve"),
+    score = c(85, 92, 78, 88, 95)
+  )
+  # 用 df %>% filter(...) %>% pull(name) 然后 writeLines
+
+expected_output: |
+  Alice
+  Bob
+  David
+  Eve
+hints:
+  - "result <- df %>% filter(score >= 80) %>% pull(name)"
+  - "writeLines(result)"
+  - "pull() 把列变成向量"

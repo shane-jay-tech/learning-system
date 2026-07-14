@@ -1,0 +1,22 @@
+title: "R² 评估拟合优度"
+topic: "14_sklearn_intro"
+difficulty: 2
+tags: ["sklearn", "r-squared"]
+statement: |
+  同上数据，训练线性回归后用 `model.score(X, y)` 输出 R²（保留 4 位小数）。
+
+  应约 0.9450（拟合不错）。
+starter_code: |
+  import numpy as np
+  from sklearn.linear_model import LinearRegression
+
+  X = np.array([[5000],[8000],[6500],[12000],[9000]])
+  y = np.array([70, 88, 75, 95, 82])
+  # 训练后 print R²
+
+expected_output: |
+  0.8645
+hints:
+  - "model = LinearRegression(); model.fit(X, y)"
+  - "print(f'{model.score(X, y):.4f}')"
+  - "R² 接近 1 → 模型解释了大部分方差"

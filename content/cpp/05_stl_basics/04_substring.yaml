@@ -1,0 +1,35 @@
+title: "string substr 截取"
+topic: "05_stl_basics"
+difficulty: 2
+tags: ["string", "substr"]
+statement: |
+  读一行字符串 + 两个整数 `start len`（同一行用空格分；先字符串后数字怎么读？让题目分两行：第 1 行字符串，第 2 行 start 和 len）。
+  输出 `s.substr(start, len)`。
+
+  例如：
+  ```
+  Hello, World!
+  7 5
+  ```
+  输出 `World`。
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      string s; getline(cin, s);
+      int start, len; cin >> start >> len;
+      // 输出 substr
+
+      return 0;
+  }
+expected_output: |
+  World
+tests:
+  - stdin: "Hello, World!\n7 5\n"
+    expected_output: "World\n"
+hints:
+  - "cout << s.substr(start, len) << endl;"
+  - "substr(start, len)：从 start 取 len 个；不传 len 取到末尾"
+  - "下标从 0 开始"

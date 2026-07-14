@@ -1,0 +1,41 @@
+title: "各部门平均敬业度（清洗后再算）"
+topic: "24_real_world_data"
+difficulty: 4
+tags: ["pandas", "groupby", "real-data"]
+statement: |
+  这是一道**综合题**——把前面学的清洗连起来，再做真正的分析。
+
+  请按这个顺序处理：
+  1. 去掉完全重复的行
+  2. 规范 `department`（去空格 + 首字母大写）
+  3. 删掉 `engagement` 缺失的行
+  4. 算**各部门的平均 engagement**，保留 **2 位小数**，按部门名排序
+
+  每行输出 `部门: 平均分`，例如 `Sales: 4.33`。
+
+  （想一想：为什么要先去重、再算平均？重复的问卷会把平均分带偏。）
+starter_code: |
+  import io
+  import pandas as pd
+
+  DATA = """emp_id,name,department,engagement,tenure_months,submit_date
+  1001,Alice,Sales,4,18,2026-05-01
+  1002,Bob,sales ,5,7,2026-05-01
+  1003,Cathy,Engineering,,32,2026-05-02
+  1004,David, Engineering,3,5,2026-05-02
+  1005,Eve,HR,5,48,2026-05-03
+  1006,Frank,hr,2,3,2026-05-03
+  1007,Grace,Sales,4,,2026-05-04
+  1002,Bob,sales ,5,7,2026-05-01
+  1008,Heidi,Engineering,1,14,2026-05-05"""
+
+  df = pd.read_csv(io.StringIO(DATA))
+  # 在下面写代码：去重 -> 规范部门 -> 删缺失 -> 各部门平均 engagement（2位小数，按部门排序）
+expected_output: |
+  Engineering: 2.0
+  Hr: 3.5
+  Sales: 4.33
+hints:
+  - "顺序：df.drop_duplicates() -> str.strip().str.title() -> dropna(subset=['engagement'])"
+  - "df.groupby('department')['engagement'].mean().round(2).sort_index()"
+  - "遍历结果：for dept, val in g.items(): print(f'{dept}: {val}')"

@@ -1,0 +1,36 @@
+title: "画出任务依赖图"
+topic: "09_decompose"
+difficulty: 2
+tags: ["decompose", "dependency", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：你有这些子任务要让 AI agent 依次完成：
+  A. 创建 SQLite 数据库和表
+  B. 写数据导入脚本（从 CSV 读入数据库）
+  C. 写查询函数（从数据库读数据）
+  D. 画柱状图（用查询函数的结果）
+  E. 写单元测试（测试查询函数）
+  F. 写 README 文档
+
+  请画出依赖关系（用文字表示），并给出执行顺序。
+  标出哪些任务可以**并行**做。
+starter_code: ""
+rubric:
+  - "正确识别了 A→B→C 的链式依赖"
+  - "正确识别了 D 和 E 都依赖 C 但互不依赖（可并行）"
+  - "F 可以最后做或任何时候做"
+  - "给出了合理的执行顺序"
+reference_answer: |
+  依赖关系:
+  A → B（导入需要先有表）
+  B → C（查询需要先有数据）
+  C → D（画图需要查询结果）
+  C → E（测试需要查询函数存在）
+  F 无依赖
+
+  执行顺序: A → B → C → [D, E 并行] → F
+  或: A → B → C → D → E → F（串行也行，只是慢一点）
+
+  可并行: D 和 E（互不依赖，都只需要 C 完成）
+hints:
+  - "依赖 = 如果 X 没做完，Y 能不能开始？不能 → Y 依赖 X。"

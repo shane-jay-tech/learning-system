@@ -1,0 +1,21 @@
+title: "柱状图并输出总和"
+topic: "11_matplotlib"
+difficulty: 1
+tags: ["plot", "bar"]
+statement: |
+  画各部门人数柱状图（HR=10, Eng=25, Sales=15），保存到 `bar.png`，再输出**总人数**（50）。
+starter_code: |
+  import matplotlib
+  matplotlib.use("Agg")
+  import matplotlib.pyplot as plt
+
+  depts = ["HR", "Eng", "Sales"]
+  counts = [10, 25, 15]
+  # 画柱状图保存 bar.png，再 print(sum(counts))
+
+expected_output: |
+  50
+hints:
+  - "plt.bar(depts, counts)"
+  - "plt.savefig('bar.png'); plt.close()"
+  - "print(sum(counts))"

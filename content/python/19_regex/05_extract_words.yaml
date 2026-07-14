@@ -1,0 +1,23 @@
+title: "提取单词数"
+topic: "19_regex"
+difficulty: 1
+tags: ["regex", "word-boundary"]
+statement: |
+  从输入读一行英文（含标点），用 `re.findall(r'\w+', ...)` 提取所有单词，输出**单词数**。
+
+  输入 `Hello, world! It's a test.`，单词 ['Hello','world','It','s','a','test']，输出 `6`。
+starter_code: |
+  import re
+
+  text = input()
+  # findall(r"\w+", text) 然后 len
+
+expected_output: |
+  6
+tests:
+  - stdin: "Hello, world! It's a test.\n"
+    expected_output: "6\n"
+hints:
+  - "print(len(re.findall(r'\\w+', text)))"
+  - "\\w+ 一个或多个字母/数字/下划线"
+  - "It's 会被切成 It 和 s（撇号不算 \\w）"

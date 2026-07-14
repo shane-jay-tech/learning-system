@@ -1,0 +1,40 @@
+title: "交叉验证评估"
+topic: "22_hr_model"
+difficulty: 3
+tags: ["sklearn", "cross_val", "hr"]
+judge_mode: ai_open
+statement: |
+  用 5 折交叉验证评估离职预测模型的稳定性。
+
+  输出：
+  1. 5 折的各自准确率
+  2. 均值和标准差
+
+  格式示例：
+  Fold scores: [0.75, 0.78, ...]
+  Mean: 0.76 (+/- 0.02)
+starter_code: |
+  import pandas as pd
+  from sklearn.linear_model import LogisticRegression
+  from sklearn.model_selection import cross_val_score
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  df['left'] = df['leave_date'].notna().astype(int)
+  features = ['salary', 'performance_score', 'satisfaction_score', 'training_hours', 'age']
+  X = df[features]
+  y = df['left']
+
+  # 5 折交叉验证，输出各折分数和均值/标准差
+rubric:
+  - "使用了 cross_val_score(model, X, y, cv=5)"
+  - "输出了 5 个分数"
+  - "计算了 mean 和 std"
+  - "格式清晰"
+reference_answer: |
+  model = LogisticRegression(max_iter=1000)
+  scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+  print(f"Fold scores: {[round(s, 4) for s in scores]}")
+  print(f"Mean: {scores.mean():.2f} (+/- {scores.std():.2f})")
+hints:
+  - "cross_val_score 返回一个数组，每个元素是一折的分数"
+  - ".mean() 和 .std() 评估模型稳定性"

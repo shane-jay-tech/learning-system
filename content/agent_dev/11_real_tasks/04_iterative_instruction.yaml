@@ -1,0 +1,66 @@
+title: "写迭代改进指令"
+topic: "11_real_tasks"
+difficulty: 3
+tags: ["spec", "iteration", "real-task"]
+judge_mode: ai_open
+
+statement: |
+  你让 AI agent 写了一个"用户注册"功能，它交回来的代码是这样的：
+
+  ```python
+  def register(username, password):
+      if username and password:
+          db.insert({"username": username, "password": password})
+          return "ok"
+      return "error"
+  ```
+
+  这段代码能跑，但有很多问题。请写一条迭代改进指令，告诉 agent 具体要改什么。
+
+  要求：
+  - 指出至少 3 个需要改进的点
+  - 每个点给出具体的改法（不是"需要改进安全性"这种模糊话）
+  - 按优先级排序（最严重的排前面）
+
+starter_code: |
+  # 在这里写你给 agent 的迭代改进指令
+
+rubric:
+  - "指出密码明文存储问题并给出具体改法（hash + salt）得 20 分"
+  - "指出缺少输入验证（长度/格式/重复用户名检查）得 20 分"
+  - "指出错误处理太粗糙（return 'error' 不知道哪里错）得 15 分"
+  - "指令具体到'把哪行改成什么样'的程度得 20 分"
+  - "按优先级排序合理（安全 > 正确性 > 体验）得 15 分"
+  - "语气是指令式（'改为...'而不是'可以考虑...'）得 10 分"
+
+reference_answer: |
+  ## 迭代改进指令（按优先级）
+
+  **P0 安全：密码不能明文存储**
+  把 `"password": password` 改为用 bcrypt 哈希：
+  ```python
+  import bcrypt
+  hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+  db.insert({"username": username, "password": hashed})
+  ```
+
+  **P1 正确性：缺少输入验证**
+  在 insert 之前加：
+  - username 长度 3-20，只允许字母数字下划线
+  - password 长度至少 8 位
+  - 检查 username 是否已存在（db.find_one）
+  每种校验失败返回不同的错误码。
+
+  **P2 体验：错误信息不可用**
+  把 return "error" 改为返回结构化错误：
+  ```python
+  return {"success": False, "error": "username_taken", "message": "用户名已存在"}
+  ```
+
+  **P3 健壮性：加 try-except**
+  db.insert 可能抛异常（网络/重复键），需要 catch 并返回友好错误。
+
+hints:
+  - "如果这个函数上线了，密码被人拖库会怎样？"
+  - "username 传空字符串或超长字符串会怎样？"
+  - "调用方收到 'error' 能知道哪里出问题吗？"

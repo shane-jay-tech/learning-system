@@ -1,0 +1,31 @@
+title: "字符直方图"
+topic: "07_dicts_sets"
+difficulty: 3
+tags: ["dict", "count"]
+statement: |
+  从标准输入读一行小写英文字符串（无空格、无符号），统计每个字符出现的次数，
+  按**字符字典序**输出，每行格式 `字符 次数`。
+
+  例如输入 `mississippi`，输出：
+  ```
+  i 4
+  m 1
+  p 2
+  s 4
+  ```
+starter_code: |
+  s = input().strip()
+  # 用 dict 统计每个字符次数，按字符升序输出
+
+expected_output: |
+  i 4
+  m 1
+  p 2
+  s 4
+tests:
+  - stdin: "mississippi\n"
+    expected_output: "i 4\nm 1\np 2\ns 4\n"
+hints:
+  - "for c in s: counts[c] = counts.get(c, 0) + 1"
+  - "排序：sorted(counts.items())"
+  - "进阶：from collections import Counter; Counter(s) 一行搞定"

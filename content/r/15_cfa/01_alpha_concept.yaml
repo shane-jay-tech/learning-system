@@ -1,0 +1,25 @@
+title: "Cronbach alpha 概念"
+topic: "15_cfa"
+difficulty: 1
+tags: ["reliability", "alpha", "concept"]
+judge_mode: ai_open
+statement: |
+  回答以下关于 Cronbach's alpha 的问题（每题 1-2 句）：
+
+  1. alpha 衡量的是什么？
+  2. alpha = 0.85 代表什么含义？
+  3. 一般认为 alpha 达到多少算「可接受」？
+  4. alpha 一定是越高越好吗？太高（>0.95）可能说明什么问题？
+starter_code: ""
+rubric:
+  - "alpha 衡量内部一致性信度（题目是否测同一个东西）"
+  - "0.85 表示量表的内部一致性较好"
+  - "0.70 以上可接受，0.80 以上好"
+  - "太高可能说明题目之间过于相似/冗余（同义重复）"
+reference_answer: |
+  1. alpha 衡量一组题目内部一致性——这些题是否在测同一个构念
+  2. 0.85 表示量表可靠性较好，85% 的方差来自真分数
+  3. 0.70 以上可接受，0.80 以上为好，学位论文通常要求 >= 0.70
+  4. 不是。>0.95 可能说明题目之间高度冗余（换个说法问了同一件事），应该删减题目
+hints:
+  - "alpha 和「题目之间的相关」有直接关系——相关越高 alpha 越高"

@@ -1,0 +1,21 @@
+title: "dplyr select 列"
+topic: "03_dplyr"
+difficulty: 1
+tags: ["dplyr", "select"]
+statement: |
+  从 df 选出 `name` 和 `score` 两列（去掉 class 列），输出**列数**（应为 2）。
+starter_code: |
+  library(dplyr)
+  df <- data.frame(
+    name = c("Alice","Bob","Cathy"),
+    score = c(85, 92, 78),
+    class = c("A","B","A")
+  )
+  # df %>% select(name, score) 然后输出 ncol
+
+expected_output: |
+  2
+hints:
+  - "sub <- df %>% select(name, score)"
+  - "cat(ncol(sub), \"\\n\")"
+  - "也可以 select(-class)：去掉 class 列"

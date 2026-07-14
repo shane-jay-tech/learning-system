@@ -1,0 +1,23 @@
+title: "McFadden's pseudo-R²"
+topic: "07_glm"
+difficulty: 3
+tags: ["pseudo-r2"]
+statement: |
+  GLM 没有标准 R²，用 McFadden 的近似：`1 - deviance / null.deviance`。
+  同上数据，输出该值（保留 2 位小数）。
+
+  应约 0.75（解释力不错）。
+starter_code: |
+  df <- data.frame(
+    leave = c(0,1,0,1,0,1,0,1),
+    years = c(10,1,8,2,7,1,9,2)
+  )
+  fit <- glm(leave ~ years, data=df, family=binomial)
+  # 1 - fit$deviance / fit$null.deviance
+
+expected_output: |
+  1
+hints:
+  - "r2 <- 1 - fit$deviance / fit$null.deviance"
+  - "cat(round(r2, 2), \"\\n\")"
+  - "0.2-0.4 在二分类里就算不错（不要按 lm 的 R² 标准）"

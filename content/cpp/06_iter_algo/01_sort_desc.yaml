@@ -1,0 +1,32 @@
+title: "降序排序"
+topic: "06_iter_algo"
+difficulty: 1
+tags: ["sort", "greater"]
+statement: |
+  读 N + N 个整数，**降序**排序后空格分隔输出。
+
+  输入 `5\n3 1 4 1 5`，输出 `5 4 3 1 1`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <algorithm>
+  #include <functional>
+  using namespace std;
+
+  int main() {
+      int n; cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      // 降序排序输出
+
+      return 0;
+  }
+expected_output: |
+  5 4 3 1 1
+tests:
+  - stdin: "5\n3 1 4 1 5\n"
+    expected_output: "5 4 3 1 1\n"
+hints:
+  - "sort(v.begin(), v.end(), greater<int>())"
+  - "或 sort(v.begin(), v.end()); reverse(v.begin(), v.end());"
+  - "或 lambda：sort(... [](int a,int b){return a>b;})"

@@ -1,0 +1,26 @@
+title: "文件行数"
+topic: "08_files_exceptions"
+difficulty: 2
+tags: ["file", "lines"]
+statement: |
+  把以下 4 行写入 `data.txt`：
+  ```
+  apple
+  banana
+  cherry
+  date
+  ```
+  然后读出来，输出**行数**。
+
+  期望输出 `4`。
+starter_code: |
+  lines = ["apple", "banana", "cherry", "date"]
+  # 1) 把 lines 用 \n 拼接写入 data.txt（utf-8）
+  # 2) 读出来按行 split 统计行数
+
+expected_output: |
+  4
+hints:
+  - "写入：'\\n'.join(lines)；用 with open(..., 'w', encoding='utf-8')"
+  - "读取后：text.splitlines() 按行切；len(...) 得行数"
+  - "或者写时给每行加 '\\n'，读时按行 for line in f"

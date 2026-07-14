@@ -1,0 +1,21 @@
+title: "写 Excel 后再读"
+topic: "12_io_excel"
+difficulty: 2
+tags: ["excel"]
+statement: |
+  把 DataFrame 写到 `out.xlsx`（默认 Sheet1），再读出来输出**列数**（应为 2）。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice", "Bob", "Cathy"],
+      "score": [85, 92, 78],
+  })
+  # 写 out.xlsx，再读出来 print 列数
+
+expected_output: |
+  2
+hints:
+  - "df.to_excel('out.xlsx', index=False)"
+  - "df2 = pd.read_excel('out.xlsx'); print(df2.shape[1])"
+  - "shape 返回 (行, 列) 元组"

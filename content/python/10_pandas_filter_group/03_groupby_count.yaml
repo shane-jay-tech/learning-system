@@ -1,0 +1,25 @@
+title: "各班人数"
+topic: "10_pandas_filter_group"
+difficulty: 1
+tags: ["groupby", "size"]
+statement: |
+  按 `class` 分组数人数（用 `.size()`），按字母升序输出 `班 人数`。
+
+  期望 A 3；B 2。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+      "class": ["A", "B", "A", "B", "A"],
+  })
+  # 按 class 分组数人数
+
+expected_output: |
+  A 3
+  B 2
+hints:
+  - "g = df.groupby('class').size().sort_index()"
+  - "for k, v in g.items(): print(k, v)"
+  - "size() 数行数（含空），count() 数非空"

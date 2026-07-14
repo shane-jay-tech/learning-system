@@ -1,0 +1,33 @@
+title: "基础 try / catch"
+topic: "11_exceptions"
+difficulty: 2
+tags: ["try-catch"]
+statement: |
+  从输入读 a b。如果 b=0 输出 `error`；否则输出 a/b（整数除）。
+  请用 `throw runtime_error(...)` + try/catch 实现。
+
+  输入 `10 0`，输出 `error`。
+starter_code: |
+  #include <iostream>
+  #include <stdexcept>
+  using namespace std;
+
+  int main() {
+      int a, b; cin >> a >> b;
+      try {
+          if (b == 0) throw runtime_error("zero");
+          cout << (a / b) << endl;
+      } catch (const runtime_error& e) {
+          // print error
+      }
+      return 0;
+  }
+expected_output: |
+  error
+tests:
+  - stdin: "10 0\n"
+    expected_output: "error\n"
+hints:
+  - "catch 块里 cout << \"error\" << endl;"
+  - "throw 后续代码不会执行"
+  - "用 const &  捕获避免拷贝"

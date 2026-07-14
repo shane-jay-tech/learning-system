@@ -1,0 +1,23 @@
+title: "各部门人数统计"
+topic: "04_joins"
+difficulty: 3
+tags: ["join", "group-by"]
+statement: |
+  用 INNER JOIN + GROUP BY 算每个部门的**学生人数**。按部门名升序，每行 `dept_name 人数`。
+
+  期望：Eng 2，HR 2。
+starter_code: |
+  -- INNER JOIN 后按 d.name 分组 COUNT
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1, 'HR'), (2, 'Eng');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',2),(3,'Cathy',1),(4,'David',NULL),(5,'Eve',2);
+expected_rows:
+  - ["Eng", 2]
+  - ["HR", 2]
+hints:
+  - "SELECT d.name, COUNT(*) FROM students s INNER JOIN departments d ON s.dept_id=d.id GROUP BY d.name ORDER BY d.name"
+  - "INNER JOIN 自动过滤掉 dept_id 为 NULL 的（David）"
+  - "如果想含 NULL 用 LEFT JOIN + COUNT"

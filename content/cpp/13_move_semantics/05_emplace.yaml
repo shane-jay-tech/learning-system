@@ -1,0 +1,32 @@
+title: "emplace_back vs push_back"
+topic: "13_move_semantics"
+difficulty: 2
+tags: ["emplace_back", "in-place"]
+statement: |
+  vector<string> v。用 `v.emplace_back("Hello")` 直接在 vector 内构造（不走临时对象），
+  然后 print v[0] 和 v.size()。
+
+  期望：
+  ```
+  Hello
+  1
+  ```
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      vector<string> v;
+      // v.emplace_back("Hello"); 然后输出
+
+      return 0;
+  }
+expected_output: |
+  Hello
+  1
+hints:
+  - "v.emplace_back(\"Hello\");"
+  - "cout << v[0] << endl << v.size() << endl;"
+  - "emplace_back 把参数转发给 string 构造函数，省一次临时对象"

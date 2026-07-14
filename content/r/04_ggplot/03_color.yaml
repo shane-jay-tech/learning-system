@@ -1,0 +1,22 @@
+title: "按 class 着色"
+topic: "04_ggplot"
+difficulty: 2
+tags: ["ggplot", "color", "aes"]
+statement: |
+  在散点图里**按 class 着色**（aes 里的 color = class），保存到 `color.png`。
+  再 cat 输出 **不同 class 的个数**（应为 2）。
+starter_code: |
+  library(ggplot2)
+  df <- data.frame(
+    age = c(20, 22, 19, 25, 21),
+    score = c(85, 92, 78, 88, 95),
+    class = c("A","B","A","B","A")
+  )
+  # ggplot(... aes(color=class)) + geom_point()，再 cat unique class 个数
+
+expected_output: |
+  2
+hints:
+  - "p <- ggplot(df, aes(x=age, y=score, color=class)) + geom_point()"
+  - "ggsave(\"color.png\", p)"
+  - "cat(length(unique(df$class)), \"\\n\")"

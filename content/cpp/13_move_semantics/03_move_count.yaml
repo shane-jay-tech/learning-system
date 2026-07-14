@@ -1,0 +1,33 @@
+title: "数移动构造发生几次"
+topic: "13_move_semantics"
+difficulty: 3
+tags: ["move-constructor", "count"]
+statement: |
+  类 `Foo` 的拷贝构造和移动构造分别 `cnt_copy++ / cnt_move++`。
+  执行 `Foo a; Foo b = std::move(a); Foo c = b;` —— 移动 1 次（a→b），拷贝 1 次（b→c）。
+  输出 `<拷贝次数> <移动次数>`，期望 `1 1`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int cnt_copy = 0, cnt_move = 0;
+
+  struct Foo {
+      Foo() = default;
+      Foo(const Foo&) { cnt_copy++; }
+      Foo(Foo&&) noexcept { cnt_move++; }
+  };
+
+  int main() {
+      Foo a;
+      Foo b = std::move(a);
+      Foo c = b;
+      cout << cnt_copy << " " << cnt_move << endl;
+      return 0;
+  }
+expected_output: |
+  1 1
+hints:
+  - "std::move(a) 把 a 转右值 → 移动构造"
+  - "Foo c = b; b 是左值 → 拷贝构造"
+  - "noexcept 让标准容器愿意调用移动"

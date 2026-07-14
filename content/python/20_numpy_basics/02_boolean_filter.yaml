@@ -1,0 +1,20 @@
+title: "布尔索引筛选数组"
+topic: "20_numpy_basics"
+difficulty: 3
+tags: ["numpy", "filter", "boolean"]
+statement: |
+  给定员工年薪数组 `salaries = np.array([35000, 42000, 58000, 71000, 39000, 65000])`，
+  用布尔索引筛选出**年薪超过 50000** 的值，打印结果数组。
+starter_code: |
+  import numpy as np
+
+  salaries = np.array([35000, 42000, 58000, 71000, 39000, 65000])
+
+  # 筛选年薪 > 50000
+  high = ___
+  print(high)
+expected_output: |
+  [58000 71000 65000]
+hints:
+  - "布尔索引：arr[arr > 50000]"
+  - "NumPy 打印数组时元素之间用空格分隔，不带逗号"

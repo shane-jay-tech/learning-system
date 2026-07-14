@@ -1,0 +1,23 @@
+title: "提取日期"
+topic: "19_regex"
+difficulty: 3
+tags: ["regex", "groups"]
+statement: |
+  从输入读一行，提取第一个 YYYY-MM-DD 格式的日期，按 `日/月/年` 重排输出。
+
+  输入 `Today is 2026-05-29 and tomorrow is...`，输出 `29/05/2026`。
+starter_code: |
+  import re
+
+  text = input()
+  # re.search(r"(\d{4})-(\d{2})-(\d{2})") 然后用 group 提取年月日
+
+expected_output: |
+  29/05/2026
+tests:
+  - stdin: "Today is 2026-05-29 and tomorrow is...\n"
+    expected_output: "29/05/2026\n"
+hints:
+  - "m = re.search(r'(\\d{4})-(\\d{2})-(\\d{2})', text)"
+  - "y, mo, d = m.group(1), m.group(2), m.group(3)"
+  - "print(f'{d}/{mo}/{y}')"

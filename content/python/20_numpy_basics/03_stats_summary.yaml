@@ -1,0 +1,31 @@
+title: "数组统计摘要"
+topic: "20_numpy_basics"
+difficulty: 4
+tags: ["numpy", "statistics"]
+statement: |
+  给定考试成绩数组 `scores = np.array([78, 85, 92, 64, 55, 88, 73, 91])`，
+  请计算并按以下格式输出：
+
+  ```
+  均值: XX.X
+  最高: XX
+  最低: XX
+  及格人数: X
+  ```
+
+  及格线为 60 分（含 60）。均值保留 1 位小数。
+starter_code: |
+  import numpy as np
+
+  scores = np.array([78, 85, 92, 64, 55, 88, 73, 91])
+
+  # 你的代码
+expected_output: |
+  均值: 78.2
+  最高: 92
+  最低: 55
+  及格人数: 7
+hints:
+  - "均值 scores.mean()，最高 scores.max()，最低 scores.min()"
+  - "及格人数：(scores >= 60).sum() 或 len(scores[scores >= 60])"
+  - "f'{scores.mean():.1f}' 保留 1 位小数"

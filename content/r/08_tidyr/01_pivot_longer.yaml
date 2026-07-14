@@ -1,0 +1,19 @@
+title: "宽变长 pivot_longer"
+topic: "08_tidyr"
+difficulty: 2
+tags: ["tidyr", "pivot_longer"]
+statement: |
+  把 `df_wide`（name, math, english, history）变成长表，输出**总行数**。
+
+  2 人 × 3 科 = 6 行。
+starter_code: |
+  suppressMessages(library(tidyr))
+  df_wide <- data.frame(name=c("Alice","Bob"), math=c(85,72), english=c(78,88), history=c(90,85))
+  # pivot_longer 后 cat nrow
+
+expected_output: |
+  6
+hints:
+  - "df_long <- df_wide %>% pivot_longer(cols=c(math, english, history), names_to=\"subject\", values_to=\"score\")"
+  - "cat(nrow(df_long), \"\\n\")"
+  - "也可 cols=-name 表示除 name 外都摞"

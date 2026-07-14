@@ -1,0 +1,26 @@
+title: "左值 vs 右值（重载）"
+topic: "13_move_semantics"
+difficulty: 3
+tags: ["lvalue", "rvalue", "overload"]
+statement: |
+  写两个 `take` 重载：一个接 `int& x` 输出 `lvalue`，一个接 `int&& x` 输出 `rvalue`。
+  用 `int a=10; take(a); take(20);` 调用，期望两行：lvalue, rvalue。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  // 写两个 take 重载
+
+  int main() {
+      int a = 10;
+      take(a);
+      take(20);
+      return 0;
+  }
+expected_output: |
+  lvalue
+  rvalue
+hints:
+  - "void take(int& x) { cout << \"lvalue\" << endl; }"
+  - "void take(int&& x) { cout << \"rvalue\" << endl; }"
+  - "&& 只接右值（临时值/字面量）"

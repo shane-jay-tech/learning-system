@@ -1,0 +1,31 @@
+title: "@property 让方法变属性"
+topic: "17_decorators_props"
+difficulty: 2
+tags: ["property"]
+statement: |
+  Circle 类带 radius。请用 `@property` 把 `area` 方法做成只读属性。
+  从输入读半径 r，输出 `c.area` 保留 2 位小数（用 π=3.14159）。
+
+  输入 `5`，输出 `78.54`。
+starter_code: |
+  class Circle:
+      def __init__(self, r):
+          self.r = r
+
+      @property
+      def area(self):
+          # 返回 3.14159 * r * r
+          pass
+
+  r = float(input())
+  c = Circle(r)
+  print(f"{c.area:.2f}")
+expected_output: |
+  78.54
+tests:
+  - stdin: "5\n"
+    expected_output: "78.54\n"
+hints:
+  - "return 3.14159 * self.r * self.r"
+  - "调用时 c.area 不带括号"
+  - "f'{...:.2f}' 保留 2 位小数"

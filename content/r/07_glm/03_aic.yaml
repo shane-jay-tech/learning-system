@@ -1,0 +1,21 @@
+title: "GLM 的 AIC"
+topic: "07_glm"
+difficulty: 2
+tags: ["aic", "model-comparison"]
+statement: |
+  同上数据，输出 `AIC(fit)` 保留 2 位小数。
+
+  应约 5.65（具体值取决于数值优化）。
+starter_code: |
+  df <- data.frame(
+    leave = c(0,1,0,1,0,1,0,1),
+    years = c(10,1,8,2,7,1,9,2)
+  )
+  # AIC(fit)
+
+expected_output: |
+  4
+hints:
+  - "fit <- glm(leave ~ years, data=df, family=binomial)"
+  - "cat(round(AIC(fit), 2), \"\\n\")"
+  - "AIC 越小越好；用于比较不同模型"

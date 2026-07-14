@@ -1,0 +1,21 @@
+title: "DataFrame 求列均值"
+topic: "09_pandas_basics"
+difficulty: 1
+tags: ["pandas", "mean"]
+statement: |
+  请用 pandas 建一个 DataFrame：
+  - `name`: ["Alice","Bob","Cathy","David","Eve"]
+  - `score`: [85, 92, 78, 88, 95]
+
+  输出 score 列的平均值（应为 87.6）。
+starter_code: |
+  import pandas as pd
+
+  # 建 DataFrame，输出 score 平均值
+
+expected_output: |
+  87.6
+hints:
+  - "df = pd.DataFrame({...})"
+  - "print(df['score'].mean())"
+  - "也可 print(df.score.mean())"

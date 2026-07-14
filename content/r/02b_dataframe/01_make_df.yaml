@@ -1,0 +1,19 @@
+title: "建一个 data.frame 并查行数"
+topic: "02b_dataframe"
+difficulty: 1
+tags: ["data.frame", "nrow"]
+statement: |
+  请用 `data.frame()` 建一个学生表：
+  - `name` 列：c("Alice", "Bob", "Cathy", "David")
+  - `score` 列：c(92, 78, 85, 60)
+
+  然后用 `cat` 输出**行数**（应为 4）。
+starter_code: |
+  # 建一个含 4 行的 data.frame，输出 nrow
+
+expected_output: |
+  4
+hints:
+  - "df <- data.frame(name=c(...), score=c(...))"
+  - "nrow(df) 给出行数"
+  - "cat(nrow(df), \"\\n\")"

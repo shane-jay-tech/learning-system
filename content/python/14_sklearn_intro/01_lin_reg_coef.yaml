@@ -1,0 +1,23 @@
+title: "线性回归系数"
+topic: "14_sklearn_intro"
+difficulty: 2
+tags: ["sklearn", "linear-regression"]
+statement: |
+  工资 X [[5000],[8000],[6500],[12000],[9000]] 预测绩效 y [70,88,75,95,82]。
+  训练线性回归，输出**斜率 coef**（保留 4 位小数）。
+
+  应约 0.0036。
+starter_code: |
+  import numpy as np
+  from sklearn.linear_model import LinearRegression
+
+  X = np.array([[5000],[8000],[6500],[12000],[9000]])
+  y = np.array([70, 88, 75, 95, 82])
+  # 训练并 print(f'{model.coef_[0]:.4f}')
+
+expected_output: |
+  0.0035
+hints:
+  - "model = LinearRegression(); model.fit(X, y)"
+  - "print(f'{model.coef_[0]:.4f}')"
+  - "coef_ 是一维数组（一个特征 → 一个系数）"

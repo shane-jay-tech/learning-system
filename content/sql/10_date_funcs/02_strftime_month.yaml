@@ -1,0 +1,22 @@
+title: "STRFTIME 提取年月"
+topic: "10_date_funcs"
+difficulty: 2
+tags: ["strftime"]
+statement: |
+  从 hire_date 提取 'YYYY-MM' 部分，按 id 升序，输出 name 和年月。
+
+  期望：Alice/2024-01, Bob/2024-06, Cathy/2025-03。
+starter_code: |
+  -- SELECT name, STRFTIME('%Y-%m', hire_date) FROM employees ORDER BY id
+
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, hire_date TEXT);
+  INSERT INTO employees VALUES (1,'Alice','2024-01-15'),(2,'Bob','2024-06-20'),(3,'Cathy','2025-03-10');
+expected_rows:
+  - ["Alice", "2024-01"]
+  - ["Bob", "2024-06"]
+  - ["Cathy", "2025-03"]
+hints:
+  - "STRFTIME('%Y-%m', hire_date)"
+  - "格式串里 %Y 4 位年, %m 2 位月"
+  - "返回字符串，可以直接拼"

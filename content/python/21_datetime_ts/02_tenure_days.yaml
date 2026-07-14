@@ -1,0 +1,21 @@
+title: "计算工龄天数"
+topic: "21_datetime_ts"
+difficulty: 3
+tags: ["datetime", "timedelta"]
+statement: |
+  员工入职日期为 `2022-06-01`，当前日期为 `2024-06-01`。
+  计算并打印工龄天数。
+
+  注意：用固定日期计算，不要用 `date.today()`。
+starter_code: |
+  from datetime import date
+
+  hire_date = date(2022, 6, 1)
+  current = date(2024, 6, 1)
+
+  # 计算工龄天数
+expected_output: |
+  731
+hints:
+  - "两个 date 相减得到 timedelta 对象"
+  - "timedelta.days 取天数"

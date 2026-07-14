@@ -1,0 +1,23 @@
+title: "长变宽 pivot_wider"
+topic: "08_tidyr"
+difficulty: 2
+tags: ["tidyr", "pivot_wider"]
+statement: |
+  从长表 `df_long` 用 `pivot_wider` 还原宽表，输出**列数**。
+
+  原长表有 name + subject + score 共 3 列。变宽后：name + 3 个科目 = 4 列。
+starter_code: |
+  suppressMessages(library(tidyr))
+  df_long <- data.frame(
+    name = c("Alice","Alice","Alice","Bob","Bob","Bob"),
+    subject = c("math","english","history","math","english","history"),
+    score = c(85,78,90,72,88,85)
+  )
+  # pivot_wider 后 cat ncol
+
+expected_output: |
+  4
+hints:
+  - "df_wide <- df_long %>% pivot_wider(names_from=subject, values_from=score)"
+  - "cat(ncol(df_wide), \"\\n\")"
+  - "names_from 决定新列名来源"

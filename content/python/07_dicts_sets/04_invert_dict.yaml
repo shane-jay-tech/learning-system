@@ -1,0 +1,19 @@
+title: "翻转字典"
+topic: "07_dicts_sets"
+difficulty: 2
+tags: ["dict", "comprehension"]
+statement: |
+  字典 `d = {"a": 1, "b": 2, "c": 3}` 已写好。请把它的 key 和 value **互换**，得到新字典 `{1: "a", 2: "b", 3: "c"}`。
+  按**新 key（原 value）升序**输出，每行一对，格式 `数字 字母`。
+starter_code: |
+  d = {"a": 1, "b": 2, "c": 3}
+  # 翻转 d 然后按新 key 升序输出
+
+expected_output: |
+  1 a
+  2 b
+  3 c
+hints:
+  - "字典推导：inv = {v: k for k, v in d.items()}"
+  - "排序：sorted(inv.items())"
+  - "for k, v in sorted_pairs: print(k, v)"

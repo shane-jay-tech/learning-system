@@ -1,0 +1,31 @@
+title: "拆解「加登录功能」"
+topic: "09_decompose"
+difficulty: 2
+tags: ["decompose", "planning", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：你要让 AI agent 给一个笔记 App 加登录功能。
+
+  如果直接说"加个登录"，agent 容易遗漏步骤或者一次做太多。
+  请把这个需求**拆成 4-6 个可独立验收的子任务**。
+
+  每个子任务应该：
+  - 有明确的完成标准
+  - 做完之后可以单独测试
+  - 不依赖后面的任务（或依赖关系清晰）
+starter_code: ""
+rubric:
+  - "拆出了至少 4 个子任务"
+  - "每个子任务有独立的验收标准"
+  - "考虑了前后端（数据库表 → 后端 API → 前端页面 → 整合）"
+  - "考虑了边界（如：未登录时的重定向/保护）"
+reference_answer: |
+  子任务拆解:
+  1. 创建 users 表（id, username, hashed_pw, created_at）→ 验收：能通过 SQL 插入和查询
+  2. 实现注册 API POST /register → 验收：用 curl 调用返回 201 + 新用户 id
+  3. 实现登录 API POST /login → 验收：正确密码返回 token，错误密码返回 401
+  4. 前端登录页面 → 验收：输入账号密码点登录，成功跳首页，失败显示提示
+  5. 路由保护中间件 → 验收：未登录访问 /notes 被重定向到 /login
+  6. 退出功能 → 验收：点退出后 token 失效，再访问 /notes 跳登录
+hints:
+  - "想象你在给 agent 排工单——每张工单做完了发一次 PR，你能单独验收。"

@@ -1,0 +1,58 @@
+title: "从报错定位问题模块"
+topic: "11_real_tasks"
+difficulty: 3
+tags: ["debug", "real-task"]
+judge_mode: ai_open
+
+statement: |
+  你的项目突然跑不起来了，终端显示：
+
+  ```
+  Traceback (most recent call last):
+    File "app.py", line 3, in <module>
+      from services.user_service import UserService
+    File "services/user_service.py", line 7, in <module>
+      from database.connection import get_pool
+    File "database/connection.py", line 15, in <module>
+      pool = create_pool(host=config.DB_HOST, port=config.DB_PORT)
+    File "database/connection.py", line 9, in create_pool
+      conn = psycopg2.connect(host=host, port=port, dbname="myapp")
+  psycopg2.OperationalError: could not connect to server: Connection refused
+      Is the server running on host "localhost" and accepting TCP/IP connections on port 5432?
+  ```
+
+  请回答以下问题：
+  1. 问题出在哪一层？（应用代码 / 配置 / 基础设施）
+  2. 最可能的原因是什么？（列 2-3 个）
+  3. 你会让 AI agent 做什么来修复？（具体指令）
+
+starter_code: |
+  # 在这里写你的诊断分析
+
+rubric:
+  - "正确识别是基础设施/配置层问题（不是代码 bug）得 20 分"
+  - "列出合理的可能原因（数据库未启动/端口错误/防火墙/docker未起）得 25 分"
+  - "给 agent 的指令具体可执行（不是'检查数据库'这种模糊指令）得 30 分"
+  - "解释了 traceback 的阅读逻辑（从下往上、最后一行是根因）得 15 分"
+  - "没有误判成代码 bug 而想让 agent 改代码得 10 分"
+
+reference_answer: |
+  1. **问题层**：基础设施层（数据库连接），不是应用代码逻辑 bug。
+
+  2. **可能原因**：
+     - PostgreSQL 服务没启动（最常见）
+     - 数据库端口 5432 被其他进程占用或配置错误
+     - Docker 容器里的数据库没运行（如果用 docker-compose）
+
+  3. **给 agent 的指令**：
+     - 先别改代码！检查 PostgreSQL 是否在运行：`pg_isready -h localhost -p 5432`
+     - 如果没运行：`sudo systemctl start postgresql` 或 `docker-compose up -d db`
+     - 如果端口不对：检查 config.DB_PORT 的值和实际数据库监听端口是否一致
+     - 确认连接后重新运行 app.py
+
+  **阅读逻辑**：traceback 从上到下是调用链（app.py → user_service → connection），最后一行是真正的错误原因。这次不是代码写错了，是外部依赖（数据库）不可用。
+
+hints:
+  - "traceback 最后一行说了什么？是代码逻辑错误还是连接问题？"
+  - "Connection refused 通常意味着什么？"
+  - "如果代码本身没问题，你该让 agent 做什么？"

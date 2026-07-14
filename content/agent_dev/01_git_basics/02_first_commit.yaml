@@ -1,0 +1,25 @@
+title: "第一次 commit"
+topic: "01_git_basics"
+difficulty: 1
+tags: ["git", "commit"]
+statement: |
+  暂存所有改动，提交一次，message 是 `init`。
+  请输出**两条命令**（用 `\n` 分行）。
+
+  期望两行：
+  ```
+  git add .
+  git commit -m "init"
+  ```
+starter_code: |
+  cmd1 = "..."
+  cmd2 = "..."
+  print(cmd1)
+  print(cmd2)
+expected_output: |
+  git add .
+  git commit -m "init"
+hints:
+  - "git add . 暂存所有改动"
+  - "git commit -m \"...\" 提交并写 message"
+  - "message 用双引号或单引号都行，但常见是双引号"

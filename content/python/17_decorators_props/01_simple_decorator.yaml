@@ -1,0 +1,29 @@
+title: "写一个简单装饰器"
+topic: "17_decorators_props"
+difficulty: 2
+tags: ["decorator"]
+statement: |
+  写装饰器 `double` 让被装饰的函数返回值**翻倍**。
+  题目已替你 @double 装饰了 `square` 函数。从输入读 n，print(square(n))。
+
+  输入 `5` → `square(5) = 25` → 翻倍 → 输出 `50`。
+starter_code: |
+  def double(func):
+      # wrapper 调原函数后把结果 * 2 返回
+      pass
+
+  @double
+  def square(n):
+      return n * n
+
+  n = int(input())
+  print(square(n))
+expected_output: |
+  50
+tests:
+  - stdin: "5\n"
+    expected_output: "50\n"
+hints:
+  - "def wrapper(*args, **kwargs): return func(*args, **kwargs) * 2"
+  - "记得 return wrapper"
+  - "@double 等价于 square = double(square)"

@@ -1,0 +1,17 @@
+title: "改 NameError"
+topic: "02_debug_read"
+difficulty: 2
+tags: ["debug", "fix"]
+statement: |
+  下面的代码有个 NameError——`scor` 没定义（拼错了）。
+  请改正后让它输出 `85`。
+starter_code: |
+  scor = 85
+  # 修复：使用正确的变量名 print
+  print(socre)
+expected_output: |
+  85
+hints:
+  - "把 'socre' 改成 'scor'"
+  - "或把 'scor' 改成 'score'，两边一致即可"
+  - "拼写错误是 NameError 最常见原因"

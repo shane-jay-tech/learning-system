@@ -1,0 +1,18 @@
+title: "部门满意度均值"
+topic: "20_hr_pandas"
+difficulty: 2
+tags: ["pandas", "groupby", "hr"]
+statement: |
+  读取 HR 员工数据（df 已加载），计算每个部门的**平均满意度**，
+  输出满意度最高的部门名和分数（保留 2 位小数）。
+starter_code: |
+  import pandas as pd
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 按部门算平均满意度，输出最高的
+expected_output: |
+  Technology 3.83
+hints:
+  - "df.groupby('department')['satisfaction_score'].mean()"
+  - "用 .idxmax() 找最高的部门"

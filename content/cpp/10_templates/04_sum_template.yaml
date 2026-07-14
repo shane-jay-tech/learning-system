@@ -1,0 +1,32 @@
+title: "vector 求和模板"
+topic: "10_templates"
+difficulty: 3
+tags: ["template", "container"]
+statement: |
+  定义 `template <typename T> T sum_vec(const vector<T>& v)` 返回向量求和。
+  从输入读 N + N 个整数，输出 `sum_vec` 结果。
+
+  输入 `5\n3 5 7 11 14`，输出 `40`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  using namespace std;
+
+  // template <typename T> T sum_vec(...)
+
+  int main() {
+      int n; cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      cout << sum_vec(v) << endl;
+      return 0;
+  }
+expected_output: |
+  40
+tests:
+  - stdin: "5\n3 5 7 11 14\n"
+    expected_output: "40\n"
+hints:
+  - "template <typename T> T sum_vec(const vector<T>& v) { T s{}; for (auto& x : v) s += x; return s; }"
+  - "T s{} 默认初始化（int=0, string=空串）"
+  - "也支持 vector<double>、vector<string> 等"

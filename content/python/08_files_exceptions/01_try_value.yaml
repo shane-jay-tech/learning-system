@@ -1,0 +1,23 @@
+title: "捕获 ValueError"
+topic: "08_files_exceptions"
+difficulty: 1
+tags: ["try-except", "ValueError"]
+statement: |
+  从标准输入读一行字符串：
+  - 如果能转成整数，输出它的 **2 倍**
+  - 如果不能（抛 ValueError），输出 `not a number`
+
+  例如输入 `7` → `14`；输入 `hello` → `not a number`。
+starter_code: |
+  s = input().strip()
+  # 用 try-except 捕 ValueError
+
+expected_output: |
+  14
+tests:
+  - stdin: "7\n"
+    expected_output: "14\n"
+hints:
+  - "try: print(int(s) * 2)"
+  - "except ValueError: print('not a number')"
+  - "注意 except 后面要跟具体异常类型"

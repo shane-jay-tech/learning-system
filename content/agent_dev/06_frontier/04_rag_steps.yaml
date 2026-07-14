@@ -1,0 +1,17 @@
+title: "RAG 三步骤"
+topic: "06_frontier"
+difficulty: 2
+tags: ["frontier", "rag"]
+statement: |
+  RAG（检索增强生成）的三个核心步骤，按**执行顺序**输出（小写英文，空格分隔）。
+
+  期望：`embed retrieve generate`。
+starter_code: |
+  steps = ["...", "...", "..."]
+  print(' '.join(steps))
+expected_output: |
+  embed retrieve generate
+hints:
+  - "1. embed：把问题/文档转向量"
+  - "2. retrieve：在向量库找相似文档"
+  - "3. generate：把文档塞进 prompt 让 LLM 基于这些资料回答"

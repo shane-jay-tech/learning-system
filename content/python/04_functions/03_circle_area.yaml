@@ -1,0 +1,28 @@
+title: "圆面积函数"
+topic: "04_functions"
+difficulty: 2
+tags: ["def", "math"]
+statement: |
+  请定义一个 `area_of_circle(r)` 函数，参数是半径 `r`，**返回**圆面积 `π × r²`。
+  本题里 π 取 **3.14159**（不要用 math.pi）。
+
+  从标准输入读一个浮点数（可以是 `5` 或 `5.0` 或 `5.5`），输出面积，**保留两位小数**。
+
+  例如输入 `5`，输出 `78.54`（3.14159 × 25 ≈ 78.53975 → 保留两位 → 78.54）。
+starter_code: |
+  def area_of_circle(r):
+      # 返回 3.14159 * r * r
+      pass
+
+  r = float(input())
+  area = area_of_circle(r)
+  print(f"{area:.2f}")
+expected_output: |
+  78.54
+tests:
+  - stdin: "5\n"
+    expected_output: "78.54\n"
+hints:
+  - "return 3.14159 * r * r 或 return 3.14159 * r ** 2"
+  - "starter_code 已经替你处理好两位小数：f\"{area:.2f}\""
+  - "注意题目要求 π=3.14159（5 位小数版），不是 3.14"

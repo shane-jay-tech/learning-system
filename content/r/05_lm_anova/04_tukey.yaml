@@ -1,0 +1,22 @@
+title: "TukeyHSD 事后检验"
+topic: "05_lm_anova"
+difficulty: 3
+tags: ["tukey", "post-hoc"]
+statement: |
+  同上 3 个班。请用 `TukeyHSD` 做事后两两比较，输出**显著差异**（p<0.05）的组对个数。
+
+  应为 2（B 和 A、B 和 C 显著差异；A 和 C 接近）。
+starter_code: |
+  df <- data.frame(
+    score = c(85,92,78,88,95, 70,72,65,60,55, 80,82,78,85,90),
+    class = factor(rep(c("A","B","C"), each=5))
+  )
+  fit <- aov(score ~ class, data=df)
+  # TukeyHSD(fit)$class 是矩阵；最后一列 p adj < 0.05 的行数
+
+expected_output: |
+  2
+hints:
+  - "tk <- TukeyHSD(fit)$class"
+  - "cat(sum(tk[, \"p adj\"] < 0.05), \"\\n\")"
+  - "tk 的列：diff/lwr/upr/p adj"

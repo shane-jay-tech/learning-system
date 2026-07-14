@@ -1,0 +1,34 @@
+title: "函数对象 operator()"
+topic: "09_operator_overload"
+difficulty: 3
+tags: ["functor", "operator()"]
+statement: |
+  定义 Adder 类，构造时存 base，重载 `()` 让 `Adder(5)(3)` 返回 8。
+  从输入读 `base x`，输出 `Adder(base)(x)`。
+
+  输入 `5 3`，输出 `8`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  class Adder {
+  public:
+      int base;
+      Adder(int b) : base(b) {}
+      // 重载 () 接收 x，返回 base + x
+  };
+
+  int main() {
+      int b, x; cin >> b >> x;
+      cout << Adder(b)(x) << endl;
+      return 0;
+  }
+expected_output: |
+  8
+tests:
+  - stdin: "5 3\n"
+    expected_output: "8\n"
+hints:
+  - "int operator()(int x) const { return base + x; }"
+  - "Adder 实例可像函数一样调用"
+  - "STL algorithm 里大量用函数对象"

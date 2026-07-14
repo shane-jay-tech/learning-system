@@ -1,0 +1,35 @@
+title: "拆解「做一个数据面板」"
+topic: "09_decompose"
+difficulty: 2
+tags: ["decompose", "data", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：你要让 AI agent 给 HR 系统做一个数据面板，展示：
+  - 部门人数分布（饼图）
+  - 月度离职趋势（折线图）
+  - 满意度 Top/Bottom 5 部门（表格）
+
+  请把这个需求拆成独立子任务，说清楚顺序和依赖。
+starter_code: ""
+rubric:
+  - "拆出了至少 4 个子任务"
+  - "明确了依赖关系（如：先有数据查询再有图表）"
+  - "每个子任务可独立测试"
+  - "考虑了数据层和展示层的分离"
+reference_answer: |
+  1. 数据查询层：写 3 个查询函数（dept_count, monthly_turnover, satisfaction_ranking）
+     验收：函数返回正确的 dict/DataFrame，单元测试通过
+     依赖：无
+  2. 饼图组件：接收 dept_count 数据画饼图
+     验收：传入测试数据能渲染出正确的图
+     依赖：任务 1
+  3. 折线图组件：接收 monthly_turnover 数据画折线
+     验收：同上
+     依赖：任务 1
+  4. 排名表格：接收 satisfaction_ranking 数据渲染表格
+     依赖：任务 1
+  5. 页面集成：把 3 个组件组装到一个页面
+     验收：打开页面能看到 3 个图表，数据正确
+     依赖：任务 2+3+4
+hints:
+  - "数据和展示分开拆——这样改数据源不影响 UI，改 UI 不影响查询。"

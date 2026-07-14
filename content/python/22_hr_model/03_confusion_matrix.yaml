@@ -1,0 +1,40 @@
+title: "混淆矩阵与召回率"
+topic: "22_hr_model"
+difficulty: 4
+tags: ["sklearn", "metrics", "hr"]
+judge_mode: ai_open
+statement: |
+  继续用离职预测模型，计算并输出：
+  1. 混淆矩阵（2x2 格式）
+  2. 离职类（label=1）的召回率（保留 2 位小数）
+
+  解释：在 HR 场景中，为什么召回率比准确率更重要？（1-2 句话）
+starter_code: |
+  import pandas as pd
+  from sklearn.linear_model import LogisticRegression
+  from sklearn.model_selection import train_test_split
+  from sklearn.metrics import confusion_matrix, recall_score
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  df['left'] = df['leave_date'].notna().astype(int)
+  features = ['salary', 'performance_score', 'satisfaction_score', 'training_hours', 'age']
+  X = df[features]
+  y = df['left']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  model = LogisticRegression(max_iter=1000)
+  model.fit(X_train, y_train)
+  y_pred = model.predict(X_test)
+
+  # 输出混淆矩阵 + 召回率 + 解释
+rubric:
+  - "正确输出了混淆矩阵"
+  - "计算了离职类的召回率（recall_score(y_test, y_pred, pos_label=1)）"
+  - "解释了为什么召回率重要（漏掉一个要走的人比误判一个不走的人成本更高）"
+reference_answer: |
+  cm = confusion_matrix(y_test, y_pred)
+  print(cm)
+  recall = recall_score(y_test, y_pred)
+  print(f"离职类召回率: {recall:.2f}")
+  print("解释: 在 HR 场景中，漏掉一个即将离职的人（假阴性）成本远高于误判一个不走的人（假阳性），因为前者错过了挽留机会。")
+hints:
+  - "recall = TP / (TP + FN)，衡量的是「真正要走的人，你抓住了多少」"

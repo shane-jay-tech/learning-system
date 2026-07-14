@@ -1,0 +1,24 @@
+title: "为 REST API 端点写 Spec"
+topic: "07_write_spec"
+difficulty: 2
+tags: ["spec", "api", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：你需要让 AI agent 实现一个 API 端点：
+  > "做一个用户注册接口。"
+
+  请写一份 API Spec，包含请求/响应格式、状态码、错误处理。
+  用中文写，格式不限。
+starter_code: ""
+rubric:
+  - "明确了 HTTP 方法和路径（如 POST /api/register）"
+  - "给出了请求 body 的字段和类型（username, password, email 等）"
+  - "列出了成功和失败的响应格式（至少 200 + 2 种错误码）"
+  - "说明了校验规则（密码长度、邮箱格式等）"
+reference_answer: |
+  POST /api/register
+  Request body: {"username": string(3-20字符), "email": string(合法邮箱), "password": string(8-32字符,含大小写+数字)}
+  成功: 201 {"id": int, "username": string, "created_at": ISO8601}
+  失败: 400 {"error": "username_taken"} / 400 {"error": "invalid_email"} / 400 {"error": "weak_password"}
+hints:
+  - "想象前端开发者拿到这份文档，能不能直接写请求代码？"

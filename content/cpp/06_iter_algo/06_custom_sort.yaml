@@ -1,0 +1,28 @@
+title: "自定义排序规则"
+topic: "06_iter_algo"
+difficulty: 2
+tags: ["sort", "lambda", "algorithm"]
+statement: |
+  给定一个整数 vector {3, -1, 4, -1, 5, -9}，按绝对值从小到大排序。
+
+  输出排序后的结果，每个数字之间用空格分隔。
+
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <algorithm>
+  #include <cmath>
+  using namespace std;
+
+  int main() {
+      vector<int> v = {3, -1, 4, -1, 5, -9};
+      // 按绝对值从小到大排序
+      return 0;
+  }
+
+expected_output: |
+  -1 -1 3 4 5 -9
+hints:
+  - "sort(v.begin(), v.end(), 自定义比较函数)"
+  - "lambda: [](int a, int b){ return abs(a) < abs(b); }"
+  - "stable_sort 可保持相等元素的原始顺序"

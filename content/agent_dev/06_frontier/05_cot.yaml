@@ -1,0 +1,18 @@
+title: "Chain-of-Thought 缩写"
+topic: "06_frontier"
+difficulty: 1
+tags: ["frontier", "prompt-engineering"]
+statement: |
+  让 LLM 先输出"思考过程"再给答案的 prompting 技术，缩写是什么？
+  输出英文缩写（3 个大写字母）。
+
+  期望：`CoT`（也接受 `COT`，但题目锁定 `CoT`）。
+starter_code: |
+  abbr = "..."
+  print(abbr)
+expected_output: |
+  CoT
+hints:
+  - "Chain-of-Thought = CoT"
+  - "首字 C+o+T；C 和 T 大写，o 小写是惯用写法"
+  - "在 prompt 里加 'Let me think step by step' 就是最简单的 CoT"

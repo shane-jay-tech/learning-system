@@ -1,0 +1,22 @@
+title: "列表求和"
+topic: "05_lists"
+difficulty: 1
+tags: ["list", "sum"]
+statement: |
+  从标准输入读一行**空格分隔**的整数，输出它们的和。
+
+  例如输入 `3 5 7 11 14`，输出 `40`。
+starter_code: |
+  parts = input().split()
+  nums = [int(x) for x in parts]
+  # 用 sum() 输出和
+
+expected_output: |
+  40
+tests:
+  - stdin: "3 5 7 11 14\n"
+    expected_output: "40\n"
+hints:
+  - "print(sum(nums))"
+  - "sum() 是 Python 内置，直接对列表求和"
+  - "starter 已经替你把字符串切成了整数列表"

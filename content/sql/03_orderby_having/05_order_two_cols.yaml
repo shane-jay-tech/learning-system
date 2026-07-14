@@ -1,0 +1,25 @@
+title: "多列排序"
+topic: "03_orderby_having"
+difficulty: 2
+tags: ["order-by"]
+statement: |
+  请按 **score 降序**排，分数相同时按 **id 升序**。输出 `id, name, score` 三列。
+
+  设置里有两个学生分数同为 90（Bob、Frank），按 id 升序排时 Bob（id=2）应在 Frank（id=6）之前。
+starter_code: |
+  -- ORDER BY score DESC, id ASC
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',90),(3,'Cathy',75),(4,'David',60),(5,'Eve',95),(6,'Frank',90);
+expected_rows:
+  - [5, "Eve", 95]
+  - [1, "Alice", 92]
+  - [2, "Bob", 90]
+  - [6, "Frank", 90]
+  - [3, "Cathy", 75]
+  - [4, "David", 60]
+hints:
+  - "ORDER BY score DESC, id ASC"
+  - "多列排序用逗号分隔，先按第 1 列排"
+  - "升序 ASC 可省，降序 DESC 必须写"

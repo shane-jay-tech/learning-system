@@ -1,0 +1,31 @@
+title: "reverse 反转"
+topic: "06_iter_algo"
+difficulty: 1
+tags: ["reverse"]
+statement: |
+  读 N + N 个整数，**反转**顺序后空格分隔输出。
+
+  输入 `5\n1 2 3 4 5`，输出 `5 4 3 2 1`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <algorithm>
+  using namespace std;
+
+  int main() {
+      int n; cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      // reverse 然后输出
+
+      return 0;
+  }
+expected_output: |
+  5 4 3 2 1
+tests:
+  - stdin: "5\n1 2 3 4 5\n"
+    expected_output: "5 4 3 2 1\n"
+hints:
+  - "reverse(v.begin(), v.end()); 原地反转"
+  - "也可以 for (int i=n-1; i>=0; i--) cout << v[i];"
+  - "首个数前不加空格"

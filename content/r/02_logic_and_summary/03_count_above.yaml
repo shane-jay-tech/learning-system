@@ -1,0 +1,18 @@
+title: "及格人数"
+topic: "02_logic_and_summary"
+difficulty: 2
+tags: ["logical", "sum"]
+statement: |
+  向量 `scores <- c(85, 55, 92, 48, 78, 60, 33, 88, 95, 70)` 是 10 个学生的成绩。
+  请输出**及格人数**（成绩 ≥60 的人数）。
+  正确答案是 7。
+starter_code: |
+  scores <- c(85, 55, 92, 48, 78, 60, 33, 88, 95, 70)
+  # 在下面用 cat 输出及格人数
+
+expected_output: |
+  7
+hints:
+  - "scores >= 60 给出 TRUE/FALSE 向量"
+  - "sum(...) 把 TRUE 当 1 求和，结果就是 TRUE 的个数"
+  - "一句话：cat(sum(scores >= 60), \"\\n\")"

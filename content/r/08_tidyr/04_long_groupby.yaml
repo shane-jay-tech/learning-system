@@ -1,0 +1,19 @@
+title: "长表 + group_by 总分"
+topic: "08_tidyr"
+difficulty: 3
+tags: ["tidyr", "dplyr"]
+statement: |
+  把 df_wide 变长后按 name 分组求 score 之和，输出 Alice 的总分（应为 253）。
+
+  Alice 三科：85+78+90=253；Bob：72+88+85=245。
+starter_code: |
+  suppressMessages({library(tidyr); library(dplyr)})
+  df_wide <- data.frame(name=c("Alice","Bob"), math=c(85,72), english=c(78,88), history=c(90,85))
+  # pivot_longer + group_by + summarize；输出 Alice 的总分
+
+expected_output: |
+  253
+hints:
+  - "result <- df_wide %>% pivot_longer(-name, names_to=\"sub\", values_to=\"s\") %>% group_by(name) %>% summarize(total=sum(s))"
+  - "cat(result$total[result$name == \"Alice\"], \"\\n\")"
+  - "-name 表示除 name 外的所有列都摞起来"

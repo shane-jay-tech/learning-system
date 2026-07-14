@@ -1,0 +1,25 @@
+title: "读文件求和"
+topic: "12_file_io"
+difficulty: 3
+tags: ["fstream", "stream-extract"]
+statement: |
+  写 `3 5 7 11 14`（空格分隔，单行）到 nums.txt，再用 `>>` 逐个读 int 求和。
+
+  期望 `40`。
+starter_code: |
+  #include <iostream>
+  #include <fstream>
+  using namespace std;
+
+  int main() {
+      // 1) 写 "3 5 7 11 14" 到 nums.txt
+      // 2) ifstream + while(in >> x) 求和
+
+      return 0;
+  }
+expected_output: |
+  40
+hints:
+  - "{ ofstream out(\"nums.txt\"); out << \"3 5 7 11 14\"; }"
+  - "ifstream in(\"nums.txt\"); int x, sum=0; while(in >> x) sum += x;"
+  - "cout << sum << endl;"

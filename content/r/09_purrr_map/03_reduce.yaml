@@ -1,0 +1,18 @@
+title: "reduce 求和"
+topic: "09_purrr_map"
+difficulty: 1
+tags: ["purrr", "reduce"]
+statement: |
+  用 `reduce(1:10, \`+\`)` 算 1+2+...+10。
+
+  期望：`55`。
+starter_code: |
+  suppressMessages(library(purrr))
+  # reduce + cat
+
+expected_output: |
+  55
+hints:
+  - "result <- reduce(1:10, `+`)"
+  - "cat(result, \"\\n\")"
+  - "也可以 reduce(1:10, sum) 但 + 更直接"

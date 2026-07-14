@@ -1,0 +1,35 @@
+title: "写出让 agent 有效调试的 prompt"
+topic: "10_debug_logs"
+difficulty: 3
+tags: ["debug", "prompt", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：你的 App 有个 bug——用户上传图片后，缩略图生成有时成功有时失败。
+  你已经知道：
+  - 大于 5MB 的图片 100% 失败
+  - 小于 1MB 的 100% 成功
+  - 1-5MB 之间随机
+
+  现在要让 AI agent 帮你修。
+  请写一段 prompt（中文），把你知道的信息组织好传给 agent，让它能高效定位问题。
+starter_code: ""
+rubric:
+  - "包含了已知的复现规律（大小阈值）"
+  - "提供了相关代码的线索（如：缩略图生成代码在哪个文件）"
+  - "给了明确的调试方向（如：检查内存限制、超时配置、Pillow 处理大图的行为）"
+  - "没有把所有事情丢给 agent 不管——给了足够的上下文"
+reference_answer: |
+  示例 prompt:
+  "缩略图生成有个 bug。已知规律：
+  - >5MB 图片 100% 失败，<1MB 100% 成功，1-5MB 随机
+  - 代码在 src/image/thumbnail.py 的 generate_thumb() 函数
+  - 用的是 Pillow Image.thumbnail()
+
+  请检查：
+  1. 是否有内存限制或 timeout 导致大图处理被中断
+  2. Pillow 处理大 JPEG 时是否有已知的内存峰值问题
+  3. 加 try/except 看失败时的具体报错是什么
+
+  先不要改代码，先告诉我你觉得原因是什么。"
+hints:
+  - "好的 debug prompt = 已知事实 + 相关代码位置 + 你猜测的方向 + 明确的第一步。"

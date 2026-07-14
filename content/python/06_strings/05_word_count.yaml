@@ -1,0 +1,21 @@
+title: "统计单词数"
+topic: "06_strings"
+difficulty: 2
+tags: ["split"]
+statement: |
+  从标准输入读一行英文句子，输出单词个数（按**空白**分隔，连续多个空格当一个分隔符）。
+
+  例如输入 `  The  quick brown fox `，输出 `4`。
+starter_code: |
+  s = input()
+  # 统计单词数
+
+expected_output: |
+  4
+tests:
+  - stdin: "  The  quick brown fox \n"
+    expected_output: "4\n"
+hints:
+  - "s.split() 不传参数时按任意空白切，自动忽略多余空白"
+  - "len(s.split()) 即得词数"
+  - "注意：传 s.split(' ') 反而会保留空字符串，不是想要的"

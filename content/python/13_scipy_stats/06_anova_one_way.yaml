@@ -1,0 +1,28 @@
+title: "单因素方差分析"
+topic: "13_scipy_stats"
+difficulty: 3
+tags: ["scipy", "anova", "f_oneway"]
+statement: |
+  三组学生的考试分数：
+  - A 组: [85, 88, 90, 92, 87]
+  - B 组: [78, 75, 80, 72, 77]
+  - C 组: [90, 93, 88, 95, 91]
+
+  用 `scipy.stats.f_oneway` 做单因素方差分析。
+  输出 F 值和 p 值，各保留 4 位小数，格式为：
+  F=xxx p=xxx
+
+starter_code: |
+  from scipy import stats
+
+  a = [85, 88, 90, 92, 87]
+  b = [78, 75, 80, 72, 77]
+  c = [90, 93, 88, 95, 91]
+  # 用 f_oneway 检验三组均值是否有显著差异
+
+expected_output: |
+  F=18.1373 p=0.0002
+hints:
+  - "f, p = stats.f_oneway(a, b, c)"
+  - "print(f'F={f:.4f} p={p:.4f}')"
+  - "p < 0.05 说明至少两组之间存在显著差异"

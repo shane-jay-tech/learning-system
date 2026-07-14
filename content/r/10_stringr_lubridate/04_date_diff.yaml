@@ -1,0 +1,20 @@
+title: "日期相差天数"
+topic: "10_stringr_lubridate"
+difficulty: 2
+tags: ["lubridate", "diff"]
+statement: |
+  计算 `"2026-05-29"` 比 `"2024-01-15"` 大多少天，输出整数。
+
+  期望：`865`。
+starter_code: |
+  suppressMessages(library(lubridate))
+  d1 <- ymd("2024-01-15")
+  d2 <- ymd("2026-05-29")
+  # as.numeric 转 days
+
+expected_output: |
+  865
+hints:
+  - "diff <- as.numeric(d2 - d1, units=\"days\")"
+  - "cat(diff, \"\\n\")"
+  - "也可 as.integer(d2 - d1)"

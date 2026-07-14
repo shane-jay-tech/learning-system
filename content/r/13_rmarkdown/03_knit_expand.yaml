@@ -1,0 +1,19 @@
+title: "knitr::knit_expand 模板"
+topic: "13_rmarkdown"
+difficulty: 3
+tags: ["knitr", "template"]
+statement: |
+  用 `knit_expand` 把模板 `"Hello, {{name}}!"` 中的 `{{name}}` 替换成 `World`，
+  输出结果。
+starter_code: |
+  suppressMessages(library(knitr))
+  template <- "Hello, {{name}}!"
+  result <- knit_expand(text = template, name = "World")
+  # cat(result)
+
+expected_output: |
+  Hello, World!
+hints:
+  - "cat(result, \"\\n\")"
+  - "knit_expand 模板里 {{var}} 表示变量"
+  - "通过命名参数传值：name=\"World\""

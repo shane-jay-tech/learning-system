@@ -1,0 +1,27 @@
+title: "定义 Student 类"
+topic: "16_classes_oop"
+difficulty: 1
+tags: ["class", "init"]
+statement: |
+  请定义 `Student` 类，含 `name` 和 `score` 两个属性。
+  从输入读 `name score`（空格分隔），创建对象后输出 `<name> <score>`（空格分隔）。
+
+  输入 `Alice 85`，输出 `Alice 85`。
+starter_code: |
+  class Student:
+      def __init__(self, name, score):
+          # 把 name, score 存到 self
+          pass
+
+  parts = input().split()
+  s = Student(parts[0], int(parts[1]))
+  print(s.name, s.score)
+expected_output: |
+  Alice 85
+tests:
+  - stdin: "Alice 85\n"
+    expected_output: "Alice 85\n"
+hints:
+  - "self.name = name; self.score = score"
+  - "__init__ 第一个参数永远是 self"
+  - "记得删掉 pass"

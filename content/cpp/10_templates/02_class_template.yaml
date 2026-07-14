@@ -1,0 +1,43 @@
+title: "类模板 Box"
+topic: "10_templates"
+difficulty: 2
+tags: ["template", "class-template"]
+statement: |
+  定义类模板 `Box<T>`，构造时存 value，方法 `get()` 返回 value。
+  从输入读 int n 和 string s，分别构造 `Box<int>(n)`、`Box<string>(s)`，输出两个 `get()`。
+
+  输入：
+  ```
+  42
+  hello
+  ```
+  输出：
+  ```
+  42
+  hello
+  ```
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  // template <typename T> class Box { ... };
+
+  int main() {
+      int n; cin >> n;
+      cin.ignore();
+      string s; getline(cin, s);
+      cout << Box<int>(n).get() << endl;
+      cout << Box<string>(s).get() << endl;
+      return 0;
+  }
+expected_output: |
+  42
+  hello
+tests:
+  - stdin: "42\nhello\n"
+    expected_output: "42\nhello\n"
+hints:
+  - "template <typename T> class Box { T v; public: Box(T v) : v(v) {} T get() const { return v; } };"
+  - "Box<int>(42) 显式实例化 T=int"
+  - "C++17 起 Box(42) 可自动推导（CTAD）"

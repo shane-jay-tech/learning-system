@@ -1,0 +1,23 @@
+title: "写 csv 后读出"
+topic: "12_io_excel"
+difficulty: 1
+tags: ["csv", "io"]
+statement: |
+  把 DataFrame 写到 `data.csv`（不要 index 列），然后读出来输出**行数**。
+
+  数据 5 行（name+score），期望输出 `5`。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+  })
+  # 写入 data.csv（不要 index）然后读出来 print 行数
+
+expected_output: |
+  5
+hints:
+  - "df.to_csv('data.csv', index=False, encoding='utf-8')"
+  - "df2 = pd.read_csv('data.csv'); print(len(df2))"
+  - "index=False 是关键，否则会多一列"

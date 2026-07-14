@@ -1,0 +1,22 @@
+title: "两条线对比"
+topic: "11_matplotlib"
+difficulty: 2
+tags: ["plot", "compare"]
+statement: |
+  两个产品的月销量：A=[10,12,15,14,18], B=[8,11,15,17,21]。
+  画两条折线（同一图）保存到 `compare.png`，并输出 **A 总销量 - B 总销量**（应为 -3）。
+starter_code: |
+  import matplotlib
+  matplotlib.use("Agg")
+  import matplotlib.pyplot as plt
+
+  A = [10, 12, 15, 14, 18]
+  B = [8, 11, 15, 17, 21]
+  # 画两条线保存 compare.png，再 print(sum(A) - sum(B))
+
+expected_output: |
+  -3
+hints:
+  - "plt.plot(A, label='A'); plt.plot(B, label='B'); plt.legend()"
+  - "plt.savefig('compare.png'); plt.close()"
+  - "print(sum(A) - sum(B))"

@@ -1,0 +1,27 @@
+title: "CTE 配窗口函数取每班 TOP 1"
+topic: "07_cte"
+difficulty: 3
+tags: ["cte", "window"]
+statement: |
+  每班分数最高的学生（class, name, score）。请用 CTE + ROW_NUMBER 实现。
+  按 class 升序。
+
+  期望 2 行：A/Eve/95, B/Bob/87。
+starter_code: |
+  -- WITH ranked AS (
+  --   SELECT class, name, score,
+  --          ROW_NUMBER() OVER (PARTITION BY class ORDER BY score DESC) AS rn
+  --   FROM students
+  -- )
+  -- SELECT class, name, score FROM ranked WHERE rn = 1 ORDER BY class;
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER, class TEXT);
+  INSERT INTO students VALUES (1,'Alice',92,'A'),(2,'Bob',87,'B'),(3,'Cathy',75,'A'),(4,'David',60,'B'),(5,'Eve',95,'A');
+expected_rows:
+  - ["A", "Eve", 95]
+  - ["B", "Bob", 87]
+hints:
+  - "WITH 包窗口查询，外层 WHERE rn=1"
+  - "比派生表语法更清楚"
+  - "PARTITION BY class 分窗，ORDER BY score DESC 得排名"

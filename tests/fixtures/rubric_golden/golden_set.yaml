@@ -1,0 +1,266 @@
+# AI scoring golden answers for regression testing.
+# Each entry: problem_id, answer text, expected score range, key dimensions.
+# Used to verify prompt changes don't cause scoring drift.
+
+- id: agent_spec_complete
+  problem_id: "agent_07_01"
+  lang: agent_dev
+  answer: |
+    **目标**：写一个 Python 脚本，从 data.csv 读取数据，计算每部门平均薪资，输出到 result.csv。
+    **边界条件**：Python 3.8+，不用外部库（仅 csv 模块），CSV 编码 UTF-8。
+    **验收标准**：输入 3 行测试数据时输出正确；空文件时输出表头但无数据行；中文部门名正常处理。
+  expected:
+    score_min: 75
+    score_max: 95
+    passed: true
+    dimensions_min: 2
+  must_mention:
+    - 边界
+    - 验收
+
+- id: agent_spec_vague
+  problem_id: "agent_07_01"
+  lang: agent_dev
+  answer: |
+    做一个脚本处理数据，输出结果到文件。
+  expected:
+    score_min: 10
+    score_max: 40
+    passed: false
+    dimensions_min: 2
+  must_mention: []
+
+- id: agent_decompose_good
+  problem_id: "agent_09_01"
+  lang: agent_dev
+  answer: |
+    子任务 1：读取 CSV 文件
+    - 输入：data.csv 路径
+    - 输出：列表套字典
+    - 验收：print(len(data)) 输出正确行数
+
+    子任务 2：按部门分组统计
+    - 输入：数据列表
+    - 输出：{部门: 平均薪资} 字典
+    - 验收：手动算一个部门对比
+
+    子任务 3：写入结果文件
+    - 输入：统计字典
+    - 输出：result.csv
+    - 验收：文件存在且行数=部门数+1
+  expected:
+    score_min: 70
+    score_max: 95
+    passed: true
+    dimensions_min: 2
+
+- id: agent_decompose_no_acceptance
+  problem_id: "agent_09_01"
+  lang: agent_dev
+  answer: |
+    1. 读文件
+    2. 处理数据
+    3. 写文件
+  expected:
+    score_min: 20
+    score_max: 50
+    passed: false
+    dimensions_min: 1
+
+- id: agent_review_thorough
+  problem_id: "agent_04_01"
+  lang: agent_dev
+  answer: |
+    **功能正确性**：代码实现了需求中的所有功能点，包括文件读取、数据解析、结果输出。
+    **边界处理**：缺少对空文件的处理，建议增加 if not data: return 的判断。
+    **安全性**：文件路径拼接使用了 f-string 硬编码，存在路径遍历风险，建议用 pathlib。
+    **可读性**：变量命名清晰，但 process() 函数超过 50 行，建议拆分。
+    **性能**：对于当前数据量（<1000行）无问题，但全量读入内存对大文件不友好。
+  expected:
+    score_min: 70
+    score_max: 95
+    passed: true
+    dimensions_min: 3
+
+- id: agent_review_empty
+  problem_id: "agent_04_01"
+  lang: agent_dev
+  answer: |
+    看了，没问题。
+  expected:
+    score_min: 5
+    score_max: 30
+    passed: false
+    dimensions_min: 1
+
+- id: debug_log_good
+  problem_id: "agent_10_01"
+  lang: agent_dev
+  answer: |
+    **问题定位**：从日志第 3 行可以看出 KeyError: 'department'，说明 CSV 列名不匹配。
+    **根因**：代码用 row['department'] 取值，但实际 CSV 表头是 'dept'。
+    **修复方案**：改为 row['dept'] 或在读取后做列名映射 rename。
+    **验证方法**：修改后重新运行，观察输出是否包含所有部门的统计结果。
+  expected:
+    score_min: 75
+    score_max: 100
+    passed: true
+    dimensions_min: 2
+
+- id: debug_log_wrong_diagnosis
+  problem_id: "agent_10_01"
+  lang: agent_dev
+  answer: |
+    可能是网络问题导致文件下载失败。建议检查网络连接。
+  expected:
+    score_min: 5
+    score_max: 25
+    passed: false
+    dimensions_min: 1
+
+- id: git_basics_correct
+  problem_id: "agent_01_01"
+  lang: agent_dev
+  answer: |
+    git add . 把所有改动加入暂存区。
+    git commit -m "feat: add data processing" 创建一个提交。
+    git push origin main 推送到远端。
+  expected:
+    score_min: 60
+    score_max: 90
+    passed: true
+    dimensions_min: 1
+
+- id: git_basics_confused
+  problem_id: "agent_01_01"
+  lang: agent_dev
+  answer: |
+    git save 保存代码到云端。
+  expected:
+    score_min: 5
+    score_max: 30
+    passed: false
+    dimensions_min: 1
+
+- id: python_explain_recursion
+  problem_id: "python_08_01"
+  lang: python
+  answer: |
+    递归就是函数调用自己。必须有终止条件，否则无限循环。
+    比如算阶乘：factorial(n) = n * factorial(n-1)，终止条件是 n==1 返回 1。
+  expected:
+    score_min: 55
+    score_max: 85
+    passed: true
+    dimensions_min: 1
+
+- id: python_explain_recursion_wrong
+  problem_id: "python_08_01"
+  lang: python
+  answer: |
+    递归就是 for 循环的另一种写法。
+  expected:
+    score_min: 10
+    score_max: 40
+    passed: false
+    dimensions_min: 1
+
+- id: sem_fit_good
+  problem_id: "r_14_01"
+  lang: r
+  answer: |
+    1. 模型拟合不好：CFI=0.87<0.90，TLI=0.84<0.90，RMSEA=0.092>0.08。只有 SRMR=0.065 达标。
+    2. CFI、TLI、RMSEA 三项不达标。标准：CFI/TLI>0.90，RMSEA<0.08，SRMR<0.08。
+    3. 改善方法：看修正指数找高残差题对；删除载荷<0.4 的题目；考虑交叉载荷。
+  expected:
+    score_min: 75
+    score_max: 100
+    passed: true
+    dimensions_min: 2
+
+- id: sem_fit_vague
+  problem_id: "r_14_01"
+  lang: r
+  answer: |
+    拟合还行吧，看起来差不多。
+  expected:
+    score_min: 5
+    score_max: 30
+    passed: false
+    dimensions_min: 1
+
+- id: mediation_correct
+  problem_id: "r_16_01"
+  lang: r
+  answer: |
+    1. 中介效应显著，因为 95% CI [0.09, 0.28] 不含 0。
+    2. 部分中介，因为直接效应 c'=0.22 仍显著。
+    3. 领导越授权，员工心理资本越强，进而更投入工作；但授权也有一部分直接作用。
+  expected:
+    score_min: 80
+    score_max: 100
+    passed: true
+    dimensions_min: 2
+
+- id: mediation_wrong
+  problem_id: "r_16_01"
+  lang: r
+  answer: |
+    完全中介，因为间接效应显著。
+  expected:
+    score_min: 20
+    score_max: 50
+    passed: false
+    dimensions_min: 1
+
+- id: cfa_good
+  problem_id: "r_15_01"
+  lang: r
+  answer: |
+    CFA 语法：exhaustion =~ e1 + e2 + e3 + e4，用 =~ 定义潜变量和指标的关系。
+    拟合 cfa(model, data)，看标准化载荷是否>0.4，CFI>0.90。
+    与 EFA 区别：CFA 验证已有理论结构，EFA 探索未知结构。
+  expected:
+    score_min: 65
+    score_max: 90
+    passed: true
+    dimensions_min: 2
+
+- id: hr_viz_good
+  problem_id: "python_21_01"
+  lang: python
+  answer: |
+    用 plt.bar() 画各部门人数柱状图，plt.title() 加标题，plt.ylabel() 加 Y 轴标签。
+    设置 rcParams['font.sans-serif']=['SimHei'] 解决中文乱码。
+    保存用 plt.savefig('output.png')。
+  expected:
+    score_min: 60
+    score_max: 90
+    passed: true
+    dimensions_min: 1
+
+- id: hr_model_good
+  problem_id: "python_22_01"
+  lang: python
+  answer: |
+    1. train_test_split 分割数据（8:2）
+    2. LogisticRegression().fit(X_train, y_train) 训练
+    3. model.score(X_test, y_test) 看准确率
+    4. 混淆矩阵看真正例和假正例
+    5. 交叉验证防过拟合
+  expected:
+    score_min: 65
+    score_max: 90
+    passed: true
+    dimensions_min: 2
+
+- id: hr_model_incomplete
+  problem_id: "python_22_01"
+  lang: python
+  answer: |
+    用 sklearn 做模型就行。
+  expected:
+    score_min: 5
+    score_max: 30
+    passed: false
+    dimensions_min: 1

@@ -1,0 +1,28 @@
+title: "递归 CTE 生成 1-N"
+topic: "07_cte"
+difficulty: 3
+tags: ["cte", "recursive"]
+statement: |
+  请用 `WITH RECURSIVE` 生成数字 1 到 5（每行一个数）。
+  期望 5 行：1, 2, 3, 4, 5。
+starter_code: |
+  -- WITH RECURSIVE seq(n) AS (
+  --   SELECT 1
+  --   UNION ALL
+  --   SELECT n + 1 FROM seq WHERE n < 5
+  -- )
+  -- SELECT n FROM seq;
+
+setup_sql: |
+  -- 不需要建表
+  CREATE TABLE _dummy (x INTEGER);
+expected_rows:
+  - [1]
+  - [2]
+  - [3]
+  - [4]
+  - [5]
+hints:
+  - "WITH RECURSIVE 关键字"
+  - "锚点（SELECT 1）UNION ALL 递归步（n+1）"
+  - "WHERE n < 5 控制终止"

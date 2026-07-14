@@ -1,0 +1,38 @@
+title: "各部门有多少人"
+topic: "12_people_analytics"
+difficulty: 2
+tags: ["sql", "count", "groupby", "real-data"]
+statement: |
+  统计**每个部门有多少名员工**（用 employees 表就够了），按部门名排序。
+
+  输出两列：部门、人数。
+setup_sql: |
+  CREATE TABLE employees (emp_id INTEGER, name TEXT, department TEXT, hire_date TEXT);
+  INSERT INTO employees VALUES (1001,'Alice','Sales','2024-01-15');
+  INSERT INTO employees VALUES (1002,'Bob','Sales','2025-09-01');
+  INSERT INTO employees VALUES (1003,'Cathy','Engineering','2023-06-20');
+  INSERT INTO employees VALUES (1004,'David','Engineering','2025-12-01');
+  INSERT INTO employees VALUES (1005,'Eve','HR','2022-03-10');
+  INSERT INTO employees VALUES (1006,'Frank','HR','2026-02-01');
+  INSERT INTO employees VALUES (1007,'Grace','Sales','2025-11-05');
+  INSERT INTO employees VALUES (1008,'Heidi','Engineering','2025-03-22');
+  CREATE TABLE surveys (emp_id INTEGER, engagement INTEGER, submit_date TEXT);
+  INSERT INTO surveys VALUES (1001,4,'2026-05-01');
+  INSERT INTO surveys VALUES (1002,5,'2026-05-01');
+  INSERT INTO surveys VALUES (1003,3,'2026-05-02');
+  INSERT INTO surveys VALUES (1004,3,'2026-05-02');
+  INSERT INTO surveys VALUES (1005,5,'2026-05-03');
+  INSERT INTO surveys VALUES (1006,2,'2026-05-03');
+  INSERT INTO surveys VALUES (1008,1,'2026-05-05');
+starter_code: |
+  -- 统计每个部门的员工人数，按部门名排序
+  SELECT
+  FROM employees
+expected_rows:
+  - ["Engineering", 3]
+  - ["HR", 2]
+  - ["Sales", 3]
+hints:
+  - "COUNT(*) 数每组有多少行"
+  - "GROUP BY department 按部门分组"
+  - "ORDER BY department 排序"

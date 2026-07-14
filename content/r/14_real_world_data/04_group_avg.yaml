@@ -1,0 +1,31 @@
+title: "各部门平均敬业度（清洗后再算）"
+topic: "14_real_world_data"
+difficulty: 4
+tags: ["base-r", "aggregate", "real-data"]
+statement: |
+  综合题——把清洗连起来再做真正的分析。按这个顺序：
+  1. 去掉完全重复的行（`unique`）
+  2. 规范 `department`（`tolower(trimws(...))`）
+  3. 删掉 `engagement` 缺失（`NA`）的行
+  4. 算**各部门平均 engagement**，保留 **2 位小数**，按部门名排序
+
+  每行输出 `部门: 平均分`，例如 `sales: 4.33`。
+
+  （想一想：为什么先去重再算平均？重复问卷会把均值带偏。）
+starter_code: |
+  df <- data.frame(
+    emp_id = c(1001,1002,1003,1004,1005,1006,1007,1002,1008),
+    name = c("Alice","Bob","Cathy","David","Eve","Frank","Grace","Bob","Heidi"),
+    department = c("Sales","sales ","Engineering"," Engineering","HR","hr","Sales","sales ","Engineering"),
+    engagement = c(4,5,NA,3,5,2,4,5,1),
+    stringsAsFactors = FALSE
+  )
+  # 去重 -> 规范部门 -> 删缺失 -> 各部门平均 engagement（2位小数，按部门排序）
+expected_output: |
+  engineering: 2
+  hr: 3.5
+  sales: 4.33
+hints:
+  - "d <- unique(df); d$dept <- tolower(trimws(d$department)); d <- d[!is.na(d$engagement), ]"
+  - "aggregate(engagement ~ dept, data=d, FUN=function(x) round(mean(x),2))"
+  - '排序后遍历：for (i in seq_len(nrow(agg))) cat(agg$dept[i], ": ", agg$engagement[i], "\n", sep="")'

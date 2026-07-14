@@ -1,0 +1,51 @@
+title: "统计速成线"
+subtitle: "快速掌握心理学/PA 常用统计方法"
+icon: "📈"
+estimated_hours: 10
+
+milestones:
+  - id: s1
+    title: "描述统计 + 正态检验"
+    description: "均值、标准差、分布形态 —— 分析的第一步"
+    topics:
+      - "r/01_vectors_and_basics"
+      - "r/02_logic_and_summary"
+    estimated_hours: 2
+    graduation_project: "对一组问卷数据计算描述统计并判断正态性"
+
+  - id: s2
+    title: "t 检验 / 方差分析"
+    description: "比较组间差异 —— 最常用的推断统计"
+    topics:
+      - "r/05_lm_anova"
+    estimated_hours: 2
+    prereqs: ["s1"]
+    graduation_project: "检验男女员工满意度是否有显著差异"
+
+  - id: s3
+    title: "相关 + 回归"
+    description: "变量间关系 —— 预测和解释的基础"
+    topics:
+      - "r/05_lm_anova"
+      - "r/06_mixed_apa"
+    estimated_hours: 3
+    prereqs: ["s2"]
+    graduation_project: "做一个多元回归预测工作满意度"
+
+  - id: s4
+    title: "效应量 + APA 报告"
+    description: "论文写作必备 —— 规范报告统计结果"
+    topics:
+      - "r/06_mixed_apa"
+    estimated_hours: 1.5
+    prereqs: ["s3"]
+    graduation_project: "把上一步的回归结果写成 APA 格式段落"
+
+  - id: s5
+    title: "信效度分析"
+    description: "问卷质量评估 —— Cronbach alpha 和 CFA（待题目新增后解锁）"
+    topics:
+      - "r/15_cfa"
+    estimated_hours: 1.5
+    prereqs: ["s4"]
+    graduation_project: "对一份 9 题问卷做信度分析和验证性因子分析"

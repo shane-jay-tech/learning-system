@@ -1,0 +1,21 @@
+title: "按 class 分组建模"
+topic: "09_purrr_map"
+difficulty: 3
+tags: ["purrr", "split", "lm"]
+statement: |
+  对每个班拟合 `score ~ years`，输出 R² 个数（应为 2，因为 2 个班）。
+starter_code: |
+  suppressMessages(library(purrr))
+  df <- data.frame(
+    score = c(85, 90, 78, 88, 95, 70, 75, 80),
+    years = c(1, 2, 1, 3, 4, 1, 2, 3),
+    class = c("A","A","A","A","A","B","B","B")
+  )
+  # split(df, df$class) %>% map(~ lm(score~years, data=.x)) 然后 length()
+
+expected_output: |
+  2
+hints:
+  - "models <- split(df, df$class) %>% map(~ lm(score ~ years, data=.x))"
+  - "cat(length(models), \"\\n\")"
+  - "split 按因子拆成 list of data.frames"

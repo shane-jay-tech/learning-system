@@ -1,0 +1,17 @@
+title: "今日日期"
+topic: "10_date_funcs"
+difficulty: 1
+tags: ["date", "now"]
+statement: |
+  请输出 `DATE('2026-05-29')` 加上 7 天的结果（应为 `2026-06-05`）。
+starter_code: |
+  -- SELECT DATE('2026-05-29', '+7 days');
+
+setup_sql: |
+  CREATE TABLE _dummy (x INTEGER);
+expected_rows:
+  - ["2026-06-05"]
+hints:
+  - "DATE(date, '+N days') 加 N 天"
+  - "也支持 -7 days, +1 month, -1 year"
+  - "ISO 格式 YYYY-MM-DD"

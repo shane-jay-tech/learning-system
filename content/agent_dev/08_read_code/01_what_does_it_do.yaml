@@ -1,0 +1,36 @@
+title: "这段代码在干嘛？"
+topic: "08_read_code"
+difficulty: 2
+tags: ["read-code", "comprehension", "open", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  读懂下面这段代码，用**一两句话**说清它整体在干嘛（抓主干，不要逐行翻译）：
+
+  ```python
+  def summarize(records):
+      result = {}
+      for r in records:
+          dept = r["department"]
+          if dept not in result:
+              result[dept] = []
+          result[dept].append(r["score"])
+      return {d: sum(v) / len(v) for d, v in result.items()}
+  ```
+
+  然后回答：传进去的 `records` 大概长什么样？返回的又是什么？
+starter_code: ""
+rubric:
+  - "抓住主干：这段代码按部门分组，计算每个部门的平均分"
+  - "看懂输入：records 是一串字典，每个含 department 和 score 字段"
+  - "看懂输出：返回 {部门: 平均分} 的字典"
+  - "是'理解'不是'逐行翻译'——能用人话概括而非复述语法"
+reference_answer: |
+  **整体在干嘛**：把一堆记录**按部门分组，算出每个部门的平均分**。
+
+  - **输入 records**：一个列表，里面每个元素是字典，至少有 `department`（部门）和 `score`（分数）两个键，例如 `[{"department":"Sales","score":4}, {"department":"HR","score":5}, ...]`。
+  - **过程**：先用一个字典把同部门的所有 score 收集到一个列表里，最后对每个部门的列表求平均。
+  - **输出**：`{部门: 该部门平均分}` 的字典，例如 `{"Sales": 4.3, "HR": 5.0}`。
+hints:
+  - "别逐行翻译——先看 return 那行，它返回的形状就是目的。"
+  - "中间那个 result 字典在收集什么？key 是什么，value 是什么？"
+  - "一句话：输入是____，输出是____。"

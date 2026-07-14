@@ -1,0 +1,23 @@
+title: "字典查值（带默认）"
+topic: "07_dicts_sets"
+difficulty: 1
+tags: ["dict", "get"]
+statement: |
+  字典 `prices = {"apple": 5, "banana": 3, "cherry": 12}` 已替你写好。
+  从标准输入读**一个商品名**，如果在字典里就输出它的价格；不在就输出 `not found`。
+
+  例如输入 `apple` → `5`；输入 `mango` → `not found`。
+starter_code: |
+  prices = {"apple": 5, "banana": 3, "cherry": 12}
+  name = input().strip()
+  # 用 get 查 name 的价格，找不到输出 not found
+
+expected_output: |
+  5
+tests:
+  - stdin: "apple\n"
+    expected_output: "5\n"
+hints:
+  - "v = prices.get(name)"
+  - "if v is None: print('not found') else: print(v)"
+  - "更短：print(prices.get(name, 'not found'))"

@@ -1,0 +1,18 @@
+title: "培训时长与绩效的关系"
+topic: "20_hr_pandas"
+difficulty: 3
+tags: ["pandas", "correlation", "hr"]
+statement: |
+  读取 HR 员工数据（df 已加载），计算 training_hours 和 performance_score 的
+  **皮尔逊相关系数**，输出保留 4 位小数。
+starter_code: |
+  import pandas as pd
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 计算培训时长和绩效的相关系数
+expected_output: |
+  0.0031
+hints:
+  - "df['training_hours'].corr(df['performance_score'])"
+  - "round(结果, 4)"

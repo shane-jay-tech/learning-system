@@ -1,0 +1,31 @@
+title: "vector 升序排序"
+topic: "05_stl_basics"
+difficulty: 1
+tags: ["vector", "sort"]
+statement: |
+  从输入读 N + N 个整数，**升序排序**后用空格分隔输出。
+
+  输入 `5\n3 1 4 1 5`，输出 `1 1 3 4 5`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <algorithm>
+  using namespace std;
+
+  int main() {
+      int n; cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      // sort + 输出，用空格分隔
+
+      return 0;
+  }
+expected_output: |
+  1 1 3 4 5
+tests:
+  - stdin: "5\n3 1 4 1 5\n"
+    expected_output: "1 1 3 4 5\n"
+hints:
+  - "sort(v.begin(), v.end()); 升序就是默认"
+  - "降序：sort(v.begin(), v.end(), greater<int>())"
+  - "输出时第一个数前不加空格"

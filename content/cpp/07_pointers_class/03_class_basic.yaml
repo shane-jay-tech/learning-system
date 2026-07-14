@@ -1,0 +1,33 @@
+title: "定义 Student 类"
+topic: "07_pointers_class"
+difficulty: 3
+tags: ["class", "constructor", "method"]
+statement: |
+  定义 `class Student` 包含 `name`(string), `score`(int) 两个 public 字段，
+  以及构造函数和方法 `bool passed() const` 返回 `score >= 60`。
+  从输入读 `name score`（空格分隔），构造对象后输出 `passed()` 结果（true/false）。
+
+  输入 `Alice 85`，输出 `true`。
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  // 在这里定义 class Student
+
+  int main() {
+      string name; int score;
+      cin >> name >> score;
+      Student s(name, score);
+      cout << boolalpha << s.passed() << endl;
+      return 0;
+  }
+expected_output: |
+  true
+tests:
+  - stdin: "Alice 85\n"
+    expected_output: "true\n"
+hints:
+  - "class Student { public: string name; int score; Student(string n, int s) : name(n), score(s) {} bool passed() const { return score >= 60; } };"
+  - "构造函数初始化列表 : name(n), score(s) 是现代 C++ 推荐写法"
+  - "boolalpha 让 cout 输出 true/false 而不是 1/0"

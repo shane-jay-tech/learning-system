@@ -1,0 +1,31 @@
+title: "找假测试"
+topic: "04_review_agent"
+difficulty: 2
+tags: ["review", "test", "assert"]
+statement: |
+  下面这段 agent 写的测试代码里，有几个测试函数**没有 assert**（即假测试）？
+
+  ```python
+  def test_add():
+      result = add(2, 3)
+
+  def test_sub():
+      r = sub(5, 3)
+      assert r == 2
+
+  def test_mul():
+      m = mul(4, 2)
+      print(m)
+  ```
+
+  没 assert 的：test_add（没断言）、test_mul（只 print）→ 共 2 个。
+starter_code: |
+  # 数有多少个 test 函数没有 assert
+  count = 0  # 改成正确数字
+  print(count)
+expected_output: |
+  2
+hints:
+  - "test_sub 有 assert，是真测试"
+  - "test_add 啥也没断言；test_mul 只 print"
+  - "审 agent 测试的标准动作：grep 'def test_' 然后逐个看 assert"

@@ -1,0 +1,19 @@
+title: "R 的 Hello, World!"
+topic: "01_vectors_and_basics"
+difficulty: 1
+tags: ["io", "starter"]
+statement: |
+  请用 `cat` 输出**恰好一行**：
+  ```
+  Hello, World!
+  ```
+  注意：用 `cat` 而不是 `print`（`print` 会多带 `[1]` 前缀）。
+starter_code: |
+  # 在下面写你的代码
+
+expected_output: |
+  Hello, World!
+hints:
+  - "cat(\"Hello, World!\\n\") —— 别忘了 \\n 换行"
+  - "print(...) 会输出 [1] \"...\"，会和期望不匹配"
+  - "字符串用双引号"

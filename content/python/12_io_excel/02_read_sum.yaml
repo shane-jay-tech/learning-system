@@ -1,0 +1,21 @@
+title: "读 csv 求总分"
+topic: "12_io_excel"
+difficulty: 2
+tags: ["csv", "sum"]
+statement: |
+  先把数据写到 `s.csv`，再读出来输出 score 列的**总和**（5 个数：85+92+78+88+95=438）。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+  })
+  # 写 s.csv，读出来 print score 总和
+
+expected_output: |
+  438
+hints:
+  - "df.to_csv('s.csv', index=False)"
+  - "df2 = pd.read_csv('s.csv'); print(df2['score'].sum())"
+  - "sum() 不用包 int 也能正确输出"

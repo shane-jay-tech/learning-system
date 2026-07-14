@@ -1,0 +1,30 @@
+title: "阶乘（递归）"
+topic: "04_functions"
+difficulty: 3
+tags: ["recursion"]
+statement: |
+  定义递归函数 `long long factorial(int n)` 返回 n!。
+  从输入读 n，输出 n!。
+
+  输入 `10`，输出 `3628800`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  // 在这里定义递归 factorial
+
+  int main() {
+      int n;
+      cin >> n;
+      cout << factorial(n) << endl;
+      return 0;
+  }
+expected_output: |
+  3628800
+tests:
+  - stdin: "10\n"
+    expected_output: "3628800\n"
+hints:
+  - "long long factorial(int n) { if (n <= 1) return 1; return n * factorial(n-1); }"
+  - "用 long long 避免 12! 以上溢出 int"
+  - "递归必须有出口（base case）"

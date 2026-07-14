@@ -1,0 +1,24 @@
+title: "CTE 重命名列"
+topic: "07_cte"
+difficulty: 2
+tags: ["cte", "alias"]
+statement: |
+  请用 CTE 把 students 表的 score 列改名为 final_score，输出 name 和 final_score（按 id 升序）。
+  CTE 列名直接在括号里写。
+starter_code: |
+  -- WITH t(student_name, final_score) AS (
+  --   SELECT name, score FROM students
+  -- )
+  -- SELECT student_name, final_score FROM t ORDER BY ...
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75);
+expected_rows:
+  - ["Alice", 92]
+  - ["Bob", 87]
+  - ["Cathy", 75]
+hints:
+  - "WITH t(student_name, final_score) AS (SELECT name, score FROM students ORDER BY id)"
+  - "CTE 名后括号里指定新列名"
+  - "也可以在 SELECT 里用 AS 重命名"

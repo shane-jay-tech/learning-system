@@ -1,0 +1,33 @@
+title: "lavaan 模型语法"
+topic: "14_sem_basics"
+difficulty: 2
+tags: ["sem", "lavaan", "syntax"]
+judge_mode: ai_open
+statement: |
+  lavaan 是 R 中做 SEM 的主流包。它用一种简洁的语法定义模型：
+  - `=~` 定义测量关系（潜变量由哪些题目组成）
+  - `~` 定义回归/结构关系
+  - `~~` 定义协方差/残差相关
+
+  **练习**：写出以下模型的 lavaan 语法：
+
+  - 潜变量"敬业度"由 uwes_1 到 uwes_9 测量
+  - 潜变量"领导关系"由 lmx_1 到 lmx_7 测量
+  - "敬业度" 被 "领导关系" 预测（领导关系 → 敬业度）
+
+  只写模型定义字符串，不用写 R 代码运行它。
+starter_code: ""
+rubric:
+  - "正确使用了 =~ 定义两个潜变量"
+  - "uwes 用 uwes_1 + uwes_2 + ... + uwes_9"
+  - "lmx 用 lmx_1 + lmx_2 + ... + lmx_7"
+  - "用 ~ 写了 engagement ~ leadership 的回归关系"
+reference_answer: |
+  model <- '
+    engagement =~ uwes_1 + uwes_2 + uwes_3 + uwes_4 + uwes_5 + uwes_6 + uwes_7 + uwes_8 + uwes_9
+    leadership =~ lmx_1 + lmx_2 + lmx_3 + lmx_4 + lmx_5 + lmx_6 + lmx_7
+    engagement ~ leadership
+  '
+hints:
+  - "=~ 读作 is measured by（被...测量）"
+  - "~ 读作 is predicted by（被...预测）"

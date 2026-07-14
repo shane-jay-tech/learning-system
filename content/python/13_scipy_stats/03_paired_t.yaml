@@ -1,0 +1,25 @@
+title: "配对样本 t 检验"
+topic: "13_scipy_stats"
+difficulty: 2
+tags: ["scipy", "ttest_rel"]
+statement: |
+  同一批人培训前后的分数：
+  - 培训前 [60, 65, 70, 55, 68]
+  - 培训后 [75, 78, 82, 70, 80]
+
+  用配对 t 检验（`ttest_rel`）看培训是否带来显著提升，输出 p 值（4 位小数）。
+
+  应该是 0.0001（高度显著）。
+starter_code: |
+  from scipy import stats
+
+  before = [60, 65, 70, 55, 68]
+  after = [75, 78, 82, 70, 80]
+  # ttest_rel，输出 p（4 位小数）
+
+expected_output: |
+  0.0000
+hints:
+  - "t, p = stats.ttest_rel(before, after)"
+  - "print(f'{p:.4f}')"
+  - "配对 t 假设两个数组对应位置是同一对象的前后测"

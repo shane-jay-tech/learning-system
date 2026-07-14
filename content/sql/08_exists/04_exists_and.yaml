@@ -1,0 +1,24 @@
+title: "EXISTS + AND 多条件"
+topic: "08_exists"
+difficulty: 3
+tags: ["exists", "and"]
+statement: |
+  找出**至少有一个学生分数 >=90** 的部门，输出 name 按 id 升序。
+
+  数据：HR 有 [Alice 92, Cathy 75]，Eng 有 [Bob 80]。
+  期望：HR（因为 Alice 92≥90），Eng 不出现。
+starter_code: |
+  -- SELECT name FROM departments d
+  -- WHERE EXISTS (SELECT 1 FROM students s WHERE s.dept_id = d.id AND s.score >= 90)
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1,'HR'),(2,'Eng');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1,92),(2,'Bob',2,80),(3,'Cathy',1,75);
+expected_rows:
+  - ["HR"]
+hints:
+  - "EXISTS 子查询里加 AND s.score >= 90"
+  - "关联条件 + 业务过滤"
+  - "ORDER BY d.id 让顺序固定"

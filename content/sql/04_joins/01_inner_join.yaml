@@ -1,0 +1,25 @@
+title: "INNER JOIN 取部门名"
+topic: "04_joins"
+difficulty: 1
+tags: ["join", "inner"]
+statement: |
+  请用 INNER JOIN 列出每个学生的姓名 + 部门名。按 student id 升序，输出 `name dept_name` 两列。
+
+  期望（4 行，David 没部门所以不在）：Alice/HR, Bob/Eng, Cathy/HR, Eve/Eng。
+starter_code: |
+  -- SELECT s.name, d.name FROM students s INNER JOIN departments d ON s.dept_id = d.id ORDER BY s.id
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1, 'HR'), (2, 'Eng');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',2),(3,'Cathy',1),(4,'David',NULL),(5,'Eve',2);
+expected_rows:
+  - ["Alice", "HR"]
+  - ["Bob", "Eng"]
+  - ["Cathy", "HR"]
+  - ["Eve", "Eng"]
+hints:
+  - "INNER JOIN ... ON s.dept_id = d.id"
+  - "记得 ORDER BY s.id 让结果顺序固定"
+  - "用别名 s/d 避免列名冲突"

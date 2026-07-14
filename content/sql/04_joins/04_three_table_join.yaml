@@ -1,0 +1,28 @@
+title: "三表 JOIN"
+topic: "04_joins"
+difficulty: 3
+tags: ["join", "three-table"]
+statement: |
+  三张表：students、departments、courses。请列出每个学生的 name、dept_name、course_name，按 student.id 升序。
+
+  期望（4 行，David 没注册课程被过滤掉）：
+  Alice/HR/Math, Bob/Eng/CS, Cathy/HR/Math, Eve/Eng/Bio。
+starter_code: |
+  -- INNER JOIN 三次
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1, 'HR'), (2, 'Eng');
+  CREATE TABLE courses (id INTEGER, name TEXT);
+  INSERT INTO courses VALUES (10, 'Math'), (20, 'CS'), (30, 'Bio');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER, course_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1,10),(2,'Bob',2,20),(3,'Cathy',1,10),(4,'David',NULL,NULL),(5,'Eve',2,30);
+expected_rows:
+  - ["Alice", "HR", "Math"]
+  - ["Bob", "Eng", "CS"]
+  - ["Cathy", "HR", "Math"]
+  - ["Eve", "Eng", "Bio"]
+hints:
+  - "FROM students s INNER JOIN departments d ON ... INNER JOIN courses c ON ..."
+  - "每个 JOIN 后面跟一个 ON"
+  - "ORDER BY s.id 让顺序固定"

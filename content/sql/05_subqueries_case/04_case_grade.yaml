@@ -1,0 +1,24 @@
+title: "CASE WHEN 给分数打等级"
+topic: "05_subqueries_case"
+difficulty: 2
+tags: ["case-when"]
+statement: |
+  用 CASE WHEN 给每个学生打等级（≥90=A, 80-89=B, 60-79=C, <60=F），输出 `name grade` 两列，按 id 升序。
+
+  期望：Alice/A, Bob/B, Cathy/C, David/F, Eve/A。
+starter_code: |
+  -- SELECT name, CASE WHEN score>=90 THEN 'A' WHEN score>=80 THEN 'B' WHEN score>=60 THEN 'C' ELSE 'F' END AS grade FROM students ORDER BY id
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',55),(5,'Eve',95);
+expected_rows:
+  - ["Alice", "A"]
+  - ["Bob", "B"]
+  - ["Cathy", "C"]
+  - ["David", "F"]
+  - ["Eve", "A"]
+hints:
+  - "CASE WHEN ... THEN ... WHEN ... ELSE ... END 必须有 END"
+  - "多个 WHEN 从上到下匹配，第一个成立的胜出"
+  - "AS grade 给结果列起名"

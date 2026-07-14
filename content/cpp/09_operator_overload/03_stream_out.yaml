@@ -1,0 +1,35 @@
+title: "重载 << 让 cout 直接打印"
+topic: "09_operator_overload"
+difficulty: 3
+tags: ["operator<<", "ostream"]
+statement: |
+  定义 Money，**类外**重载 `operator<<` 让 `cout << Money(100)` 输出 `$100`。
+  从输入读 amount，cout 输出。
+
+  输入 `100`，输出 `$100`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  class Money {
+  public:
+      int amount;
+      Money(int a) : amount(a) {}
+  };
+
+  // 在这里类外定义 operator<<
+
+  int main() {
+      int a; cin >> a;
+      cout << Money(a) << endl;
+      return 0;
+  }
+expected_output: |
+  $100
+tests:
+  - stdin: "100\n"
+    expected_output: "$100\n"
+hints:
+  - "ostream& operator<<(ostream& os, const Money& m) { return os << \"$\" << m.amount; }"
+  - "返回 ostream& 让链式调用 cout << a << b 工作"
+  - "<< 必须类外重载（第一个参数是 ostream&）"

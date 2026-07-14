@@ -1,0 +1,21 @@
+title: "识别错误类型"
+topic: "02_debug_read"
+difficulty: 1
+tags: ["debug", "exception"]
+statement: |
+  下面这段代码会抛什么异常？
+  ```python
+  d = {"a": 1, "b": 2}
+  print(d["c"])
+  ```
+  请输出错误类型名（如 `KeyError`）。
+starter_code: |
+  # 字典访问不存在的 key 会抛什么？
+  error_type = "..."
+  print(error_type)
+expected_output: |
+  KeyError
+hints:
+  - "字典 [] 取不存在的 key 抛 KeyError"
+  - "用 d.get('c') 不会抛，返回 None"
+  - "list 越界抛 IndexError；变量没定义抛 NameError"

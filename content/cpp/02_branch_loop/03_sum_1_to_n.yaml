@@ -1,0 +1,30 @@
+title: "累加 1 到 N"
+topic: "02_branch_loop"
+difficulty: 2
+tags: ["for", "loop", "sum"]
+statement: |
+  从标准输入读一个正整数 `n`，输出 `1 + 2 + 3 + ... + n` 的值。
+
+  例如输入 `10`，应输出 `55`（1+2+...+10）。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int n;
+      cin >> n;
+      int sum = 0;
+      // 用 for 循环累加
+
+      cout << sum << endl;
+      return 0;
+  }
+expected_output: |
+  55
+tests:
+  - stdin: "10\n"
+    expected_output: "55\n"
+hints:
+  - "for (int i = 1; i <= n; i++) sum += i;"
+  - "i 从 1 开始，到 n 为止"
+  - "不要漏 = ：i <= n 不是 i < n"

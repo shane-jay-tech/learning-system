@@ -1,0 +1,35 @@
+title: "找吞异常"
+topic: "04_review_agent"
+difficulty: 2
+tags: ["review", "exception"]
+statement: |
+  下面代码里有几处"吞异常"（`except Exception: pass` 模式）？
+
+  ```python
+  try:
+      x = 1
+  except Exception:
+      pass
+
+  try:
+      y = 2
+  except ValueError:
+      log(y)
+
+  try:
+      z = 3
+  except:
+      pass
+  ```
+
+  期望：`2`（第 1 段和第 3 段都吞了；第 2 段是具体异常 + log，OK）。
+starter_code: |
+  # 数 except + pass / except 后面无任何处理 的次数
+  count = 0
+  print(count)
+expected_output: |
+  2
+hints:
+  - "except Exception: pass 是 1 处"
+  - "except: pass（无 type）也是 1 处"
+  - "except ValueError: log(y) 不算（处理过了）"

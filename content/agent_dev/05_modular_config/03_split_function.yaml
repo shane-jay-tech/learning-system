@@ -1,0 +1,21 @@
+title: "拆大函数"
+topic: "05_modular_config"
+difficulty: 3
+tags: ["refactor", "functions"]
+statement: |
+  下面的函数干了 3 件事（读+处理+输出）。请拆成 `read_data()`、`compute_avg()`、`show()` 三个函数，
+  让结果还能输出 30。
+starter_code: |
+  def do_all():
+      data = [10, 20, 30, 40, 50]            # read
+      avg = sum(data) / len(data)             # compute
+      print(int(avg))                          # show
+
+  do_all()
+expected_output: |
+  30
+hints:
+  - "def read_data(): return [10,20,30,40,50]"
+  - "def compute_avg(d): return sum(d)/len(d)"
+  - "def show(v): print(int(v))"
+  - "main: data = read_data(); avg = compute_avg(data); show(avg)"

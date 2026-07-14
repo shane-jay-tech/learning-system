@@ -1,0 +1,20 @@
+title: "ggplot 柱状图 + 输出 sum"
+topic: "04_ggplot"
+difficulty: 2
+tags: ["ggplot", "bar"]
+statement: |
+  各部门人数：HR=10, Eng=25, Sales=15。画柱状图保存到 `bar.png`，再 cat 输出总人数（50）。
+starter_code: |
+  library(ggplot2)
+  df <- data.frame(
+    dept = c("HR", "Eng", "Sales"),
+    count = c(10, 25, 15)
+  )
+  # geom_col() 画柱状图，ggsave 后 cat sum
+
+expected_output: |
+  50
+hints:
+  - "p <- ggplot(df, aes(x=dept, y=count)) + geom_col()"
+  - "ggsave(\"bar.png\", p)"
+  - "cat(sum(df$count), \"\\n\")"

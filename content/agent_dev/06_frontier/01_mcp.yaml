@@ -1,0 +1,18 @@
+title: "MCP 全称"
+topic: "06_frontier"
+difficulty: 1
+tags: ["frontier", "mcp"]
+statement: |
+  MCP 是 Anthropic 推的让 LLM 接外部工具的标准协议。
+  请输出它的**英文全称**（3 个单词，每个首字母大写，空格分隔）。
+
+  期望：`Model Context Protocol`。
+starter_code: |
+  full_name = "..."
+  print(full_name)
+expected_output: |
+  Model Context Protocol
+hints:
+  - "Model Context Protocol = MCP"
+  - "类比 USB-C：所有工具用同一个接口接 LLM"
+  - "Claude Code 就是 MCP 的早期实现"

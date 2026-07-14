@@ -1,0 +1,18 @@
+title: "计算 a + b"
+topic: "01_hello_and_vars"
+difficulty: 1
+tags: ["arithmetic", "variables"]
+statement: |
+  变量 `a = 3`，`b = 5` 已经替你写好了。
+  请用 `print` 输出 `a + b` 的值（也就是 `8`）。
+starter_code: |
+  a = 3
+  b = 5
+  # 在这里输出 a + b
+
+expected_output: |
+  8
+hints:
+  - "用 print(a + b) 一句话搞定"
+  - "+ 号在这里是加法"
+  - "注意输出的是数字 8，不要输出 'a+b' 这串字"

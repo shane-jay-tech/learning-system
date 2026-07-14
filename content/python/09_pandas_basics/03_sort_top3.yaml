@@ -1,0 +1,25 @@
+title: "按分数降序前 3"
+topic: "09_pandas_basics"
+difficulty: 2
+tags: ["pandas", "sort", "head"]
+statement: |
+  对 DataFrame 按 score 降序排，取**前 3 名**的 name，每行一个输出。
+
+  期望输出 Eve / Bob / David（分别 95/92/88）。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+  })
+  # 按 score 降序，取前 3 名 name
+
+expected_output: |
+  Eve
+  Bob
+  David
+hints:
+  - "top3 = df.sort_values('score', ascending=False).head(3)"
+  - "for name in top3['name']: print(name)"
+  - "或者 print('\\n'.join(top3['name']))"

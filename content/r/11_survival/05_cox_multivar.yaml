@@ -1,0 +1,23 @@
+title: "Cox 多变量"
+topic: "11_survival"
+difficulty: 3
+tags: ["coxph", "multivariate"]
+statement: |
+  拟合 `coxph(Surv(time, event) ~ years + age)`，输出**系数个数**（应为 2）。
+starter_code: |
+  suppressMessages(library(survival))
+  df <- data.frame(
+    time = c(12, 24, 8, 36, 5, 18, 30, 6, 22, 14),
+    event = c(1, 0, 1, 0, 1, 1, 0, 1, 1, 1),
+    years = c(2, 5, 1, 8, 1, 3, 6, 2, 4, 3),
+    age = c(25, 30, 22, 40, 23, 28, 35, 26, 32, 27)
+  )
+  fit <- coxph(Surv(time, event) ~ years + age, data=df)
+  # cat length(coef(fit))
+
+expected_output: |
+  2
+hints:
+  - "cat(length(coef(fit)), \"\\n\")"
+  - "Cox 没截距系数（baseline hazard 替代）"
+  - "summary(fit) 看完整报告"

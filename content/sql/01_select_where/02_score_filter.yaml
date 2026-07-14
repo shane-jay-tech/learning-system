@@ -1,0 +1,21 @@
+title: "筛选高分学生姓名"
+topic: "01_select_where"
+difficulty: 2
+tags: ["select", "where"]
+statement: |
+  请查询 `score >= 80` 的学生，**只**返回姓名列（`name`）。
+  期望按 id 顺序返回 3 行：Alice、Bob、Eve。
+starter_code: |
+  -- 在下面写你的 SQL
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - ["Alice"]
+  - ["Bob"]
+  - ["Eve"]
+hints:
+  - "SELECT name FROM students 指定只要 name 列"
+  - "WHERE score >= 80 筛掉不到 80 分的"
+  - "不要写成 SELECT *，那会多带 id 和 score 列"

@@ -1,0 +1,31 @@
+title: "数一数有多少缺失值"
+topic: "24_real_world_data"
+difficulty: 2
+tags: ["pandas", "missing", "real-data"]
+statement: |
+  这份员工敬业度调查里，有人没填 **engagement（敬业度评分）**。
+
+  请数出 `engagement` 这一列有**多少行是缺失的**，输出一个数字。
+starter_code: |
+  import io
+  import pandas as pd
+
+  DATA = """emp_id,name,department,engagement,tenure_months,submit_date
+  1001,Alice,Sales,4,18,2026-05-01
+  1002,Bob,sales ,5,7,2026-05-01
+  1003,Cathy,Engineering,,32,2026-05-02
+  1004,David, Engineering,3,5,2026-05-02
+  1005,Eve,HR,5,48,2026-05-03
+  1006,Frank,hr,2,3,2026-05-03
+  1007,Grace,Sales,4,,2026-05-04
+  1002,Bob,sales ,5,7,2026-05-01
+  1008,Heidi,Engineering,1,14,2026-05-05"""
+
+  df = pd.read_csv(io.StringIO(DATA))
+  # 在下面写代码：数出 engagement 列缺失了几行，print 出来
+expected_output: |
+  1
+hints:
+  - "df['engagement'].isna() 会得到一列 True/False"
+  - "对 True/False 求和 .sum() 就是缺失的行数"
+  - "print(int(df['engagement'].isna().sum()))"

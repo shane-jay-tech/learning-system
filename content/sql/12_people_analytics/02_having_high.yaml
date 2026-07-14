@@ -1,0 +1,38 @@
+title: "哪些部门平均分达标"
+topic: "12_people_analytics"
+difficulty: 3
+tags: ["sql", "having", "groupby", "real-data"]
+statement: |
+  公司想表扬**平均敬业度 ≥ 4** 的部门。
+
+  请找出这些部门，输出部门名和它的平均分（保留 2 位小数），按部门名排序。
+
+  提示：对"分组后的平均值"做筛选，要用 `HAVING`，不是 `WHERE`。
+setup_sql: |
+  CREATE TABLE employees (emp_id INTEGER, name TEXT, department TEXT, hire_date TEXT);
+  INSERT INTO employees VALUES (1001,'Alice','Sales','2024-01-15');
+  INSERT INTO employees VALUES (1002,'Bob','Sales','2025-09-01');
+  INSERT INTO employees VALUES (1003,'Cathy','Engineering','2023-06-20');
+  INSERT INTO employees VALUES (1004,'David','Engineering','2025-12-01');
+  INSERT INTO employees VALUES (1005,'Eve','HR','2022-03-10');
+  INSERT INTO employees VALUES (1006,'Frank','HR','2026-02-01');
+  INSERT INTO employees VALUES (1007,'Grace','Sales','2025-11-05');
+  INSERT INTO employees VALUES (1008,'Heidi','Engineering','2025-03-22');
+  CREATE TABLE surveys (emp_id INTEGER, engagement INTEGER, submit_date TEXT);
+  INSERT INTO surveys VALUES (1001,4,'2026-05-01');
+  INSERT INTO surveys VALUES (1002,5,'2026-05-01');
+  INSERT INTO surveys VALUES (1003,3,'2026-05-02');
+  INSERT INTO surveys VALUES (1004,3,'2026-05-02');
+  INSERT INTO surveys VALUES (1005,5,'2026-05-03');
+  INSERT INTO surveys VALUES (1006,2,'2026-05-03');
+  INSERT INTO surveys VALUES (1008,1,'2026-05-05');
+starter_code: |
+  -- 找出平均 engagement >= 4 的部门，输出 部门 + 平均分（2位小数），按部门名排序
+  SELECT
+  FROM employees e JOIN surveys s ON e.emp_id = s.emp_id
+expected_rows:
+  - ["Sales", 4.5]
+hints:
+  - "先和上一题一样 JOIN + GROUP BY e.department"
+  - "用 HAVING AVG(s.engagement) >= 4 对分组结果筛选"
+  - "ORDER BY e.department"

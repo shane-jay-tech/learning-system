@@ -1,0 +1,26 @@
+title: "识别过度工程"
+topic: "04_review_agent"
+difficulty: 2
+tags: ["review", "simplification"]
+statement: |
+  下面是 agent 写的"加两个数"的代码：
+  ```python
+  class AbstractAdder:
+      def add(self, a, b): raise NotImplementedError
+
+  class ConcreteIntegerAdder(AbstractAdder):
+      def add(self, a, b):
+          return a + b
+
+  result = ConcreteIntegerAdder().add(3, 5)
+  ```
+  这是过度工程化。请写**一行**简化版让结果输出 8。
+starter_code: |
+  # 加两个数：直接 print(3 + 5) 即可
+  print(...)
+expected_output: |
+  8
+hints:
+  - "print(3 + 5) 直接输出"
+  - "或 def add(a,b): return a+b; print(add(3,5))"
+  - "加两个数不需要类——这是过度工程的典型例子"

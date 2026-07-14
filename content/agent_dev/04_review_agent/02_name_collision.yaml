@@ -1,0 +1,21 @@
+title: "找内置名覆盖"
+topic: "04_review_agent"
+difficulty: 2
+tags: ["review", "naming"]
+statement: |
+  下面代码里覆盖了 Python 内置名，找出**内置名 list 被覆盖**的代码——直接修复，让它输出列表的元素个数 3。
+
+  ```python
+  list = [1, 2, 3]
+  print(list(list))   # bug：list 已经是变量了
+  ```
+starter_code: |
+  # 重命名变量
+  list = [1, 2, 3]
+  print(list(list))
+expected_output: |
+  3
+hints:
+  - "把变量名 list 改成 nums 或别的"
+  - "len(nums) 输出长度"
+  - "内置名（list/dict/type/id/sum）永远不要当变量"

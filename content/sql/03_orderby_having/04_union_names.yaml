@@ -1,0 +1,29 @@
+title: "UNION 合并在校生 + 校友姓名"
+topic: "03_orderby_having"
+difficulty: 3
+tags: ["union"]
+statement: |
+  把 `students` 表的 `name` 和 `alumni` 表的 `name` 合并，**去重**后按字母升序输出。
+
+  在校生：Alice / Bob / Cathy / David / Eve；校友：Alice / Frank / Grace。
+  合并去重后：Alice / Bob / Cathy / David / Eve / Frank / Grace（共 7 行）。
+starter_code: |
+  -- SELECT name FROM students UNION SELECT name FROM alumni ORDER BY name;
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+  CREATE TABLE alumni (id INTEGER, name TEXT);
+  INSERT INTO alumni VALUES (10,'Alice'),(11,'Frank'),(12,'Grace');
+expected_rows:
+  - ["Alice"]
+  - ["Bob"]
+  - ["Cathy"]
+  - ["David"]
+  - ["Eve"]
+  - ["Frank"]
+  - ["Grace"]
+hints:
+  - "UNION 自动去重；UNION ALL 不去重"
+  - "两边的列数和类型必须一致（都是 1 列 name）"
+  - "ORDER BY 写在 UNION 的最后，对合并结果排序"

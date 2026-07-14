@@ -1,0 +1,22 @@
+title: "皮尔逊相关系数"
+topic: "13_scipy_stats"
+difficulty: 2
+tags: ["scipy", "pearsonr"]
+statement: |
+  工资 [5000, 8000, 6500, 12000, 9000] vs 绩效 [70, 88, 75, 95, 82]。
+  用 `pearsonr` 算相关系数 r 并输出（保留 3 位小数）。
+
+  应为 `0.972`（强正相关）。
+starter_code: |
+  from scipy import stats
+
+  salary = [5000, 8000, 6500, 12000, 9000]
+  perf = [70, 88, 75, 95, 82]
+  # pearsonr 返回 (r, p)
+
+expected_output: |
+  0.930
+hints:
+  - "result = stats.pearsonr(salary, perf)"
+  - "r = result[0]; print(f'{r:.3f}')"
+  - "新版 scipy 返回 PearsonRResult，可用 .statistic / .pvalue"

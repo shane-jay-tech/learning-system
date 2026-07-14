@@ -1,0 +1,24 @@
+title: "yield from 合并多个序列"
+topic: "18_generators_iter"
+difficulty: 2
+tags: ["yield-from"]
+statement: |
+  写生成器 `chain` 接收多个列表参数，**用 yield from** 依次产出所有元素。
+
+  示例 `list(chain([1,2], [3,4], [5]))` → `[1, 2, 3, 4, 5]`。
+  题目把结果用空格输出在一行。
+
+  期望：`1 2 3 4 5`
+starter_code: |
+  def chain(*iterables):
+      # 用 yield from 把每个 iterable 的元素全产出
+      pass
+
+  result = list(chain([1, 2], [3, 4], [5]))
+  print(' '.join(str(x) for x in result))
+expected_output: |
+  1 2 3 4 5
+hints:
+  - "for it in iterables: yield from it"
+  - "yield from 等价于 for x in it: yield x"
+  - "*iterables 收集任意多个参数到元组"

@@ -1,0 +1,19 @@
+title: "求全班平均分"
+topic: "02_aggregate"
+difficulty: 1
+tags: ["aggregate", "avg"]
+statement: |
+  请查询 `students` 表的平均分。
+  返回**一行一列**，列名为 `avg_score`，值约为 81.8（5 个学生分数：92,87,75,60,95）。
+starter_code: |
+  -- 用 AVG(score) 和 AS
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - [81.8]
+hints:
+  - "SELECT AVG(score) AS avg_score FROM students;"
+  - "AS 可以给列起别名"
+  - "判题会自动比对数值"

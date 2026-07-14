@@ -1,0 +1,21 @@
+title: "mutate 加 grade 列"
+topic: "03_dplyr"
+difficulty: 2
+tags: ["dplyr", "mutate", "ifelse"]
+statement: |
+  给 df 加列 `grade`：score ≥ 60 是 "Pass"，否则 "Fail"。
+  输出 grade=="Pass" 的人数（应为 3）。
+starter_code: |
+  library(dplyr)
+  df <- data.frame(
+    name = c("Alice","Bob","Cathy","David"),
+    score = c(92, 78, 85, 50)
+  )
+  # df %>% mutate(grade = ifelse(...)) 然后数 Pass 人数
+
+expected_output: |
+  3
+hints:
+  - "df2 <- df %>% mutate(grade = ifelse(score >= 60, \"Pass\", \"Fail\"))"
+  - "n_pass <- df2 %>% filter(grade == \"Pass\") %>% nrow()"
+  - "cat(n_pass, \"\\n\")"

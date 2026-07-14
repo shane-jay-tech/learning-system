@@ -1,0 +1,20 @@
+title: "APA 风格 t 检验报告"
+topic: "06_mixed_apa"
+difficulty: 3
+tags: ["apa", "t-test"]
+statement: |
+  两组：训练组 c(78,82,75,80,88) vs 对照 c(65,68,62,70,60)。
+  请输出 APA 格式的一行报告：`t(8) = 5.87, p < .001`（具体 t 值看你算）。
+
+  期望（注意保留 2 位小数 t；用 < .001 表示 p<0.001）：`t(8) = 5.87, p < .001`
+starter_code: |
+  a <- c(78, 82, 75, 80, 88)
+  b <- c(65, 68, 62, 70, 60)
+  # t.test(a, b, var.equal=TRUE)，按 APA 格式拼字符串
+
+expected_output: |
+  t(8) = 5.46, p < .001
+hints:
+  - "tt <- t.test(a, b, var.equal=TRUE)"
+  - "tval <- round(tt$statistic, 2); df <- tt$parameter"
+  - "cat(sprintf(\"t(%d) = %.2f, p < .001\\n\", df, tval))"

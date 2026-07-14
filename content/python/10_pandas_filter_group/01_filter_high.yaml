@@ -1,0 +1,27 @@
+title: "筛选高分学生"
+topic: "10_pandas_filter_group"
+difficulty: 1
+tags: ["filter"]
+statement: |
+  对 DataFrame 筛选 `score >= 80` 的行，输出 name 列（保持原顺序，每行一个）。
+
+  数据：Alice 85, Bob 92, Cathy 78, David 88, Eve 95
+  期望：Alice / Bob / David / Eve 共 4 人。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+  })
+  # 筛选 score >= 80 输出 name
+
+expected_output: |
+  Alice
+  Bob
+  David
+  Eve
+hints:
+  - "sub = df[df['score'] >= 80]"
+  - "for n in sub['name']: print(n)"
+  - "保持原顺序——pandas 默认保留原行顺序"

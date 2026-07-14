@@ -1,0 +1,32 @@
+title: "解读 lmer 输出"
+topic: "06_mixed_apa"
+difficulty: 1
+tags: ["lmer", "interpretation", "basics"]
+judge_mode: "ai_open"
+statement: |
+  给定以下 lmer 模型输出摘要：
+
+  ```
+  Fixed effects:
+              Estimate Std. Error t value
+  (Intercept)   3.245      0.412    7.87
+  treatment     1.032      0.318    3.24
+  ```
+
+  请回答：
+  1. 截距（Intercept）代表什么含义？
+  2. treatment 的系数 1.032 如何解释？
+  3. 如何判断 treatment 效应是否显著？
+
+rubric: |
+  评分维度：
+  - 截距解释（30%）：是否说明截距是参照组/基线的预测值
+  - 系数解释（40%）：是否说明 treatment 每增加一个单位，因变量平均变化 1.032
+  - 显著性判断（30%）：是否提到 t 值绝对值 > 2 或 p < 0.05 的判断规则
+
+  通过标准：三个问题都有实质回答，核心含义正确
+
+reference_answer: |
+  1. 截距 3.245 表示当 treatment=0（即参照组/控制组）时，因变量的预测均值为 3.245。
+  2. treatment 系数 1.032 表示相比控制组，实验组的因变量平均高 1.032 个单位。
+  3. t 值 = 3.24，绝对值 > 2，通常认为显著（具体需看 p 值，混合模型中自由度复杂，但 |t| > 2 是常用经验法则）。

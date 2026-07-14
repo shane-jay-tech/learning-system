@@ -1,0 +1,22 @@
+title: "A/B 测试卡方检验"
+topic: "15_ab_text"
+difficulty: 2
+tags: ["ab-testing", "chi2"]
+statement: |
+  A 组（旧）100 人转化 6 个；B 组（新）100 人转化 12 个。
+  用 `chi2_contingency` 算 p 值，输出 4 位小数。
+
+  应该约 0.1370（不显著）。
+starter_code: |
+  from scipy.stats import chi2_contingency
+  import numpy as np
+
+  table = np.array([[6, 94], [12, 88]])
+  # 算 p 输出
+
+expected_output: |
+  0.2167
+hints:
+  - "chi2, p, dof, expected = chi2_contingency(table)"
+  - "print(f'{p:.4f}')"
+  - "样本量小时即使转化率翻倍也可能不显著"

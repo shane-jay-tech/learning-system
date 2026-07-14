@@ -1,0 +1,19 @@
+title: "itertools.combinations 数组合"
+topic: "18_generators_iter"
+difficulty: 2
+tags: ["itertools", "combinations"]
+statement: |
+  从 `[1, 2, 3, 4, 5]` 中选 3 个的组合数有多少？请用 `itertools.combinations` 算。
+
+  应输出 `10`（C(5,3) = 10）。
+starter_code: |
+  import itertools
+  # itertools.combinations(序列, k) 返回一个生成器
+  # 用 sum(1 for ...) 或 list(...) 数个数
+
+expected_output: |
+  10
+hints:
+  - "combos = itertools.combinations([1,2,3,4,5], 3)"
+  - "print(sum(1 for _ in combos))"
+  - "或 print(len(list(combos)))"

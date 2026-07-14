@@ -1,0 +1,35 @@
+title: "重载 +"
+topic: "09_operator_overload"
+difficulty: 2
+tags: ["operator+"]
+statement: |
+  定义 Money 类，重载 `+` 让 `Money(100) + Money(50)` 返回 `Money(150)`。
+  从输入读两数 `a b`，输出 `a + b` 的 amount。
+
+  输入 `100 50`，输出 `150`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  class Money {
+  public:
+      int amount;
+      Money(int a) : amount(a) {}
+      // 重载 + 返回新 Money
+  };
+
+  int main() {
+      int a, b; cin >> a >> b;
+      Money c = Money(a) + Money(b);
+      cout << c.amount << endl;
+      return 0;
+  }
+expected_output: |
+  150
+tests:
+  - stdin: "100 50\n"
+    expected_output: "150\n"
+hints:
+  - "Money operator+(const Money& o) const { return Money(amount + o.amount); }"
+  - "返回新对象，不改自身"
+  - "const Money& 引用避免拷贝"

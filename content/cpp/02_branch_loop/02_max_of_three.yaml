@@ -1,0 +1,28 @@
+title: "三个数找最大"
+topic: "02_branch_loop"
+difficulty: 2
+tags: ["if-else", "comparison"]
+statement: |
+  从标准输入读三个整数 `a b c`（空格分隔），输出三者中最大的。
+
+  例如输入 `3 8 5`，应输出 `8`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int a, b, c;
+      cin >> a >> b >> c;
+      // 在下面输出三者最大值
+
+      return 0;
+  }
+expected_output: |
+  8
+tests:
+  - stdin: "3 8 5\n"
+    expected_output: "8\n"
+hints:
+  - "可以用嵌套 if：先比 a 和 b，再和 c 比"
+  - "也可以用 max(a, max(b, c)) —— 需要 #include <algorithm>"
+  - "三种 if/else 写法都行"

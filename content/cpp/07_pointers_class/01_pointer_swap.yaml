@@ -1,0 +1,31 @@
+title: "指针交换两数"
+topic: "07_pointers_class"
+difficulty: 2
+tags: ["pointer", "deref"]
+statement: |
+  写函数 `void swap_ptr(int* a, int* b)` 用指针交换两数。
+  从输入读 a b，调用 swap_ptr 后输出 `a b`。
+
+  输入 `3 5`，输出 `5 3`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  // 在这里写 swap_ptr
+
+  int main() {
+      int a, b;
+      cin >> a >> b;
+      swap_ptr(&a, &b);
+      cout << a << " " << b << endl;
+      return 0;
+  }
+expected_output: |
+  5 3
+tests:
+  - stdin: "3 5\n"
+    expected_output: "5 3\n"
+hints:
+  - "void swap_ptr(int* a, int* b) { int t = *a; *a = *b; *b = t; }"
+  - "*a 是解引用——取出 a 指向的值"
+  - "和引用版差不多，但调用时要传 &a, &b"

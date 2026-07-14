@@ -1,0 +1,28 @@
+title: "统一乱写的部门名"
+topic: "14_real_world_data"
+difficulty: 3
+tags: ["base-r", "cleaning", "real-data"]
+statement: |
+  `department` 列写得乱七八糟：`Sales`、`sales `（带空格）、`HR`、`hr`……其实是同一批部门。
+
+  请先**去首尾空格 + 转成小写**统一，再输出有几个不同部门——
+  按字母顺序，每行一个。
+
+  期望输出 engineering / hr / sales。
+starter_code: |
+  df <- data.frame(
+    emp_id = c(1001,1002,1003,1004,1005,1006,1007,1002,1008),
+    name = c("Alice","Bob","Cathy","David","Eve","Frank","Grace","Bob","Heidi"),
+    department = c("Sales","sales ","Engineering"," Engineering","HR","hr","Sales","sales ","Engineering"),
+    engagement = c(4,5,NA,3,5,2,4,5,1),
+    stringsAsFactors = FALSE
+  )
+  # 在下面写代码：规范 department，输出排序后的不同部门名，每行一个
+expected_output: |
+  engineering
+  hr
+  sales
+hints:
+  - "tolower(trimws(df$department)) 先去空格再转小写"
+  - "sort(unique(...)) 去重 + 排序"
+  - "writeLines(...) 每行输出一个"

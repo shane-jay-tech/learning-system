@@ -1,0 +1,22 @@
+title: "找出现次数最多的数"
+topic: "05_lists"
+difficulty: 3
+tags: ["list", "count"]
+statement: |
+  从标准输入读一行空格分隔的整数，输出**出现次数最多**的那个数（众数）。
+  如果有多个出现次数相同，输出**最小**的那个。
+
+  例如输入 `3 1 4 1 5 9 2 6 5 3 5`，5 出现 3 次最多，输出 `5`。
+starter_code: |
+  nums = [int(x) for x in input().split()]
+  # 找出现次数最多的数（并列时取最小的）
+
+expected_output: |
+  5
+tests:
+  - stdin: "3 1 4 1 5 9 2 6 5 3 5\n"
+    expected_output: "5\n"
+hints:
+  - "对 set(nums) 里每个数算 nums.count(x)"
+  - "max(set(nums), key=lambda x: (nums.count(x), -x)) 一行解决"
+  - "或者写两步：先算每个数的次数，再用 if 比较"

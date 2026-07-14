@@ -1,0 +1,29 @@
+title: "带参数的装饰器 @repeat(n)"
+topic: "17_decorators_props"
+difficulty: 3
+tags: ["decorator", "factory"]
+statement: |
+  写 `repeat(n)` 装饰器：让被装饰的无参函数被调用时执行 n 次。
+  题目已 @repeat(3) 装饰 `say_hi` 函数（每次 print "hi"）。调用 say_hi() 应输出 3 行 hi。
+starter_code: |
+  def repeat(n):
+      def deco(func):
+          def wrapper(*args, **kwargs):
+              # 调 n 次 func
+              pass
+          return wrapper
+      return deco
+
+  @repeat(3)
+  def say_hi():
+      print("hi")
+
+  say_hi()
+expected_output: |
+  hi
+  hi
+  hi
+hints:
+  - "for _ in range(n): func(*args, **kwargs)"
+  - "三层嵌套：repeat 接 n，deco 接 func，wrapper 接调用参数"
+  - "@repeat(3) 等价于 say_hi = repeat(3)(say_hi)"

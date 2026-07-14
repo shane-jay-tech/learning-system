@@ -1,0 +1,25 @@
+title: "CASE 配 SUM 数及格人数"
+topic: "05_subqueries_case"
+difficulty: 3
+tags: ["case-when", "sum"]
+statement: |
+  用 CASE WHEN 配 SUM 同时统计：
+  - 及格人数（score >= 60）
+  - 不及格人数（< 60）
+
+  返回**一行两列** `pass_n fail_n`。期望：4 1（数据里 David=55 是 fail）。
+starter_code: |
+  -- SELECT
+  --   SUM(CASE WHEN score>=60 THEN 1 ELSE 0 END) AS pass_n,
+  --   SUM(CASE WHEN score<60  THEN 1 ELSE 0 END) AS fail_n
+  -- FROM students
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',55),(5,'Eve',95);
+expected_rows:
+  - [4, 1]
+hints:
+  - "SUM(CASE WHEN 条件 THEN 1 ELSE 0 END) 是 SQL 计数的常用招"
+  - "返回一行两列——分别给两个聚合起别名"
+  - "也可以用 COUNT(CASE WHEN ... THEN 1 END)（不满足时 NULL，COUNT 会跳过）"

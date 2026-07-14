@@ -1,0 +1,40 @@
+title: "揪出没交问卷的人"
+topic: "12_people_analytics"
+difficulty: 4
+tags: ["sql", "left-join", "data-quality", "real-data"]
+statement: |
+  做调查分析前，得先知道**谁没交问卷**——这些"数据缺口"会影响结论。
+
+  请找出在 employees 花名册里、但在 surveys 表里**没有任何记录**的员工，
+  输出他们的名字，按名字排序。
+
+  提示：普通 JOIN 会把没交问卷的人**直接丢掉**；要用 `LEFT JOIN` 保留所有员工，
+  再挑出 surveys 那边为空（`IS NULL`）的。
+setup_sql: |
+  CREATE TABLE employees (emp_id INTEGER, name TEXT, department TEXT, hire_date TEXT);
+  INSERT INTO employees VALUES (1001,'Alice','Sales','2024-01-15');
+  INSERT INTO employees VALUES (1002,'Bob','Sales','2025-09-01');
+  INSERT INTO employees VALUES (1003,'Cathy','Engineering','2023-06-20');
+  INSERT INTO employees VALUES (1004,'David','Engineering','2025-12-01');
+  INSERT INTO employees VALUES (1005,'Eve','HR','2022-03-10');
+  INSERT INTO employees VALUES (1006,'Frank','HR','2026-02-01');
+  INSERT INTO employees VALUES (1007,'Grace','Sales','2025-11-05');
+  INSERT INTO employees VALUES (1008,'Heidi','Engineering','2025-03-22');
+  CREATE TABLE surveys (emp_id INTEGER, engagement INTEGER, submit_date TEXT);
+  INSERT INTO surveys VALUES (1001,4,'2026-05-01');
+  INSERT INTO surveys VALUES (1002,5,'2026-05-01');
+  INSERT INTO surveys VALUES (1003,3,'2026-05-02');
+  INSERT INTO surveys VALUES (1004,3,'2026-05-02');
+  INSERT INTO surveys VALUES (1005,5,'2026-05-03');
+  INSERT INTO surveys VALUES (1006,2,'2026-05-03');
+  INSERT INTO surveys VALUES (1008,1,'2026-05-05');
+starter_code: |
+  -- 找出没交问卷的员工名字，按名字排序
+  SELECT
+  FROM employees e LEFT JOIN surveys s ON e.emp_id = s.emp_id
+expected_rows:
+  - ["Grace"]
+hints:
+  - "LEFT JOIN 会保留所有员工，没交问卷的那行 surveys 字段全是 NULL"
+  - "WHERE s.emp_id IS NULL 就能挑出没交的人"
+  - "SELECT e.name ... ORDER BY e.name"

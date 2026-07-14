@@ -1,0 +1,21 @@
+title: "生成器表达式求平方和"
+topic: "18_generators_iter"
+difficulty: 1
+tags: ["generator-expression"]
+statement: |
+  从输入读 n。用 **生成器表达式**（不是列表推导式）算 `1² + 2² + ... + n²`。
+
+  输入 `5`，输出 `55`。
+starter_code: |
+  n = int(input())
+  # 用 sum(...生成器表达式...) 算
+
+expected_output: |
+  55
+tests:
+  - stdin: "5\n"
+    expected_output: "55\n"
+hints:
+  - "print(sum(i*i for i in range(1, n+1)))"
+  - "圆括号 (...) 是生成器；方括号 [...] 是列表"
+  - "sum 接受任意可迭代对象，列表/生成器都行"

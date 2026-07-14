@@ -1,0 +1,19 @@
+title: "列均值"
+topic: "02b_dataframe"
+difficulty: 1
+tags: ["data.frame", "mean"]
+statement: |
+  数据框 `df` 已替你写好。请用 `cat` 输出 `score` 列的平均值（应为 78.75）。
+starter_code: |
+  df <- data.frame(
+    name = c("Alice", "Bob", "Cathy", "David"),
+    score = c(92, 78, 85, 60)
+  )
+  # 输出 mean(df$score)
+
+expected_output: |
+  78.75
+hints:
+  - "df$score 取整列向量"
+  - "mean(df$score) 求平均"
+  - "cat(mean(df$score), \"\\n\")"

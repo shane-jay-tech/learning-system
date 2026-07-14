@@ -1,0 +1,114 @@
+title: "People Analytics 主线"
+subtitle: "从零到能做 HR 数据分析 + 统计建模"
+icon: "📊"
+estimated_hours: 48
+
+milestones:
+  - id: m1
+    title: "Python 入门"
+    description: "变量、条件、循环、函数 —— 建立编程基本感觉"
+    topics:
+      - "python/01_hello_and_vars"
+      - "python/02_conditionals"
+      - "python/03_loops"
+      - "python/04_functions"
+    estimated_hours: 6
+    graduation_project: "写一个简单的薪资计算器：输入基本工资和绩效系数，输出税后月薪"
+
+  - id: m2
+    title: "数据结构"
+    description: "列表、字符串、字典 —— 处理结构化数据的基础"
+    topics:
+      - "python/05_lists"
+      - "python/06_strings"
+      - "python/07_dicts_sets"
+    estimated_hours: 4
+    prereqs: ["m1"]
+    graduation_project: "解析一份 CSV 格式的员工名册，统计各部门人数"
+
+  - id: m3
+    title: "Pandas 数据处理"
+    description: "读取、筛选、分组 —— 数据分析的核心工具"
+    topics:
+      - "python/09_pandas_basics"
+      - "python/10_pandas_filter_group"
+    estimated_hours: 5
+    prereqs: ["m2"]
+    graduation_project: "用 pandas 统计员工流失率（按部门、按司龄分组）"
+
+  - id: m4
+    title: "数据可视化"
+    description: "matplotlib 画图 —— 让数据会说话"
+    topics:
+      - "python/11_matplotlib"
+    estimated_hours: 3
+    prereqs: ["m3"]
+    graduation_project: "画部门人数分布柱状图 + 月度流失趋势折线图"
+
+  - id: m5
+    title: "SQL 基础"
+    description: "查询数据库 —— 企业数据都在数据库里"
+    topics:
+      - "sql/01_select_where"
+      - "sql/02_aggregate"
+      - "sql/03_orderby_having"
+      - "sql/04_joins"
+      - "sql/05_subqueries_case"
+    estimated_hours: 6
+    prereqs: ["m1"]
+    graduation_project: "从 HR 数据库查招聘漏斗各环节转化率"
+
+  - id: m6
+    title: "SQL 高级"
+    description: "窗口函数、CTE —— 写复杂报表的必备技能"
+    topics:
+      - "sql/06_window_functions"
+      - "sql/07_cte"
+      - "sql/08_exists"
+    estimated_hours: 4
+    prereqs: ["m5"]
+    graduation_project: "用窗口函数计算员工绩效排名和同比变化"
+
+  - id: m7
+    title: "R 入门"
+    description: "向量、数据框、dplyr —— 统计分析的主力语言"
+    topics:
+      - "r/01_vectors_and_basics"
+      - "r/02_logic_and_summary"
+      - "r/02b_dataframe"
+      - "r/03_dplyr"
+    estimated_hours: 5
+    prereqs: ["m1"]
+    graduation_project: "用 R 复现 Milestone 3 的流失率分析"
+
+  - id: m8
+    title: "统计分析"
+    description: "回归、方差分析、效应量 —— People Analytics 的核心方法"
+    topics:
+      - "r/05_lm_anova"
+      - "r/06_mixed_apa"
+    estimated_hours: 5
+    prereqs: ["m7"]
+    graduation_project: "检验「培训投入 → 绩效」的回归关系，输出 APA 格式报告"
+
+  - id: m9
+    title: "高级统计"
+    description: "SEM、CFA、中介调节 —— 读研核心技能（待题目新增后解锁）"
+    topics:
+      - "r/14_sem_basics"
+      - "r/15_cfa"
+      - "r/16_mediation"
+    estimated_hours: 6
+    prereqs: ["m8"]
+    graduation_project: "跑一个完整的 UWES → 工作绩效 SEM 模型"
+
+  - id: m10
+    title: "综合实战"
+    description: "用 HR 数据集做完整的员工流失预测报告"
+    topics:
+      - "python/20_hr_pandas"
+      - "python/21_hr_viz"
+      - "python/22_hr_model"
+    estimated_hours: 4
+    prereqs: ["m4", "m8"]
+    graduation_project: "完整的员工流失预测报告：数据清洗 → 特征工程 → 建模 → 可视化 → 结论"

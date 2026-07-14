@@ -1,0 +1,29 @@
+title: "std::move 把字符串搬走"
+topic: "13_move_semantics"
+difficulty: 2
+tags: ["std-move", "string"]
+statement: |
+  从输入读一个字符串 s。用 `std::move(s)` 把它移到 t 后，输出 `t.size()`。
+  原 s 在标准里"有效但未定义"——这里我们只用 t。
+
+  输入 `Hello`，输出 `5`。
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      string s; getline(cin, s);
+      // string t = std::move(s); 然后 print t.size()
+
+      return 0;
+  }
+expected_output: |
+  5
+tests:
+  - stdin: "Hello\n"
+    expected_output: "5\n"
+hints:
+  - "string t = std::move(s);"
+  - "cout << t.size() << endl;"
+  - "std::move 不真的移动，只是改类型让移动构造被选中"

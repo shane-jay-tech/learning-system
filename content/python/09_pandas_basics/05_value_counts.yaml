@@ -1,0 +1,25 @@
+title: "value_counts 计数"
+topic: "09_pandas_basics"
+difficulty: 2
+tags: ["pandas", "value_counts"]
+statement: |
+  DataFrame 多了一个 `class` 列（A/B/A/B/A）。请用 `value_counts` 输出每个班的人数，**按字母顺序**，每行 `班 人数`。
+
+  期望：A 3，B 2。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+      "class": ["A", "B", "A", "B", "A"],
+  })
+  # 输出每个 class 的人数（按字母升序）
+
+expected_output: |
+  A 3
+  B 2
+hints:
+  - "vc = df['class'].value_counts().sort_index()"
+  - "for k, v in vc.items(): print(k, v)"
+  - "value_counts 默认按出现次数降序；sort_index 改成按 key 排"

@@ -1,0 +1,26 @@
+title: "ORDER BY 时 NULL 排到最后"
+topic: "11_null_handling"
+difficulty: 3
+tags: ["order-by", "null"]
+statement: |
+  输出员工 name 和 salary，按 salary 升序——但 **NULL 排到最后**。
+  用 `CASE WHEN salary IS NULL THEN 1 ELSE 0 END` 这种技巧。
+
+  数据：Alice 5000, Bob NULL, Cathy 3000, David 8000。
+  期望：Cathy 3000, Alice 5000, David 8000, Bob NULL。
+starter_code: |
+  -- SELECT name, salary FROM employees
+  -- ORDER BY (salary IS NULL), salary
+
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, salary INTEGER);
+  INSERT INTO employees VALUES (1,'Alice',5000),(2,'Bob',NULL),(3,'Cathy',3000),(4,'David',8000);
+expected_rows:
+  - ["Cathy", 3000]
+  - ["Alice", 5000]
+  - ["David", 8000]
+  - ["Bob", null]
+hints:
+  - "(salary IS NULL) 在 SQLite 里返回 0/1（True 是 1）"
+  - "ORDER BY (salary IS NULL) 让 NULL 排到最后"
+  - "再加 salary 升序作为次级排序"

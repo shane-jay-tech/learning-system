@@ -1,0 +1,25 @@
+title: "Spec 评分"
+topic: "03_spec_writing"
+difficulty: 2
+tags: ["spec", "score"]
+statement: |
+  对一个 spec dict 打分：每包含一个必备字段 +1 分，缺的 -0.5 分。
+  必备 5 个：input / output / examples / edge_cases / constraints。
+  下面这个 spec 包含 input/output/examples 共 3 个 → 3 - 2*0.5 = 2.0 分。
+starter_code: |
+  spec = {
+      "input": "csv",
+      "output": "DataFrame",
+      "examples": "见上",
+  }
+  required = ["input", "output", "examples", "edge_cases", "constraints"]
+  have = sum(1 for k in required if k in spec)
+  miss = len(required) - have
+  score = have - miss * 0.5
+  print(score)
+expected_output: |
+  2.0
+hints:
+  - "have - miss*0.5"
+  - "为什么这个 spec 危险？没 edge_cases agent 不知道反例"
+  - "实战中 spec 缺反例约束，bug 率翻倍"

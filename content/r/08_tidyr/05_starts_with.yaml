@@ -1,0 +1,19 @@
+title: "starts_with 选列"
+topic: "08_tidyr"
+difficulty: 3
+tags: ["tidyselect", "starts_with"]
+statement: |
+  数据有 score_math, score_english, age 三列。
+  用 `pivot_longer(cols = starts_with("score_"))` 只把 score_* 列变长，age 保留。
+  输出长表行数（2 人 × 2 个 score 列 = 4 行）。
+starter_code: |
+  suppressMessages(library(tidyr))
+  df <- data.frame(name=c("Alice","Bob"), score_math=c(85,72), score_english=c(78,88), age=c(20,22))
+  # pivot_longer 用 starts_with；cat nrow
+
+expected_output: |
+  4
+hints:
+  - "long <- df %>% pivot_longer(cols=starts_with(\"score_\"), names_to=\"sub\", values_to=\"s\")"
+  - "cat(nrow(long), \"\\n\")"
+  - "tidyselect 还有 ends_with / contains / matches"

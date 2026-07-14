@@ -1,0 +1,25 @@
+title: "闰年判断"
+topic: "02_conditionals"
+difficulty: 3
+tags: ["logic", "and-or"]
+statement: |
+  闰年规则：
+  - 能被 4 整除 **且** 不能被 100 整除，**或者**
+  - 能被 400 整除
+
+  从标准输入读一个年份 `year`，是闰年输出 `yes`，否则输出 `no`。
+
+  例如输入 `2024`，输出 `yes`；输入 `1900`，输出 `no`；输入 `2000`，输出 `yes`。
+starter_code: |
+  year = int(input())
+  # 在下面判断并输出 yes 或 no
+
+expected_output: |
+  yes
+tests:
+  - stdin: "2024\n"
+    expected_output: "yes\n"
+hints:
+  - "用 and / or 把两个条件拼起来"
+  - "可以写成：(year % 4 == 0 and year % 100 != 0) or year % 400 == 0"
+  - "输出全小写：yes / no"

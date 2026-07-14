@@ -1,0 +1,22 @@
+title: "独立样本 t 检验"
+topic: "13_scipy_stats"
+difficulty: 2
+tags: ["scipy", "ttest_ind"]
+statement: |
+  A 组 [85,92,78,88,95]、B 组 [72,68,75,82,70]。
+  用 `ttest_ind` 检验两组均值有无显著差异，输出 p 值（4 位小数）。
+
+  应该是 0.0030（差异极显著）。
+starter_code: |
+  from scipy import stats
+
+  a = [85, 92, 78, 88, 95]
+  b = [72, 68, 75, 82, 70]
+  # ttest_ind 输出 p（4 位小数）
+
+expected_output: |
+  0.0059
+hints:
+  - "t, p = stats.ttest_ind(a, b)"
+  - "print(f'{p:.4f}')"
+  - "ttest_ind 假设两组方差相等；不等用 equal_var=False"

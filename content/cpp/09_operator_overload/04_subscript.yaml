@@ -1,0 +1,29 @@
+title: "重载 [] 下标"
+topic: "09_operator_overload"
+difficulty: 3
+tags: ["operator[]"]
+statement: |
+  定义 Array 类（含 `int data[5]`），重载 `[]` 返回 `data[i]` 的引用。
+  题目向 a[0..4] 写入 10/20/30/40/50，再读取 a[2]，输出 `30`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  class Array {
+  public:
+      int data[5];
+      // 重载 [] 返回 int&
+  };
+
+  int main() {
+      Array a;
+      for (int i = 0; i < 5; i++) a[i] = (i+1) * 10;
+      cout << a[2] << endl;
+      return 0;
+  }
+expected_output: |
+  30
+hints:
+  - "int& operator[](int i) { return data[i]; }"
+  - "返回引用才能 `a[i] = x` 赋值"
+  - "也可加 const 版本：const int& operator[](int i) const"

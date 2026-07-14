@@ -1,0 +1,22 @@
+title: "ANOVA p 值"
+topic: "05_lm_anova"
+difficulty: 3
+tags: ["aov", "anova"]
+statement: |
+  3 个班 score：A [85,92,78,88,95]、B [70,72,65,60,55]、C [80,82,78,85,90]。
+  用 `aov` 检验班级之间是否有显著差异，输出 **p 值**（保留 5 位小数）。
+
+  应约 0.00007（极显著）。
+starter_code: |
+  df <- data.frame(
+    score = c(85,92,78,88,95, 70,72,65,60,55, 80,82,78,85,90),
+    class = factor(rep(c("A","B","C"), each=5))
+  )
+  # aov(score ~ class)，从 summary 提 p 值
+
+expected_output: |
+  0.00016
+hints:
+  - "fit <- aov(score ~ class, data=df)"
+  - "p <- summary(fit)[[1]][[\"Pr(>F)\"]][1]"
+  - "cat(format(p, digits=2), \"\\n\")"

@@ -1,0 +1,25 @@
+title: "两数中的较大者"
+topic: "04_functions"
+difficulty: 1
+tags: ["def", "if-else", "return"]
+statement: |
+  请定义一个 `max_of_two(a, b)` 函数，**返回** a 和 b 中较大的那个（如果相等返回任一）。
+  从标准输入读两个空格分隔的整数，调用并输出结果。
+
+  例如输入 `7 3`，输出 `7`。
+starter_code: |
+  def max_of_two(a, b):
+      # 用 if-else 比较 a 和 b
+      pass
+
+  a, b = [int(x) for x in input().split()]
+  print(max_of_two(a, b))
+expected_output: |
+  7
+tests:
+  - stdin: "7 3\n"
+    expected_output: "7\n"
+hints:
+  - "if a > b: return a; else: return b"
+  - "也可以一行：return a if a > b else b"
+  - "Python 自带 max(a, b) 也对，但建议先用 if 体会一遍"

@@ -1,0 +1,21 @@
+title: "转大写"
+topic: "06_strings"
+difficulty: 1
+tags: ["upper"]
+statement: |
+  从标准输入读一行字符串，输出它的全大写形式。
+
+  例如输入 `hello world`，输出 `HELLO WORLD`。
+starter_code: |
+  s = input()
+  # 输出全大写
+
+expected_output: |
+  HELLO WORLD
+tests:
+  - stdin: "hello world\n"
+    expected_output: "HELLO WORLD\n"
+hints:
+  - "print(s.upper())"
+  - "upper 不会改原字符串，是返回新字符串"
+  - "想转小写用 s.lower()"

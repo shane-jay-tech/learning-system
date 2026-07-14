@@ -1,0 +1,36 @@
+title: "vector 求和"
+topic: "03_arrays_strings"
+difficulty: 1
+tags: ["vector", "loop"]
+statement: |
+  从标准输入读一个正整数 `n`，再读 `n` 个空格分隔的整数，输出它们的和。
+
+  例如输入：
+  ```
+  5
+  3 5 7 11 14
+  ```
+  输出 `40`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  using namespace std;
+
+  int main() {
+      int n;
+      cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      // 求和并输出
+
+      return 0;
+  }
+expected_output: |
+  40
+tests:
+  - stdin: "5\n3 5 7 11 14\n"
+    expected_output: "40\n"
+hints:
+  - "int total = 0; for (int x : v) total += x;"
+  - "cout << total << endl;"
+  - "vector<int> v(n) 一次创建 n 个元素"

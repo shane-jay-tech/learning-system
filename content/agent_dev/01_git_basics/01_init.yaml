@@ -1,0 +1,18 @@
+title: "初始化 Git 仓库"
+topic: "01_git_basics"
+difficulty: 1
+tags: ["git", "init"]
+statement: |
+  你刚建了个新项目目录 `learning-system`。请输出**初始化 git 仓库**的命令。
+
+  期望：`git init`。
+starter_code: |
+  # 写出对应命令并 print
+  command = "..."
+  print(command)
+expected_output: |
+  git init
+hints:
+  - "git init 命令本身就是这样"
+  - "print 直接输出字符串"
+  - "在哪个目录跑这个命令，那个目录就被纳入 git 管理"

@@ -1,0 +1,43 @@
+title: "找 bug：为什么第二次调用不对劲？"
+topic: "08_read_code"
+difficulty: 4
+tags: ["read-code", "bug", "open", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  这段代码想"每次收集一批新名字"，但用着用着出了怪事：
+
+  ```python
+  def collect(name, names=[]):
+      names.append(name)
+      return names
+
+  print(collect("Alice"))   # ['Alice']
+  print(collect("Bob"))     # 期望 ['Bob']，实际却是 ['Alice', 'Bob'] ?!
+  ```
+
+  请回答：
+  1. 为什么第二次调用会带上上一次的 `Alice`？
+  2. 怎么改才对？
+
+  用你自己的话解释原因（这是个很经典的坑）。
+starter_code: ""
+rubric:
+  - "命中根因：默认参数 names=[] 这个列表只在函数定义时创建一次，多次调用共享同一个列表"
+  - "理解后果：所以上一次 append 的内容会留到下一次"
+  - "正确改法：默认用 None，函数内部 if names is None: names = [] 再新建"
+  - "能认出这是'可变默认参数'陷阱（说不出名字但解释对也算）"
+reference_answer: |
+  1. **原因**：`names=[]` 这个默认列表**只在函数被定义的那一刻创建一次**，之后每次不传 `names` 的调用，用的都是**同一个列表**。所以第一次 append 了 Alice，这个列表就一直留着 Alice，第二次再 append Bob，自然变成 `['Alice', 'Bob']`。这就是 Python 经典的"**可变默认参数**"陷阱。
+  2. **正确改法**：默认值用 `None`，进函数再新建列表——
+     ```python
+     def collect(name, names=None):
+         if names is None:
+             names = []
+         names.append(name)
+         return names
+     ```
+     这样每次不传 `names` 时都会拿到一个全新的空列表。
+hints:
+  - "问自己：那个 [] 是每次调用都新建，还是只建一次？"
+  - "默认参数的值在'定义函数时'就固定了，不是每次调用重算。"
+  - "修复套路：可变类型（list/dict）的默认值用 None，进函数再新建。"

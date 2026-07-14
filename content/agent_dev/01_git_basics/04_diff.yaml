@@ -1,0 +1,18 @@
+title: "看自己改了啥"
+topic: "01_git_basics"
+difficulty: 2
+tags: ["git", "diff"]
+statement: |
+  Agent 刚帮你改完代码，commit 前你想**看一眼**自己（agent）改了哪些。
+  请输出对应命令。
+
+  期望：`git diff`。
+starter_code: |
+  command = "..."
+  print(command)
+expected_output: |
+  git diff
+hints:
+  - "git diff 看未暂存的改动"
+  - "暂存后用 git diff --staged 看"
+  - "审 agent 改了啥的关键命令"

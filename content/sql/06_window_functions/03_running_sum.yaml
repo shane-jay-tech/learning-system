@@ -1,0 +1,25 @@
+title: "累计求和"
+topic: "06_window_functions"
+difficulty: 3
+tags: ["window", "running-sum"]
+statement: |
+  按 id 升序，给每行算"截止当前行（含）所有 score 的累计和"。
+  输出 `id name score cum_sum` 四列。
+
+  分数序列 92 87 75 60 95 → 累计 92 179 254 314 409。
+starter_code: |
+  -- SUM(score) OVER (ORDER BY id)
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - [1, "Alice", 92, 92]
+  - [2, "Bob", 87, 179]
+  - [3, "Cathy", 75, 254]
+  - [4, "David", 60, 314]
+  - [5, "Eve", 95, 409]
+hints:
+  - "SUM(score) OVER (ORDER BY id) AS cum_sum"
+  - "SUM 加 ORDER BY 自动变成累计求和"
+  - "没有 PARTITION BY 表示整个表一个窗口"

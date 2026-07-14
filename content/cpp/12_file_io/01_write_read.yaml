@@ -1,0 +1,31 @@
+title: "写文件再读出"
+topic: "12_file_io"
+difficulty: 2
+tags: ["fstream", "ofstream", "ifstream"]
+statement: |
+  从输入读一行字符串，写到 `note.txt`，再读出来 print。
+
+  输入 `Hello, World!`，输出 `Hello, World!`。
+starter_code: |
+  #include <iostream>
+  #include <fstream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      string line;
+      getline(cin, line);
+      // 1) ofstream 写到 note.txt
+      // 2) ifstream 读出来 print
+
+      return 0;
+  }
+expected_output: |
+  Hello, World!
+tests:
+  - stdin: "Hello, World!\n"
+    expected_output: "Hello, World!\n"
+hints:
+  - "{ ofstream out(\"note.txt\"); out << line; }"
+  - "ifstream in(\"note.txt\"); string s; getline(in, s); cout << s << endl;"
+  - "用作用域 {} 让 ofstream 提前析构（关文件）才能再读"

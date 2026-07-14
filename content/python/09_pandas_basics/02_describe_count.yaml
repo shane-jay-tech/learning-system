@@ -1,0 +1,21 @@
+title: "describe 行数"
+topic: "09_pandas_basics"
+difficulty: 1
+tags: ["pandas", "shape"]
+statement: |
+  把上一题的 DataFrame 建好后，输出**行数**（即 5）。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+  })
+  # 输出 df 的行数
+
+expected_output: |
+  5
+hints:
+  - "len(df) 直接给行数"
+  - "df.shape 返回 (5, 2) 元组；df.shape[0] 是行数"
+  - "df.index.size 也行"

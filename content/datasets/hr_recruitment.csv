@@ -1,0 +1,201 @@
+candidate_id,channel,apply_date,final_stage,days_in_process,result,cost_yuan,department
+CAND0001,Referral,2024-04-19,Resume Screen,6,Rejected,454,Operations
+CAND0002,LinkedIn,2024-10-19,Technical Interview,30,Rejected,5174,HR
+CAND0003,LinkedIn,2024-03-20,Resume Screen,9,Rejected,3413,HR
+CAND0004,Referral,2024-06-02,Technical Interview,16,Rejected,1661,Sales
+CAND0005,JobBoard,2024-09-06,Final Interview,24,Rejected,354,Sales
+CAND0006,JobBoard,2024-01-29,Technical Interview,13,Rejected,1597,Operations
+CAND0007,Referral,2024-11-19,Final Interview,18,Rejected,1298,Legal
+CAND0008,LinkedIn,2024-10-16,Technical Interview,19,Rejected,4923,HR
+CAND0009,Referral,2024-04-23,Offer,33,Rejected,184,Legal
+CAND0010,Referral,2024-10-19,Final Interview,18,Rejected,974,Technology
+CAND0011,JobBoard,2024-12-23,Final Interview,27,Rejected,889,HR
+CAND0012,Campus,2024-10-19,Final Interview,32,Rejected,1335,Finance
+CAND0013,JobBoard,2024-08-08,Offer,29,Rejected,1590,Operations
+CAND0014,Internal,2024-06-25,Offer,35,Hired,656,Technology
+CAND0015,Referral,2024-03-15,Phone Screen,16,Rejected,1276,R&D
+CAND0016,LinkedIn,2024-02-13,Phone Screen,12,Rejected,1777,Sales
+CAND0017,Internal,2024-11-13,Resume Screen,5,Rejected,1943,HR
+CAND0018,Referral,2024-02-26,Resume Screen,7,Rejected,1420,Marketing
+CAND0019,HeadHunter,2024-04-14,Final Interview,24,Rejected,2235,Marketing
+CAND0020,JobBoard,2024-05-10,Final Interview,24,Rejected,89,HR
+CAND0021,LinkedIn,2024-12-01,Technical Interview,13,Rejected,4308,Technology
+CAND0022,LinkedIn,2024-11-28,Final Interview,18,Rejected,2896,Legal
+CAND0023,Campus,2024-11-01,Final Interview,29,Rejected,1775,Sales
+CAND0024,Campus,2024-12-30,Phone Screen,19,Rejected,1148,Technology
+CAND0025,LinkedIn,2024-09-07,Phone Screen,16,Rejected,3232,Legal
+CAND0026,Internal,2024-06-29,Phone Screen,9,Rejected,1401,Operations
+CAND0027,Internal,2024-02-01,Technical Interview,21,Rejected,1662,Marketing
+CAND0028,HeadHunter,2024-04-25,Resume Screen,10,Rejected,2795,HR
+CAND0029,Referral,2024-12-13,Final Interview,25,Rejected,1967,Finance
+CAND0030,HeadHunter,2024-11-05,Phone Screen,12,Rejected,3059,Operations
+CAND0031,HeadHunter,2024-12-27,Offer,29,Hired,6140,HR
+CAND0032,HeadHunter,2024-10-12,Phone Screen,11,Rejected,1055,Sales
+CAND0033,Campus,2024-07-30,Technical Interview,13,Rejected,1802,Legal
+CAND0034,Referral,2024-04-04,Final Interview,18,Rejected,269,Technology
+CAND0035,JobBoard,2024-12-18,Offer,24,Hired,162,R&D
+CAND0036,Campus,2024-03-11,Offer,37,Rejected,970,HR
+CAND0037,Campus,2024-01-08,Phone Screen,10,Rejected,1565,Marketing
+CAND0038,HeadHunter,2024-03-31,Phone Screen,10,Rejected,1041,R&D
+CAND0039,JobBoard,2024-01-22,Final Interview,29,Rejected,829,Legal
+CAND0040,Internal,2024-12-26,Technical Interview,28,Rejected,1313,Technology
+CAND0041,JobBoard,2024-01-22,Resume Screen,9,Rejected,935,Finance
+CAND0042,JobBoard,2024-05-29,Offer,32,Hired,388,R&D
+CAND0043,HeadHunter,2024-05-30,Technical Interview,19,Rejected,3960,Technology
+CAND0044,Internal,2024-10-26,Offer,34,Rejected,368,HR
+CAND0045,HeadHunter,2024-10-29,Final Interview,22,Rejected,4216,Finance
+CAND0046,HeadHunter,2024-12-20,Resume Screen,6,Rejected,3154,HR
+CAND0047,Internal,2024-12-27,Resume Screen,3,Rejected,233,R&D
+CAND0048,Internal,2024-09-18,Technical Interview,21,Rejected,1488,HR
+CAND0049,HeadHunter,2024-12-30,Offer,23,Hired,1965,Technology
+CAND0050,HeadHunter,2024-04-02,Technical Interview,21,Rejected,5631,Sales
+CAND0051,Campus,2024-08-22,Phone Screen,8,Rejected,25,R&D
+CAND0052,HeadHunter,2024-08-14,Offer,37,Rejected,3859,Sales
+CAND0053,JobBoard,2024-03-16,Offer,33,Hired,378,Technology
+CAND0054,Internal,2024-10-22,Technical Interview,8,Rejected,1366,Marketing
+CAND0055,Referral,2024-08-01,Resume Screen,2,Rejected,223,HR
+CAND0056,Campus,2024-10-23,Technical Interview,23,Rejected,1534,Operations
+CAND0057,LinkedIn,2024-07-07,Resume Screen,6,Rejected,3144,Legal
+CAND0058,LinkedIn,2024-03-03,Final Interview,28,Rejected,1602,Marketing
+CAND0059,Referral,2024-09-04,Offer,25,Hired,179,Marketing
+CAND0060,HeadHunter,2024-11-19,Offer,36,Rejected,4757,R&D
+CAND0061,HeadHunter,2024-01-01,Phone Screen,11,Rejected,2085,Sales
+CAND0062,LinkedIn,2024-06-19,Final Interview,24,Rejected,872,Operations
+CAND0063,JobBoard,2024-05-24,Phone Screen,7,Rejected,1413,Marketing
+CAND0064,LinkedIn,2024-01-04,Technical Interview,26,Rejected,3153,Sales
+CAND0065,Internal,2024-03-30,Technical Interview,17,Rejected,1704,Finance
+CAND0066,Referral,2024-03-10,Technical Interview,20,Rejected,1322,R&D
+CAND0067,Campus,2024-01-29,Final Interview,34,Rejected,1900,Marketing
+CAND0068,JobBoard,2024-10-22,Technical Interview,22,Rejected,426,Operations
+CAND0069,Referral,2024-01-16,Resume Screen,4,Rejected,574,Operations
+CAND0070,HeadHunter,2024-01-17,Offer,28,Rejected,6315,Marketing
+CAND0071,HeadHunter,2024-05-01,Resume Screen,9,Rejected,7684,Operations
+CAND0072,HeadHunter,2024-02-27,Technical Interview,21,Rejected,1933,Operations
+CAND0073,LinkedIn,2024-01-13,Phone Screen,12,Rejected,4645,R&D
+CAND0074,JobBoard,2024-09-04,Phone Screen,12,Rejected,1891,Marketing
+CAND0075,Referral,2024-03-08,Phone Screen,13,Rejected,1385,Finance
+CAND0076,Internal,2024-12-31,Resume Screen,9,Rejected,793,Sales
+CAND0077,LinkedIn,2024-01-24,Technical Interview,12,Rejected,4324,Sales
+CAND0078,JobBoard,2024-04-12,Technical Interview,13,Rejected,657,Finance
+CAND0079,Referral,2024-03-01,Technical Interview,26,Rejected,1374,Marketing
+CAND0080,Campus,2024-11-14,Phone Screen,9,Rejected,31,Sales
+CAND0081,Campus,2024-02-06,Offer,28,Hired,350,Marketing
+CAND0082,JobBoard,2024-01-15,Technical Interview,21,Rejected,266,R&D
+CAND0083,Internal,2024-01-28,Resume Screen,3,Rejected,785,Sales
+CAND0084,HeadHunter,2024-04-11,Final Interview,26,Rejected,3222,Sales
+CAND0085,HeadHunter,2024-04-28,Offer,36,Hired,4354,Finance
+CAND0086,Campus,2024-09-06,Offer,33,Hired,928,Technology
+CAND0087,LinkedIn,2024-03-28,Final Interview,28,Rejected,7428,Marketing
+CAND0088,Referral,2024-11-28,Offer,31,Hired,1138,Sales
+CAND0089,Referral,2024-09-03,Offer,32,Hired,1994,Legal
+CAND0090,LinkedIn,2024-06-24,Technical Interview,21,Rejected,5146,Finance
+CAND0091,Campus,2024-10-30,Resume Screen,9,Rejected,234,R&D
+CAND0092,Referral,2024-02-25,Offer,30,Hired,1225,Legal
+CAND0093,Referral,2024-10-24,Final Interview,14,Rejected,1817,Technology
+CAND0094,Campus,2024-07-18,Phone Screen,19,Rejected,596,R&D
+CAND0095,Campus,2024-12-13,Phone Screen,13,Rejected,1167,Marketing
+CAND0096,HeadHunter,2024-03-06,Technical Interview,15,Rejected,3811,Marketing
+CAND0097,LinkedIn,2024-10-13,Technical Interview,14,Rejected,6261,Operations
+CAND0098,LinkedIn,2024-10-29,Technical Interview,15,Rejected,6252,Legal
+CAND0099,Internal,2024-10-06,Technical Interview,24,Rejected,891,Finance
+CAND0100,Internal,2024-10-11,Phone Screen,13,Rejected,385,Legal
+CAND0101,Referral,2024-02-06,Final Interview,18,Rejected,23,Technology
+CAND0102,Campus,2024-07-31,Final Interview,19,Rejected,1315,R&D
+CAND0103,Internal,2024-08-18,Offer,41,Rejected,1679,Legal
+CAND0104,Referral,2024-01-04,Phone Screen,12,Rejected,1238,R&D
+CAND0105,Internal,2024-10-06,Phone Screen,16,Rejected,841,Operations
+CAND0106,LinkedIn,2024-07-07,Resume Screen,9,Rejected,6274,Sales
+CAND0107,JobBoard,2024-09-21,Final Interview,23,Rejected,952,Sales
+CAND0108,JobBoard,2024-06-24,Offer,30,Hired,1850,Technology
+CAND0109,HeadHunter,2024-05-30,Final Interview,34,Rejected,3391,Marketing
+CAND0110,Campus,2024-10-15,Resume Screen,6,Rejected,1488,Marketing
+CAND0111,LinkedIn,2024-09-05,Final Interview,14,Rejected,2849,Sales
+CAND0112,Campus,2024-05-11,Offer,28,Hired,1756,Technology
+CAND0113,Internal,2024-10-29,Resume Screen,4,Rejected,1863,HR
+CAND0114,Internal,2024-04-02,Final Interview,22,Rejected,993,Technology
+CAND0115,Referral,2024-03-19,Resume Screen,4,Rejected,1219,R&D
+CAND0116,HeadHunter,2024-06-25,Final Interview,23,Rejected,5232,Technology
+CAND0117,Internal,2024-07-23,Technical Interview,9,Rejected,950,R&D
+CAND0118,Referral,2024-05-14,Final Interview,31,Rejected,971,HR
+CAND0119,JobBoard,2024-06-10,Final Interview,25,Rejected,1389,Technology
+CAND0120,LinkedIn,2024-02-20,Offer,33,Rejected,7072,Marketing
+CAND0121,Internal,2024-10-07,Offer,31,Hired,641,Technology
+CAND0122,Internal,2024-07-29,Resume Screen,3,Rejected,24,Sales
+CAND0123,JobBoard,2024-04-22,Resume Screen,9,Rejected,719,Marketing
+CAND0124,Referral,2024-02-17,Phone Screen,4,Rejected,1268,Technology
+CAND0125,JobBoard,2024-11-05,Phone Screen,6,Rejected,176,HR
+CAND0126,HeadHunter,2024-12-04,Offer,23,Rejected,4325,Sales
+CAND0127,Internal,2024-02-07,Final Interview,27,Rejected,331,Marketing
+CAND0128,LinkedIn,2024-05-15,Final Interview,23,Rejected,7158,HR
+CAND0129,HeadHunter,2024-11-08,Resume Screen,9,Rejected,2143,Legal
+CAND0130,Campus,2024-11-10,Final Interview,25,Rejected,447,Sales
+CAND0131,HeadHunter,2024-10-19,Technical Interview,8,Rejected,1076,Marketing
+CAND0132,HeadHunter,2024-11-30,Resume Screen,9,Rejected,1719,Technology
+CAND0133,LinkedIn,2024-01-02,Final Interview,25,Rejected,5207,R&D
+CAND0134,HeadHunter,2024-07-15,Final Interview,26,Rejected,527,R&D
+CAND0135,LinkedIn,2024-11-27,Offer,30,Hired,5679,Sales
+CAND0136,Referral,2024-10-10,Offer,30,Rejected,361,Technology
+CAND0137,HeadHunter,2024-02-24,Phone Screen,14,Rejected,7843,Operations
+CAND0138,HeadHunter,2024-04-07,Resume Screen,9,Rejected,6523,HR
+CAND0139,LinkedIn,2024-07-18,Phone Screen,7,Rejected,4507,Sales
+CAND0140,JobBoard,2024-01-09,Technical Interview,28,Rejected,1979,Technology
+CAND0141,Referral,2024-01-22,Resume Screen,7,Rejected,1613,Legal
+CAND0142,LinkedIn,2024-10-01,Phone Screen,19,Rejected,6054,HR
+CAND0143,Internal,2024-11-12,Offer,20,Hired,965,Technology
+CAND0144,Campus,2024-01-26,Phone Screen,6,Rejected,1295,Marketing
+CAND0145,LinkedIn,2024-10-31,Final Interview,13,Rejected,4572,Finance
+CAND0146,LinkedIn,2024-12-13,Phone Screen,15,Rejected,7147,Legal
+CAND0147,Referral,2024-06-13,Resume Screen,10,Rejected,281,Finance
+CAND0148,LinkedIn,2024-12-22,Offer,24,Hired,1876,Operations
+CAND0149,JobBoard,2024-10-24,Phone Screen,14,Rejected,1895,Technology
+CAND0150,Campus,2024-03-21,Resume Screen,8,Rejected,1592,Technology
+CAND0151,HeadHunter,2024-04-01,Resume Screen,2,Rejected,559,Sales
+CAND0152,Internal,2024-05-18,Offer,30,Rejected,1310,R&D
+CAND0153,HeadHunter,2024-04-02,Phone Screen,6,Rejected,5384,R&D
+CAND0154,JobBoard,2024-08-02,Resume Screen,6,Rejected,712,Technology
+CAND0155,JobBoard,2024-02-18,Phone Screen,8,Rejected,1085,Operations
+CAND0156,JobBoard,2024-03-17,Offer,21,Hired,1631,R&D
+CAND0157,HeadHunter,2024-11-26,Phone Screen,6,Rejected,942,Operations
+CAND0158,Referral,2024-11-11,Phone Screen,14,Rejected,684,R&D
+CAND0159,LinkedIn,2024-03-31,Resume Screen,2,Rejected,4902,HR
+CAND0160,LinkedIn,2024-08-15,Final Interview,21,Rejected,6409,Operations
+CAND0161,HeadHunter,2024-02-26,Phone Screen,12,Rejected,6881,Operations
+CAND0162,Campus,2024-07-30,Resume Screen,5,Rejected,1510,Finance
+CAND0163,HeadHunter,2024-09-05,Phone Screen,12,Rejected,5293,Technology
+CAND0164,HeadHunter,2024-07-17,Phone Screen,14,Rejected,1958,Operations
+CAND0165,Campus,2024-03-06,Final Interview,23,Rejected,687,Technology
+CAND0166,Internal,2024-06-24,Offer,33,Hired,350,Finance
+CAND0167,Referral,2024-09-24,Offer,30,Hired,1755,R&D
+CAND0168,Campus,2024-06-16,Offer,30,Hired,507,Legal
+CAND0169,JobBoard,2024-01-23,Phone Screen,6,Rejected,855,Technology
+CAND0170,HeadHunter,2024-05-03,Offer,39,Hired,4557,Sales
+CAND0171,JobBoard,2024-04-21,Resume Screen,8,Rejected,1945,HR
+CAND0172,Referral,2024-12-08,Technical Interview,10,Rejected,982,Marketing
+CAND0173,Campus,2024-12-26,Final Interview,24,Rejected,1790,Legal
+CAND0174,Campus,2024-12-19,Technical Interview,14,Rejected,788,Operations
+CAND0175,JobBoard,2024-05-18,Resume Screen,6,Rejected,872,Finance
+CAND0176,Internal,2024-01-29,Resume Screen,7,Rejected,1506,Operations
+CAND0177,LinkedIn,2024-08-26,Resume Screen,8,Rejected,3494,Technology
+CAND0178,Referral,2024-12-29,Technical Interview,17,Rejected,1148,Finance
+CAND0179,Campus,2024-09-01,Technical Interview,18,Rejected,1329,Finance
+CAND0180,Internal,2024-05-16,Phone Screen,14,Rejected,1838,Legal
+CAND0181,Referral,2024-06-25,Resume Screen,3,Rejected,763,R&D
+CAND0182,HeadHunter,2024-11-13,Offer,38,Hired,4202,Operations
+CAND0183,Internal,2024-08-22,Resume Screen,5,Rejected,1826,Sales
+CAND0184,LinkedIn,2024-05-21,Final Interview,16,Rejected,1849,Sales
+CAND0185,Internal,2024-04-14,Phone Screen,13,Rejected,1791,Technology
+CAND0186,Referral,2024-08-15,Final Interview,30,Rejected,860,Technology
+CAND0187,Referral,2024-04-28,Phone Screen,5,Rejected,1785,Operations
+CAND0188,HeadHunter,2024-06-04,Offer,45,Hired,4251,HR
+CAND0189,Referral,2024-07-09,Phone Screen,11,Rejected,991,Marketing
+CAND0190,LinkedIn,2024-03-26,Phone Screen,13,Rejected,4234,HR
+CAND0191,Internal,2024-06-11,Offer,20,Hired,84,HR
+CAND0192,HeadHunter,2024-12-28,Technical Interview,16,Rejected,5107,Technology
+CAND0193,Internal,2024-10-03,Technical Interview,18,Rejected,918,HR
+CAND0194,JobBoard,2024-09-12,Technical Interview,13,Rejected,1906,HR
+CAND0195,HeadHunter,2024-06-18,Technical Interview,16,Rejected,4656,Marketing
+CAND0196,HeadHunter,2024-02-27,Technical Interview,20,Rejected,6145,R&D
+CAND0197,LinkedIn,2024-01-13,Phone Screen,13,Rejected,3023,Legal
+CAND0198,JobBoard,2024-06-16,Phone Screen,16,Rejected,189,Technology
+CAND0199,JobBoard,2024-05-22,Phone Screen,15,Rejected,1600,Finance
+CAND0200,LinkedIn,2024-08-16,Resume Screen,10,Rejected,7458,Sales

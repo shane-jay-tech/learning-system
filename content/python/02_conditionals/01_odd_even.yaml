@@ -1,0 +1,23 @@
+title: "判断奇偶"
+topic: "02_conditionals"
+difficulty: 1
+tags: ["if", "modulo"]
+statement: |
+  从标准输入读一个整数 `n`，判断它的奇偶：
+  - 偶数输出 `even`
+  - 奇数输出 `odd`
+
+  例如输入 `7`，应该输出 `odd`。
+starter_code: |
+  n = int(input())
+  # 在下面用 if/else 输出 odd 或 even
+
+expected_output: |
+  odd
+tests:
+  - stdin: "7\n"
+    expected_output: "odd\n"
+hints:
+  - "用 % 取余：n % 2 == 0 是偶数"
+  - "if-else 二选一即可"
+  - "输出全小写：odd / even"

@@ -1,0 +1,37 @@
+title: "override 强制检查"
+topic: "08_inheritance"
+difficulty: 2
+tags: ["override"]
+statement: |
+  父类 Shape 有 `virtual int area()`。请定义 Square : public Shape，添加 side 字段，
+  **用 override 关键字**重写 area 返回 `side * side`。
+  题目从输入读 side，输出 area。
+
+  输入 `5`，输出 `25`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  class Shape {
+  public:
+      virtual int area() = 0;
+      virtual ~Shape() = default;
+  };
+
+  // 在这里定义 Square : public Shape，含 side 和 override 的 area
+
+  int main() {
+      int s; cin >> s;
+      Square sq(s);
+      cout << sq.area() << endl;
+      return 0;
+  }
+expected_output: |
+  25
+tests:
+  - stdin: "5\n"
+    expected_output: "25\n"
+hints:
+  - "class Square : public Shape { public: int side; Square(int s) : side(s) {} int area() override { return side * side; } };"
+  - "override 让编译器检查方法名是否真在父类里"
+  - "纯虚函数 = 0 让 Shape 是抽象类"

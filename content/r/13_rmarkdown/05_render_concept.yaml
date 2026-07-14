@@ -1,0 +1,19 @@
+title: "Rmd 章节计数"
+topic: "13_rmarkdown"
+difficulty: 2
+tags: ["rmarkdown", "headings"]
+statement: |
+  数 Rmd 文档里**一级标题**（`# ...`）的个数。
+
+  给定示例有 3 个一级标题。
+starter_code: |
+  rmd <- "# 第一章\n\n内容\n\n# 第二章\n\n内容\n\n## 子章节\n\n# 第三章\n"
+  # 用 grep 数以 "# " 开头的行（不含 ##）
+  lines <- strsplit(rmd, "\n")[[1]]
+
+expected_output: |
+  3
+hints:
+  - "n <- sum(grepl(\"^# [^#]\", lines))"
+  - "cat(n, \"\\n\")"
+  - "^# [^#] 表示开头是 # + 空格 + 非 #"

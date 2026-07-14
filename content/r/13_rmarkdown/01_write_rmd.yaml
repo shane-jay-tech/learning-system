@@ -1,0 +1,22 @@
+title: "写一个 .Rmd 文件"
+topic: "13_rmarkdown"
+difficulty: 1
+tags: ["rmarkdown", "file"]
+statement: |
+  请用 `writeLines` 把一段简单的 Rmd 内容写到 `report.Rmd`，然后读出来用 `nchar` 输出**字符数**。
+
+  内容：`# Hello\n\n这是一个 R Markdown 文档。`（共 28 个字符，但具体看你的换行）。
+  期望：>= 20（题目用 `cat(nchar(content) > 20)`）。
+starter_code: |
+  content <- "# Hello\n\n这是一个 R Markdown 文档。"
+  writeLines(content, "report.Rmd")
+  text <- readLines("report.Rmd")
+  full <- paste(text, collapse = "\n")
+  # cat boolalpha：nchar > 20
+
+expected_output: |
+  TRUE
+hints:
+  - "cat(nchar(full) > 20, \"\\n\")"
+  - "writeLines 写文本，readLines 读"
+  - "paste collapse 把行数组拼回字符串"

@@ -1,0 +1,43 @@
+title: "这段代码为什么'耦合太紧'？"
+topic: "05_modular_config"
+difficulty: 4
+tags: ["architecture", "coupling", "open", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  看这段 Streamlit 界面代码——它**直接在界面里写了数据库操作和业务计算**：
+
+  ```python
+  # 界面代码里
+  if st.button("看部门平均分"):
+      conn = sqlite3.connect("data.db")
+      rows = conn.execute("SELECT dept, score FROM surveys").fetchall()
+      result = {}
+      for dept, score in rows:
+          result.setdefault(dept, []).append(score)
+      avg = {d: sum(v)/len(v) for d, v in result.items()}
+      st.write(avg)
+  ```
+
+  请回答：
+  1. 这样写"耦合太紧"会带来哪些**麻烦**？（想想：要换数据库、要复用这段算法、要测试，会怎样）
+  2. 按分层的思路，你会怎么把它拆开？
+starter_code: ""
+rubric:
+  - "指出问题：界面里混了数据库访问 + 业务计算，三层揉成一团"
+  - "说出至少两个麻烦：换数据库要改界面 / 这段平均分算法没法被别处复用 / 没法单独测试业务逻辑（一测就要起界面和真库）"
+  - "给出拆分：把'取数'放 data 层（一个函数返回数据）、'算平均'放 core 层（纯函数）、UI 只负责调用并 st.write 展示"
+  - "体现单向依赖：UI 调 core，core 调 data，反过来不行"
+reference_answer: |
+  1. **麻烦**：界面里同时干了三件事——连数据库取数、算平均、再展示。耦合太紧的后果：
+     - **换数据库**：哪天从 SQLite 换成别的，得翻进界面代码改 SQL，风险高；
+     - **没法复用**：这段"按部门算平均"的逻辑被埋在按钮事件里，别的地方想用同样的算法只能复制粘贴；
+     - **没法测试**：想单测"平均分算得对不对"，却必须把界面和真数据库一起启起来才能跑，又慢又脆。
+  2. **拆开**：
+     - **data 层**：`get_survey_rows()` —— 只管连库取数，返回原始记录；
+     - **core 层**：`avg_by_dept(rows)` —— 一个**纯函数**，输入记录、输出 {部门: 平均分}，不碰数据库也不碰界面，单独就能测；
+     - **UI 层**：按钮里只写 `data = get_survey_rows(); st.write(avg_by_dept(data))`，只负责"调用 + 展示"。
+     依赖方向是 **UI → core → data**，单向往下。这样换库只动 data，算法能复用也能测。
+hints:
+  - "数一数：这段代码在界面里干了几件本不属于界面的事？"
+  - "想象要给这段算法写个测试——现在能单独测吗？"
+  - "拆成三个函数：一个取数、一个算、界面只调用。"

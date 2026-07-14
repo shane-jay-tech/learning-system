@@ -1,0 +1,37 @@
+title: "自定义迭代器类（Countdown）"
+topic: "18_generators_iter"
+difficulty: 3
+tags: ["iter", "next"]
+statement: |
+  请定义类 `Countdown(n)`：
+  - `__iter__` 返回 self
+  - `__next__` 从 n 倒数到 1，到 0 抛 StopIteration
+
+  例如 `list(Countdown(3))` 应得 `[3, 2, 1]`。
+  题目从输入读 n，print(list(Countdown(n)))。
+
+  输入 `5`，输出 `[5, 4, 3, 2, 1]`。
+starter_code: |
+  class Countdown:
+      def __init__(self, n):
+          self.n = n
+
+      def __iter__(self):
+          return self
+
+      def __next__(self):
+          # n <= 0 → raise StopIteration
+          # 否则返回 n 后减 1
+          pass
+
+  n = int(input())
+  print(list(Countdown(n)))
+expected_output: |
+  [5, 4, 3, 2, 1]
+tests:
+  - stdin: "5\n"
+    expected_output: "[5, 4, 3, 2, 1]\n"
+hints:
+  - "if self.n <= 0: raise StopIteration"
+  - "v = self.n; self.n -= 1; return v"
+  - "__iter__ 和 __next__ 是迭代器协议的双护法"

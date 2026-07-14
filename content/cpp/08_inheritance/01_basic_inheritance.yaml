@@ -1,0 +1,44 @@
+title: "基础继承"
+topic: "08_inheritance"
+difficulty: 2
+tags: ["inheritance"]
+statement: |
+  父类 `Animal` 已写好。请定义 `Dog : public Animal`，添加 `bark()` 方法输出 `Woof!`。
+  从输入读 name，构造 `Dog(name)` 后先调 `greet()` 再调 `bark()`。
+
+  输入 `Rex`，输出：
+  ```
+  Hi, I'm Rex
+  Woof!
+  ```
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  class Animal {
+  public:
+      string name;
+      Animal(string n) : name(n) {}
+      void greet() { cout << "Hi, I'm " << name << endl; }
+  };
+
+  // 在这里定义 Dog : public Animal
+
+  int main() {
+      string name; cin >> name;
+      Dog d(name);
+      d.greet();
+      d.bark();
+      return 0;
+  }
+expected_output: |
+  Hi, I'm Rex
+  Woof!
+tests:
+  - stdin: "Rex\n"
+    expected_output: "Hi, I'm Rex\nWoof!\n"
+hints:
+  - "class Dog : public Animal { public: Dog(string n) : Animal(n) {} void bark() { cout << \"Woof!\" << endl; } };"
+  - "构造函数初始化列表 : Animal(n) 调父类构造"
+  - "子类自动继承 greet()"

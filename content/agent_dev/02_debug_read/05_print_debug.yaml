@@ -1,0 +1,21 @@
+title: "用 print 找循环里的 bug"
+topic: "02_debug_read"
+difficulty: 3
+tags: ["debug", "print"]
+statement: |
+  代码本意是求 `[1, 2, 3, 4, 5]` 的和（应为 15），但有 bug。
+  请加一行 print 让它显示中间结果，**并修好**让最终输出 15。
+
+  实际上你只需要把 `total = i` 改成 `total += i`。
+starter_code: |
+  nums = [1, 2, 3, 4, 5]
+  total = 0
+  for i in nums:
+      total = i   # bug：覆盖而不是累加
+  print(total)
+expected_output: |
+  15
+hints:
+  - "把 = 改成 += 就是累加"
+  - "用 print(f'i={i}, total={total}') 在循环里能看到"
+  - "调试时永远先看中间值再下结论"

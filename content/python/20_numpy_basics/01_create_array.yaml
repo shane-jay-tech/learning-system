@@ -1,0 +1,20 @@
+title: "创建 NumPy 数组并求均值"
+topic: "20_numpy_basics"
+difficulty: 2
+tags: ["numpy", "array", "mean"]
+statement: |
+  用 NumPy 创建一个包含 `[10, 20, 30, 40, 50]` 的数组，
+  然后打印它的均值（mean）。
+starter_code: |
+  import numpy as np
+
+  # 创建数组
+  arr = ___
+
+  # 打印均值
+  print(___)
+expected_output: |
+  30.0
+hints:
+  - "np.array([...]) 创建数组"
+  - "arr.mean() 求均值"

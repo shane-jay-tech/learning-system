@@ -1,0 +1,23 @@
+title: "去重所有不同的等级"
+topic: "03_orderby_having"
+difficulty: 2
+tags: ["distinct"]
+statement: |
+  `students` 表里 `grade` 列存了等级（A/B/C/D/F）。请输出**所有不同的等级**，按字母升序，单列。
+
+  期望 4 行：A / B / C / D。
+starter_code: |
+  -- 用 SELECT DISTINCT + ORDER BY
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER, grade TEXT);
+  INSERT INTO students VALUES (1,'Alice',92,'A'),(2,'Bob',87,'B'),(3,'Cathy',75,'C'),(4,'David',60,'D'),(5,'Eve',95,'A'),(6,'Frank',82,'B');
+expected_rows:
+  - ["A"]
+  - ["B"]
+  - ["C"]
+  - ["D"]
+hints:
+  - "SELECT DISTINCT grade FROM students ORDER BY grade"
+  - "DISTINCT 紧跟 SELECT，对整行去重"
+  - "默认 ORDER BY 是升序（ASC）"

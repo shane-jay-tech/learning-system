@@ -1,0 +1,28 @@
+title: "为重构任务写约束 Spec"
+topic: "07_write_spec"
+difficulty: 3
+tags: ["spec", "refactor", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：你有一个 500 行的 Python 文件 `utils.py`，想让 AI agent 重构它。
+  直接说"重构一下"太危险——AI 可能大改接口导致其他代码全部报错。
+
+  请写一份重构 Spec，明确：
+  - 重构的目标是什么
+  - 哪些东西**不能改**（约束）
+  - 怎么验证重构没有破坏功能
+starter_code: ""
+rubric:
+  - "明确了重构目标（如：拆文件、改命名、减少重复，不是全部一起来）"
+  - "列出了不可变约束（如：所有 public 函数签名不变、返回值类型不变）"
+  - "给出了验证方法（如：跑测试、对比输出）"
+  - "说明了拆分策略（如：按功能分成 3 个文件）"
+reference_answer: |
+  重构目标: 把 utils.py 按功能拆成 3 个模块（string_utils, math_utils, io_utils）
+  不可变约束:
+  - 所有 public 函数签名（参数名、类型、返回值）不变
+  - 其他文件 import utils.xxx 的路径通过 __init__.py re-export 保持兼容
+  - 不删除任何函数，只是移动位置
+  验证方法: pytest 全部通过 + mypy 无新增 error
+hints:
+  - "重构最怕的是「改着改着把接口也改了」——约束就是你的安全网。"

@@ -1,0 +1,41 @@
+title: "透视表分析离职率"
+topic: "20_hr_pandas"
+difficulty: 3
+tags: ["pandas", "pivot_table", "hr"]
+statement: |
+  给定员工数据 DataFrame，包含列 department、gender、left（1=离职, 0=在职）。
+
+  用 pandas 的 pivot_table 计算每个部门各性别的离职率。
+  输出格式（按部门名排序）：
+  部门 女 男
+  HR 0.20 0.10
+  Tech 0.15 0.25
+
+  用以下测试数据构造 DataFrame：
+  data = [
+      ("Tech", "男", 1), ("Tech", "男", 0), ("Tech", "男", 0), ("Tech", "男", 1),
+      ("Tech", "女", 0), ("Tech", "女", 0), ("Tech", "女", 1), ("Tech", "女", 0),
+      ("HR", "男", 0), ("HR", "男", 0), ("HR", "男", 0), ("HR", "男", 1),
+      ("HR", "女", 1), ("HR", "女", 0), ("HR", "女", 1), ("HR", "女", 0),
+  ]
+
+starter_code: |
+  import pandas as pd
+
+  data = [
+      ("Tech", "男", 1), ("Tech", "男", 0), ("Tech", "男", 0), ("Tech", "男", 1),
+      ("Tech", "女", 0), ("Tech", "女", 0), ("Tech", "女", 1), ("Tech", "女", 0),
+      ("HR", "男", 0), ("HR", "男", 0), ("HR", "男", 0), ("HR", "男", 1),
+      ("HR", "女", 1), ("HR", "女", 0), ("HR", "女", 1), ("HR", "女", 0),
+  ]
+  df = pd.DataFrame(data, columns=["department", "gender", "left"])
+  # 用 pivot_table 计算每部门各性别离职率
+
+expected_output: |
+  部门 女 男
+  HR 0.50 0.25
+  Tech 0.25 0.50
+hints:
+  - "pd.pivot_table(df, values='left', index='department', columns='gender', aggfunc='mean')"
+  - "结果是 0~1 之间的比例，代表离职率"
+  - "输出时注意保留两位小数"

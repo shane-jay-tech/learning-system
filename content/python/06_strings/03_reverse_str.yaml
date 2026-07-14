@@ -1,0 +1,21 @@
+title: "反转字符串"
+topic: "06_strings"
+difficulty: 1
+tags: ["slice"]
+statement: |
+  从标准输入读一行字符串，输出反转后的字符串。
+
+  例如输入 `Hello`，输出 `olleH`。
+starter_code: |
+  s = input()
+  # 输出反转后的 s
+
+expected_output: |
+  olleH
+tests:
+  - stdin: "Hello\n"
+    expected_output: "olleH\n"
+hints:
+  - "用切片：s[::-1]"
+  - "::-1 表示步长 -1（从后往前）"
+  - "对列表也好用，是 Python 的常用反转套路"

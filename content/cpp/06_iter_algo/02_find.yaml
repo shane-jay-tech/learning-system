@@ -1,0 +1,32 @@
+title: "find 是否存在"
+topic: "06_iter_algo"
+difficulty: 1
+tags: ["find"]
+statement: |
+  读 N + N 个整数 + 一个目标 `target`，输出 `yes` 或 `no` 表示 target 在不在数组里。
+
+  输入 `5\n3 1 4 1 5\n4`，输出 `yes`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <algorithm>
+  using namespace std;
+
+  int main() {
+      int n; cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      int target; cin >> target;
+      // find 然后判断 != end()
+
+      return 0;
+  }
+expected_output: |
+  yes
+tests:
+  - stdin: "5\n3 1 4 1 5\n4\n"
+    expected_output: "yes\n"
+hints:
+  - "auto it = find(v.begin(), v.end(), target);"
+  - "if (it != v.end()) cout << \"yes\"; else cout << \"no\";"
+  - "find 在排序与否都行；binary_search 要求有序"

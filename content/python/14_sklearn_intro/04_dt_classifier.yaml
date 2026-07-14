@@ -1,0 +1,24 @@
+title: "决策树分类"
+topic: "14_sklearn_intro"
+difficulty: 3
+tags: ["sklearn", "decision-tree"]
+statement: |
+  特征 X = [[25, 5000], [30, 8000], [22, 4500], [40, 12000], [28, 6000]]（年龄+工资）
+  标签 y = [0, 1, 0, 1, 0]（0=留 1=离）
+  训练 `DecisionTreeClassifier(random_state=42)`，预测 `[35, 9000]` 的类别。
+
+  应输出 `1`（离职）。
+starter_code: |
+  from sklearn.tree import DecisionTreeClassifier
+  import numpy as np
+
+  X = np.array([[25,5000],[30,8000],[22,4500],[40,12000],[28,6000]])
+  y = np.array([0, 1, 0, 1, 0])
+  # 训练后 predict([[35, 9000]])，输出 0 或 1
+
+expected_output: |
+  1
+hints:
+  - "clf = DecisionTreeClassifier(random_state=42); clf.fit(X, y)"
+  - "pred = clf.predict([[35, 9000]])"
+  - "print(pred[0])"

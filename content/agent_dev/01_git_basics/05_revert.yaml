@@ -1,0 +1,18 @@
+title: "Agent 改坏了，丢弃所有未提交改动"
+topic: "01_git_basics"
+difficulty: 2
+tags: ["git", "checkout", "rescue"]
+statement: |
+  Agent 改完后系统崩了。你想**完全丢弃**所有未提交的改动，回到上次 commit 状态。
+  请输出**最直接**的命令。
+
+  期望：`git checkout .`（也接受 `git restore .`，但题目锁定 checkout 写法）。
+starter_code: |
+  command = "..."
+  print(command)
+expected_output: |
+  git checkout .
+hints:
+  - "git checkout . 把工作区恢复到上次 commit 那刻"
+  - "新版 git 推荐 git restore .，但 checkout 更通用"
+  - "这是 agent 时代你最常用的救命命令"

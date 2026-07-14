@@ -1,0 +1,20 @@
+title: "数 .Rmd 里的代码 chunk 数"
+topic: "13_rmarkdown"
+difficulty: 2
+tags: ["rmarkdown", "regex"]
+statement: |
+  Rmd 字符串里 chunk 以 ```` ```{r ```` 开头。
+  用 `gregexpr` 数 chunk 个数。
+
+  给定字符串里有 3 个 chunk。
+starter_code: |
+  rmd <- "# 标题\n\n```{r setup}\nlibrary(dplyr)\n```\n\n正文。\n\n```{r plot1}\nplot(1:10)\n```\n\n```{r results}\nsummary(df)\n```\n"
+  matches <- gregexpr("```\\{r", rmd)
+  # cat 个数
+
+expected_output: |
+  3
+hints:
+  - "n <- length(matches[[1]])"
+  - "cat(n, \"\\n\")"
+  - "gregexpr 返回 list；[[1]] 取第一组"

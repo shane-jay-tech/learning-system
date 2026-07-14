@@ -1,0 +1,33 @@
+title: "移动后字符串变空"
+topic: "13_move_semantics"
+difficulty: 2
+tags: ["std-move", "moved-from"]
+statement: |
+  `string s = "Hello"; string t = std::move(s);`
+  在大多数实现里，移动后 s 变成空串（标准只保证"有效但未指定"，但实测主流编译器都置空）。
+  请输出 `t.size()` 然后 `s.empty()` （boolalpha：true/false）。
+
+  期望：
+  ```
+  5
+  true
+  ```
+starter_code: |
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      string s = "Hello";
+      string t = std::move(s);
+      cout << t.size() << endl;
+      cout << boolalpha << s.empty() << endl;
+      return 0;
+  }
+expected_output: |
+  5
+  true
+hints:
+  - "标准的字符串移动通常清空源串"
+  - "但请勿在生产代码依赖移动后状态——只赋新值或析构"
+  - "boolalpha 让 cout 输出 true/false"

@@ -1,0 +1,19 @@
+title: "依赖注入改造"
+topic: "05_modular_config"
+difficulty: 3
+tags: ["dependency-injection"]
+statement: |
+  函数 `total()` 硬编码用了全局列表 DATA。请改成接受 `data` 参数，调用时传入 `[1,2,3,4,5]`，输出 15。
+starter_code: |
+  DATA = [1, 2, 3, 4, 5]
+
+  def total():
+      return sum(DATA)            # 改成 def total(data): return sum(data)
+
+  print(total())                   # 改成 print(total([1,2,3,4,5]))
+expected_output: |
+  15
+hints:
+  - "def total(data): return sum(data)"
+  - "调用时传参数：total([1,2,3,4,5])"
+  - "依赖注入让函数可测试——可以传任何数据进去"

@@ -1,0 +1,60 @@
+title: "写一份 Bug 报告"
+topic: "11_real_tasks"
+difficulty: 2
+tags: ["spec", "debug", "real-task"]
+judge_mode: ai_open
+
+statement: |
+  用户反馈："我点了'导出报告'按钮，等了 10 秒什么都没发生，然后页面卡住了。"
+
+  你查看了浏览器控制台，看到：
+  ```
+  POST /api/report/export 504 Gateway Timeout (10234ms)
+  Uncaught TypeError: Cannot read properties of undefined (reading 'blob')
+      at ExportButton.handleClick (ExportButton.jsx:47)
+  ```
+
+  请写一份给 AI agent 看的 Bug 报告，让它能快速定位和修复问题。
+
+  格式要求：
+  - 问题描述（一句话）
+  - 复现步骤
+  - 期望行为 vs 实际行为
+  - 初步定位（你觉得问题在哪）
+  - 建议修复方向
+
+starter_code: |
+  # 在这里写你的 Bug 报告
+
+rubric:
+  - "问题描述简洁准确（一句话说清是什么坏了）得 15 分"
+  - "复现步骤可操作（不是'点导出'这种模糊描述）得 15 分"
+  - "分清前端和后端两层问题（504 是后端超时，TypeError 是前端没处理错误响应）得 25 分"
+  - "建议修复方向合理（后端：加超时/异步；前端：错误处理）得 25 分"
+  - "格式清晰、agent 读了能直接动手得 20 分"
+
+reference_answer: |
+  ## Bug 报告
+
+  **问题**：导出报告请求超时，前端未处理错误导致页面卡死。
+
+  **复现步骤**：
+  1. 打开报告页面
+  2. 点击"导出报告"按钮
+  3. 等待约 10 秒
+
+  **期望行为**：生成报告并下载，或超时后显示友好错误提示。
+  **实际行为**：后端 504 超时，前端 TypeError 导致 UI 无响应。
+
+  **初步定位**：
+  - 后端：/api/report/export 处理时间超过网关超时限制（10s），可能是报告生成逻辑太慢
+  - 前端：ExportButton.jsx:47 假设响应一定有 blob，没处理请求失败的情况
+
+  **建议修复**：
+  1. 后端：改为异步生成（返回任务 ID → 轮询/WebSocket 通知完成）
+  2. 前端：加 try-catch，请求失败时显示"导出失败，请重试"
+
+hints:
+  - "504 是谁的问题？前端还是后端？"
+  - "TypeError 说明前端代码有什么假设？"
+  - "好的 bug 报告要让看的人不用再问你问题"

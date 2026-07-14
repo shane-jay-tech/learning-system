@@ -1,0 +1,35 @@
+title: "读懂 Python Traceback"
+topic: "10_debug_logs"
+difficulty: 1
+tags: ["debug", "traceback", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：AI agent 跑代码时报了这个错：
+
+  ```
+  Traceback (most recent call last):
+    File "app.py", line 45, in handle_request
+      user = get_user(request.user_id)
+    File "db.py", line 12, in get_user
+      return users[user_id]
+  KeyError: 'usr_999'
+  ```
+
+  请回答：
+  1. 错误出在哪个文件的哪一行？
+  2. 是什么类型的错误？
+  3. 根本原因是什么？
+  4. 你会让 agent 怎么修？
+starter_code: ""
+rubric:
+  - "正确定位到 db.py 第 12 行"
+  - "识别了 KeyError"
+  - "解释了原因（users 字典里没有 'usr_999' 这个 key）"
+  - "给出了合理的修复方向（用 .get() 或先检查 key 是否存在）"
+reference_answer: |
+  1. 错误在 db.py 第 12 行（最底下那行是实际出错位置）
+  2. KeyError — 字典访问了不存在的 key
+  3. 根本原因: users 字典里没有 'usr_999'，可能是用户 ID 不存在或者数据没加载
+  4. 修复: return users.get(user_id) 返回 None，或者 if user_id not in users: raise UserNotFound(user_id)
+hints:
+  - "Python traceback 从上往下读，最下面那行是真正出错的地方。"

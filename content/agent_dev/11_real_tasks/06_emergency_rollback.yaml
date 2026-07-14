@@ -1,0 +1,67 @@
+title: "紧急回滚决策"
+topic: "11_real_tasks"
+difficulty: 4
+tags: ["git", "decision", "real-task"]
+judge_mode: ai_open
+
+statement: |
+  周五下午 5 点，你刚让 AI agent 把一个"优化数据库查询"的 PR 合并到主分支。10 分钟后用户反馈：
+
+  - "登录页一直转圈"
+  - "个人中心显示空白"
+  - 监控面板显示数据库连接数从 20 飙升到 200
+
+  你检查了 agent 的提交记录：
+  ```
+  commit abc1234 - refactor: optimize user queries with connection pooling
+  - 修改了 database/pool.py（连接池配置）
+  - 修改了 services/user_service.py（查询逻辑）
+  - 修改了 services/auth_service.py（登录查询）
+  - 删除了 database/legacy_connector.py（旧连接器）
+  ```
+
+  请回答：
+  1. 你现在应该做什么？（第一步行动）
+  2. 要不要回滚？为什么？
+  3. 给 AI agent 写具体指令（回滚 or 修复的操作步骤）
+
+starter_code: |
+  # 在这里写你的紧急响应方案
+
+rubric:
+  - "第一步是回滚/止血而不是'先看看代码哪里错了'得 25 分"
+  - "决策理由清楚（周五+影响登录+用户已受影响=先回滚保线上）得 20 分"
+  - "给 agent 的指令具体且正确（git revert abc1234 或 git reset + force push + restart）得 25 分"
+  - "提到了回滚后的跟进计划（下周一再排查根因并重新提 PR）得 15 分"
+  - "意识到删除 legacy_connector.py 是风险点（旧代码可能还有依赖）得 15 分"
+
+reference_answer: |
+  ## 紧急响应
+
+  **1. 第一步：立即回滚**
+  不要先排查原因。用户已经受影响（登录不了），周五下午不是调试的好时机，先恢复服务。
+
+  **2. 必须回滚，原因：**
+  - 影响面大（登录 = 所有用户被挡在外面）
+  - 时间不利（周五下班前，没有充裕时间排查）
+  - 连接数飙升说明是系统级问题，不是小 bug 能 hotfix 的
+
+  **3. 给 agent 的指令：**
+  ```
+  紧急！按顺序执行：
+  1. git revert abc1234 --no-edit
+  2. git push origin main
+  3. 重启应用服务（连接池状态需要清除）
+  4. 验证：登录页能正常加载、连接数回落到 20 左右
+  5. 不要做任何其他修改
+
+  回滚确认后：
+  - 在 issue 里记录：回滚原因、影响时长、影响用户数
+  - 下周一再排查 pool.py 的配置问题，重新提 PR
+  - 注意：legacy_connector.py 被删了，检查有没有其他地方还在 import 它
+  ```
+
+hints:
+  - "用户已经登录不了了——你是先修还是先恢复？"
+  - "周五下午 5 点，你有多少时间来排查根因？"
+  - "删除旧文件是'不可逆操作'——回滚能恢复吗？"

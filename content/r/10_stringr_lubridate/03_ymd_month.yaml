@@ -1,0 +1,19 @@
+title: "ymd 解析 + 提取月"
+topic: "10_stringr_lubridate"
+difficulty: 2
+tags: ["lubridate", "ymd", "month"]
+statement: |
+  解析 `"2026-05-29"` 后输出**月份**。
+
+  期望：`5`。
+starter_code: |
+  suppressMessages(library(lubridate))
+  s <- "2026-05-29"
+  # ymd 后 month()
+
+expected_output: |
+  5
+hints:
+  - "d <- ymd(s)"
+  - "cat(month(d), \"\\n\")"
+  - "month/year/day/wday 都返回数字"

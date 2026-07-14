@@ -1,0 +1,23 @@
+title: "归一化后聚类"
+topic: "12_clustering"
+difficulty: 2
+tags: ["kmeans", "scale"]
+statement: |
+  先 `scale(df)` 再 kmeans（centers=2, nstart=10, set.seed(42)），输出每簇大小（升序）。
+
+  应为 `3 3`。
+starter_code: |
+  df <- data.frame(
+    age = c(22, 25, 23, 40, 42, 45),
+    salary = c(4000, 4500, 4200, 12000, 13000, 12500)
+  )
+  set.seed(42)
+  km <- kmeans(scale(df), centers = 2, nstart = 10)
+  # cat sort(table(km$cluster))
+
+expected_output: |
+  3 3
+hints:
+  - "scale(df) 把每列均值 0 方差 1"
+  - "cat(sort(as.numeric(table(km$cluster))), \"\\n\")"
+  - "对量纲差大的数据来说 scale 是必须的"

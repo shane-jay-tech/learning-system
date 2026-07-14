@@ -1,0 +1,39 @@
+title: "审 PR：找出缺失的测试"
+topic: "08_review_pr"
+difficulty: 2
+tags: ["review", "testing", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：AI agent 提交了一个 PR，实现了「用户修改密码」功能。
+  代码如下（伪代码）：
+
+  ```python
+  def change_password(user_id, old_pw, new_pw):
+      user = db.get_user(user_id)
+      if not verify_password(old_pw, user.hashed_pw):
+          raise AuthError("旧密码错误")
+      if len(new_pw) < 8:
+          raise ValidationError("新密码太短")
+      user.hashed_pw = hash_password(new_pw)
+      db.save(user)
+      return {"status": "ok"}
+  ```
+
+  测试只覆盖了「旧密码正确 + 新密码合法」的 happy path。
+
+  请列出 **至少 3 个应该补的测试场景**。
+starter_code: ""
+rubric:
+  - "提到了「旧密码错误」的测试"
+  - "提到了「新密码太短」的测试"
+  - "提到了边界情况（如 user_id 不存在、new_pw == old_pw、new_pw 恰好 8 位）"
+  - "至少给了 3 个场景"
+reference_answer: |
+  应补测试:
+  1. 旧密码错误 → 抛 AuthError，密码未被修改
+  2. 新密码 < 8 字符 → 抛 ValidationError
+  3. user_id 不存在 → 应当有明确错误（当前代码可能 AttributeError）
+  4. new_pw == old_pw → 是否允许？产品需求不清，应问
+  5. 新密码恰好 8 位 → 边界，应通过
+hints:
+  - "想想每个 if 分支和每个可能报错的地方——都该有对应的测试。"

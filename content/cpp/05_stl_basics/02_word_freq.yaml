@@ -1,0 +1,42 @@
+title: "map 词频统计"
+topic: "05_stl_basics"
+difficulty: 2
+tags: ["map", "string"]
+statement: |
+  读一行英文（空格分单词），用 `map<string,int>` 统计每个单词次数。
+  按字典序输出每行 `单词 次数`。
+
+  例输入 `apple banana apple cherry banana apple`，输出：
+  ```
+  apple 3
+  banana 2
+  cherry 1
+  ```
+starter_code: |
+  #include <iostream>
+  #include <sstream>
+  #include <map>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      string line; getline(cin, line);
+      stringstream ss(line);
+      map<string, int> cnt;
+      string w;
+      while (ss >> w) cnt[w]++;
+      // 遍历 map（自动按 key 升序）输出每行
+
+      return 0;
+  }
+expected_output: |
+  apple 3
+  banana 2
+  cherry 1
+tests:
+  - stdin: "apple banana apple cherry banana apple\n"
+    expected_output: "apple 3\nbanana 2\ncherry 1\n"
+hints:
+  - "for (auto& [k, v] : cnt) cout << k << \" \" << v << endl;"
+  - "map 自动按 key 升序，省了手动排序"
+  - "cnt[w]++ 当 w 不存在时自动插入 0 再 +1"

@@ -1,0 +1,47 @@
+title: "离职预测：逻辑回归"
+topic: "22_hr_model"
+difficulty: 3
+tags: ["sklearn", "logistic", "hr"]
+judge_mode: ai_open
+statement: |
+  用逻辑回归预测员工是否会离职。
+
+  步骤：
+  1. 读取 hr_employees.csv
+  2. 构造目标变量 y：leave_date 非空 = 1（离职），空 = 0（在职）
+  3. 选择特征 X：salary, performance_score, satisfaction_score, training_hours, age
+  4. 80/20 划分训练集/测试集（random_state=42）
+  5. 训练 LogisticRegression，输出测试集的准确率（保留 2 位小数）
+
+  提交完整代码。
+starter_code: |
+  import pandas as pd
+  from sklearn.linear_model import LogisticRegression
+  from sklearn.model_selection import train_test_split
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 构造 X, y → 训练 → 输出准确率
+rubric:
+  - "正确构造了二分类目标变量（离职=1，在职=0）"
+  - "选择了合理的特征列"
+  - "用了 train_test_split 80/20"
+  - "输出了 accuracy score"
+reference_answer: |
+  import pandas as pd
+  from sklearn.linear_model import LogisticRegression
+  from sklearn.model_selection import train_test_split
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  df['left'] = df['leave_date'].notna().astype(int)
+  features = ['salary', 'performance_score', 'satisfaction_score', 'training_hours', 'age']
+  X = df[features]
+  y = df['left']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  model = LogisticRegression(max_iter=1000)
+  model.fit(X_train, y_train)
+  acc = model.score(X_test, y_test)
+  print(f"{acc:.2f}")
+hints:
+  - "LogisticRegression 的 max_iter 可能需要增大到 1000"
+  - "model.score(X_test, y_test) 直接给准确率"

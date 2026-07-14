@@ -1,0 +1,24 @@
+title: "IS NULL 找在职员工"
+topic: "11_null_handling"
+difficulty: 1
+tags: ["is-null"]
+statement: |
+  找出 leave_date 为 NULL 的员工（仍在职），输出 name 按 id 升序。
+
+  期望：Alice（leave_date NULL），Cathy（NULL）。
+starter_code: |
+  -- SELECT name FROM employees WHERE leave_date IS NULL ORDER BY id
+
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, hire_date TEXT, leave_date TEXT);
+  INSERT INTO employees VALUES
+    (1,'Alice','2024-01-15',NULL),
+    (2,'Bob','2024-06-20','2025-12-01'),
+    (3,'Cathy','2025-03-10',NULL);
+expected_rows:
+  - ["Alice"]
+  - ["Cathy"]
+hints:
+  - "WHERE leave_date IS NULL（不是 = NULL！）"
+  - "= NULL 永远不匹配"
+  - "IS NOT NULL 找已离职的"

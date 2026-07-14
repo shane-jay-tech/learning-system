@@ -1,0 +1,27 @@
+title: "两组数的交集"
+topic: "07_dicts_sets"
+difficulty: 2
+tags: ["set", "intersection"]
+statement: |
+  从标准输入读两行整数（每行空格分隔），输出两组数的**交集**，按升序，空格分隔在一行。
+
+  例如：
+  ```
+  1 2 3 4 5
+  3 4 5 6 7
+  ```
+  输出 `3 4 5`。
+starter_code: |
+  a = set(int(x) for x in input().split())
+  b = set(int(x) for x in input().split())
+  # 输出 a 和 b 的交集（升序）
+
+expected_output: |
+  3 4 5
+tests:
+  - stdin: "1 2 3 4 5\n3 4 5 6 7\n"
+    expected_output: "3 4 5\n"
+hints:
+  - "交集：a & b 或 a.intersection(b)"
+  - "排序：sorted(...)"
+  - "输出：print(' '.join(str(x) for x in sorted_result))"

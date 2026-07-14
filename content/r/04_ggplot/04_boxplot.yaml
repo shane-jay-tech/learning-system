@@ -1,0 +1,23 @@
+title: "箱线图 + IQR"
+topic: "04_ggplot"
+difficulty: 3
+tags: ["ggplot", "boxplot", "IQR"]
+statement: |
+  画各班 score 的箱线图，保存到 `box.png`。再 cat 输出 **A 班分数的 IQR**（四分位距）。
+
+  A 班 = [85, 78, 95]，IQR(85, 78, 95) = 8.5（在 R 里）。
+starter_code: |
+  library(ggplot2)
+  df <- data.frame(
+    name = c("Alice","Bob","Cathy","David","Eve"),
+    score = c(85, 92, 78, 88, 95),
+    class = c("A","B","A","B","A")
+  )
+  # geom_boxplot() 保存 box.png，再 cat IQR(A 班 score)
+
+expected_output: |
+  8.5
+hints:
+  - "p <- ggplot(df, aes(x=class, y=score)) + geom_boxplot()"
+  - "ggsave(\"box.png\", p)"
+  - "cat(IQR(df$score[df$class == \"A\"]), \"\\n\")"

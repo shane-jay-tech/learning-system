@@ -1,0 +1,22 @@
+title: "判断模块分层是否合理"
+topic: "05_modular_config"
+difficulty: 2
+tags: ["architecture", "layering"]
+statement: |
+  下面 4 种结构里，**哪一个最符合「UI 不直接操作 DB」原则**？
+  - A：`main.py` 全部代码堆一起
+  - B：`ui.py` 直接 `import sqlite3`
+  - C：`ui.py` → `service.py` → `db.py`（三层）
+  - D：`db.py` 里 `import streamlit`
+
+  输出正确选项的字母。
+starter_code: |
+  # UI 不直接 DB；DB 不依赖 UI
+  answer = "..."
+  print(answer)
+expected_output: |
+  C
+hints:
+  - "A：没分层；B：UI 直接 DB（坏）；C：三层（好）；D：DB 反向依赖 UI（坏）"
+  - "记住：UI → service → DB 单向依赖"
+  - "service 层是业务逻辑核心"

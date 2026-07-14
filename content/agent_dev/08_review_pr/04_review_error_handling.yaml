@@ -1,0 +1,36 @@
+title: "审 PR：评价错误处理"
+topic: "08_review_pr"
+difficulty: 3
+tags: ["review", "error_handling", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：AI agent 提交了文件读取功能：
+
+  ```python
+  def load_config(path):
+      try:
+          with open(path) as f:
+              return json.load(f)
+      except:
+          return {}
+  ```
+
+  请给出你的 review 意见：
+  1. 这段代码有什么问题？
+  2. 在什么情况下会出 bug 而你完全不知道？
+  3. 你会怎么改？
+starter_code: ""
+rubric:
+  - "指出了 bare except 吞掉所有异常的问题"
+  - "举出了具体危险场景（如 JSON 格式错误、权限不足、路径拼写错——全部静默返回空 dict）"
+  - "给出了改进方案（区分 FileNotFoundError / json.JSONDecodeError / 其他 + 至少 log 一下）"
+reference_answer: |
+  问题:
+  1. bare except 吞掉所有异常——文件不存在、JSON 格式错、权限不够、甚至 KeyboardInterrupt 全部被静默处理
+  2. 危险场景: config 文件有语法错误时，程序用空 dict 继续运行，后面某个地方因为缺少 key 而报错，但你已经找不到根因了
+  3. 改进:
+     except FileNotFoundError: log.warning("配置文件不存在"); return {}
+     except json.JSONDecodeError as e: raise ConfigError(f"配置文件格式错误: {e}")
+     不要 catch 未知异常
+hints:
+  - "想想：如果 JSON 写错了一个逗号，这段代码会怎样？你能发现吗？"

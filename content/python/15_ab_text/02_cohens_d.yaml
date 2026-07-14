@@ -1,0 +1,26 @@
+title: "Cohen's d 效应量"
+topic: "15_ab_text"
+difficulty: 3
+tags: ["effect-size", "cohens-d"]
+statement: |
+  两组数据 a=[85,92,78,88,95]、b=[72,68,75,82,70]，写函数算 Cohen's d，输出**保留 3 位小数**。
+
+  应约 2.281（大效应）。
+starter_code: |
+  import numpy as np
+
+  a = [85, 92, 78, 88, 95]
+  b = [72, 68, 75, 82, 70]
+
+  def cohens_d(a, b):
+      # 用 np.var(..., ddof=1) 算样本方差
+      pass
+
+  # print f'{cohens_d(a, b):.3f}'
+
+expected_output: |
+  2.349
+hints:
+  - "pooled_sd = np.sqrt((np.var(a, ddof=1) + np.var(b, ddof=1)) / 2)"
+  - "return (np.mean(a) - np.mean(b)) / pooled_sd"
+  - "ddof=1 表示样本方差（除 n-1，不是 n）"

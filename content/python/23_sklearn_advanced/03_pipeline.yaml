@@ -1,0 +1,24 @@
+title: "用 Pipeline 标准化 + 分类"
+topic: "23_sklearn_advanced"
+difficulty: 4
+tags: ["sklearn", "pipeline", "standardscaler"]
+statement: |
+  用 Pipeline 串联 StandardScaler 和 LogisticRegression，在 iris 数据集上做 5 折交叉验证。
+  输出平均准确率，保留 3 位小数，格式：`Pipeline 准确率: X.XXX`
+
+  使用 `LogisticRegression(max_iter=200, random_state=42)`。
+starter_code: |
+  from sklearn.datasets import load_iris
+  from sklearn.pipeline import Pipeline
+  from sklearn.preprocessing import StandardScaler
+  from sklearn.linear_model import LogisticRegression
+  from sklearn.model_selection import cross_val_score
+
+  X, y = load_iris(return_X_y=True)
+
+  # 构建 Pipeline 并交叉验证
+expected_output: |
+  Pipeline 准确率: 0.973
+hints:
+  - "Pipeline([('scaler', StandardScaler()), ('model', LogisticRegression(...))])"
+  - "cross_val_score(pipe, X, y, cv=5).mean()"

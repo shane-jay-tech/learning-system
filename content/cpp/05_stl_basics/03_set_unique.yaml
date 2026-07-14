@@ -1,0 +1,30 @@
+title: "set 去重 + 升序"
+topic: "05_stl_basics"
+difficulty: 1
+tags: ["set"]
+statement: |
+  读一行整数（空格分隔），**去重**后**升序**输出，空格分隔。
+
+  输入 `3 1 4 1 5 9 2 6 5 3`，输出 `1 2 3 4 5 6 9`。
+starter_code: |
+  #include <iostream>
+  #include <set>
+  using namespace std;
+
+  int main() {
+      set<int> s;
+      int x;
+      while (cin >> x) s.insert(x);
+      // 输出 set 里所有元素，空格分隔
+
+      return 0;
+  }
+expected_output: |
+  1 2 3 4 5 6 9
+tests:
+  - stdin: "3 1 4 1 5 9 2 6 5 3\n"
+    expected_output: "1 2 3 4 5 6 9\n"
+hints:
+  - "set 自动去重 + 升序"
+  - "for (int x : s) 遍历"
+  - "首个数前不加空格——用 bool first 标志"

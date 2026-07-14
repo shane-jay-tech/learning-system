@@ -1,0 +1,23 @@
+title: "查询所有学生"
+topic: "01_select_where"
+difficulty: 1
+tags: ["select", "starter"]
+statement: |
+  请把 `students` 表的所有行所有列都查出来。
+  期望按 id 顺序返回 5 行。
+starter_code: |
+  -- 在下面写你的 SQL
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - [1, "Alice", 92]
+  - [2, "Bob", 87]
+  - [3, "Cathy", 75]
+  - [4, "David", 60]
+  - [5, "Eve", 95]
+hints:
+  - "SELECT * 表示要全部列"
+  - "FROM students 指明从哪张表查"
+  - "句末写不写分号都行"

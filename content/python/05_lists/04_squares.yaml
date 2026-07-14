@@ -1,0 +1,22 @@
+title: "平方列表（列表推导）"
+topic: "05_lists"
+difficulty: 2
+tags: ["list-comprehension"]
+statement: |
+  从标准输入读一个正整数 `N`，**用列表推导式**生成 `[1², 2², 3², ..., N²]`，
+  然后输出（用空格分隔）。
+
+  例如输入 `5`，输出 `1 4 9 16 25`。
+starter_code: |
+  n = int(input())
+  # 用列表推导式生成 squares 然后输出
+
+expected_output: |
+  1 4 9 16 25
+tests:
+  - stdin: "5\n"
+    expected_output: "1 4 9 16 25\n"
+hints:
+  - "squares = [i*i for i in range(1, n+1)]"
+  - "也可以写 i**2 表示 i 的 2 次方"
+  - "输出：print(' '.join(str(x) for x in squares))"

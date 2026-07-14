@@ -1,0 +1,18 @@
+title: "去停用词"
+topic: "15_ab_text"
+difficulty: 2
+tags: ["text", "stopwords"]
+statement: |
+  文本同上。停用词集合 `{"the", "a", "is", "and", "or", "of", "in", "to", "over"}`。
+  输出去掉停用词后**剩下的单词数**（应为 7）。
+starter_code: |
+  text = "the quick brown fox jumps over the lazy dog the fox"
+  stopwords = {"the", "a", "is", "and", "or", "of", "in", "to", "over"}
+  # 去掉停用词后输出剩余单词数
+
+expected_output: |
+  7
+hints:
+  - "words = text.lower().split()"
+  - "filtered = [w for w in words if w not in stopwords]"
+  - "print(len(filtered))"

@@ -1,0 +1,21 @@
+title: "FROM 子查询（派生表）"
+topic: "05_subqueries_case"
+difficulty: 3
+tags: ["subquery", "from"]
+statement: |
+  先按班级算每班平均分，再从这些平均分里找最大值。请用 FROM 子查询的方式（先聚合得派生表，再 SELECT MAX）。
+
+  A 班 [92,75,95] 平均 87.33; B 班 [87,60] 平均 73.5。最大平均分是 87.33（约）。
+  期望 expected_rows 是 [[87.33333333333333]]（SQLite 输出原值，不要 ROUND）。
+starter_code: |
+  -- SELECT MAX(avg_s) FROM (SELECT class, AVG(score) AS avg_s FROM students GROUP BY class) t
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER, class TEXT);
+  INSERT INTO students VALUES (1,'Alice',92,'A'),(2,'Bob',87,'B'),(3,'Cathy',75,'A'),(4,'David',60,'B'),(5,'Eve',95,'A');
+expected_rows:
+  - [87.33333333333333]
+hints:
+  - "外层 SELECT MAX(avg_s)；内层 SELECT class, AVG(score) AS avg_s ... GROUP BY class"
+  - "派生表必须起别名（这里 t）"
+  - "注意：A 班 (92+75+95)/3 = 87.3333"

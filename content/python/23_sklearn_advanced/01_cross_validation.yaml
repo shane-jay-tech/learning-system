@@ -1,0 +1,23 @@
+title: "交叉验证评估模型"
+topic: "23_sklearn_advanced"
+difficulty: 3
+tags: ["sklearn", "cross-validation"]
+statement: |
+  用 5 折交叉验证评估决策树在 iris 数据集上的表现。
+  输出平均准确率，保留 3 位小数，格式：`平均准确率: X.XXX`
+
+  使用 `random_state=42` 初始化决策树。
+starter_code: |
+  from sklearn.datasets import load_iris
+  from sklearn.tree import DecisionTreeClassifier
+  from sklearn.model_selection import cross_val_score
+
+  X, y = load_iris(return_X_y=True)
+
+  # 5 折交叉验证
+expected_output: |
+  平均准确率: 0.960
+hints:
+  - "DecisionTreeClassifier(random_state=42)"
+  - "cross_val_score(model, X, y, cv=5)"
+  - "scores.mean() 取平均"

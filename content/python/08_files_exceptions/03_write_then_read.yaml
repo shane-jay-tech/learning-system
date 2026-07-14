@@ -1,0 +1,23 @@
+title: "写文件后再读"
+topic: "08_files_exceptions"
+difficulty: 2
+tags: ["file", "with-open"]
+statement: |
+  从标准输入读一行字符串 `s`，把它写入当前目录下的 `note.txt`（用 utf-8），
+  然后**再读出来**，原样输出。
+
+  例如输入 `Hello, World!`，应输出 `Hello, World!`。
+starter_code: |
+  s = input()
+  # 1) with open(..., 'w', encoding='utf-8') as f: f.write(s)
+  # 2) with open(..., 'r', encoding='utf-8') as f: print(f.read())
+
+expected_output: |
+  Hello, World!
+tests:
+  - stdin: "Hello, World!\n"
+    expected_output: "Hello, World!\n"
+hints:
+  - "写：with open('note.txt', 'w', encoding='utf-8') as f: f.write(s)"
+  - "读：with open('note.txt', 'r', encoding='utf-8') as f: data = f.read()"
+  - "print(data) 时不要再加换行（read 没自动加）"

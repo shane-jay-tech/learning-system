@@ -1,0 +1,23 @@
+title: "JOIN + WHERE 综合"
+topic: "04_joins"
+difficulty: 2
+tags: ["join", "where"]
+statement: |
+  查 **HR 部门** 的所有学生姓名（按 id 升序）。
+
+  HR 部门 dept_id=1，对应 Alice 和 Cathy。
+starter_code: |
+  -- INNER JOIN + WHERE d.name = 'HR'
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1, 'HR'), (2, 'Eng');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',2),(3,'Cathy',1),(4,'David',NULL),(5,'Eve',2);
+expected_rows:
+  - ["Alice"]
+  - ["Cathy"]
+hints:
+  - "INNER JOIN ... ON ... WHERE d.name = 'HR' ORDER BY s.id"
+  - "字符串比较用单引号"
+  - "WHERE 过滤行；和 ON 时机不同但结果一样（仅 INNER JOIN 时）"

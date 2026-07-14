@@ -1,0 +1,29 @@
+title: "函数模板 max"
+topic: "10_templates"
+difficulty: 2
+tags: ["template", "function-template"]
+statement: |
+  请定义函数模板 `T my_max(T a, T b)` 返回较大者。
+  从输入读两个整数，调用 my_max 输出。
+
+  输入 `7 3`，输出 `7`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  // template <typename T> ... my_max(...)
+
+  int main() {
+      int a, b; cin >> a >> b;
+      cout << my_max(a, b) << endl;
+      return 0;
+  }
+expected_output: |
+  7
+tests:
+  - stdin: "7 3\n"
+    expected_output: "7\n"
+hints:
+  - "template <typename T> T my_max(T a, T b) { return a > b ? a : b; }"
+  - "T 由实参类型推导"
+  - "标准库已有 std::max，我们叫 my_max 避免冲突"

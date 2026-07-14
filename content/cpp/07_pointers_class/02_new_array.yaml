@@ -1,0 +1,29 @@
+title: "动态数组求和"
+topic: "07_pointers_class"
+difficulty: 2
+tags: ["new", "delete", "array"]
+statement: |
+  读 N + N 个整数（用 `new[]` 动态分配数组），求和后输出，**别忘了 delete[]**。
+
+  输入 `5\n3 5 7 11 14`，输出 `40`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int n; cin >> n;
+      int* arr = new int[n];
+      for (int i = 0; i < n; i++) cin >> arr[i];
+      // 求和、输出、delete[]
+
+      return 0;
+  }
+expected_output: |
+  40
+tests:
+  - stdin: "5\n3 5 7 11 14\n"
+    expected_output: "40\n"
+hints:
+  - "int sum = 0; for (int i = 0; i < n; i++) sum += arr[i];"
+  - "cout << sum << endl;"
+  - "delete[] arr; 数组必须 delete[] 不是 delete"

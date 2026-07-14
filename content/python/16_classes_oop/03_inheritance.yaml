@@ -1,0 +1,32 @@
+title: "继承 Animal 写 Dog"
+topic: "16_classes_oop"
+difficulty: 2
+tags: ["inheritance", "override"]
+statement: |
+  父类 `Animal` 已写好。请定义 `Dog(Animal)` 子类，**重写** `speak` 方法返回 `f"{self.name} says: Woof!"`。
+  从输入读 name，创建 Dog 对象后 print(d.speak())。
+
+  输入 `Rex`，输出 `Rex says: Woof!`。
+starter_code: |
+  class Animal:
+      def __init__(self, name):
+          self.name = name
+      def speak(self):
+          return f"{self.name} makes a sound"
+
+  class Dog(Animal):
+      # 重写 speak 方法
+      pass
+
+  name = input().strip()
+  d = Dog(name)
+  print(d.speak())
+expected_output: |
+  Rex says: Woof!
+tests:
+  - stdin: "Rex\n"
+    expected_output: "Rex says: Woof!\n"
+hints:
+  - "class Dog(Animal): 括号里写父类"
+  - "def speak(self): return f\"{self.name} says: Woof!\""
+  - "继承自动获得 __init__，不需要重写"

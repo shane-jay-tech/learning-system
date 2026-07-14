@@ -1,0 +1,39 @@
+title: "自定义异常类"
+topic: "11_exceptions"
+difficulty: 3
+tags: ["custom-exception"]
+statement: |
+  定义 `NegativeAgeError : public runtime_error`。
+  写函数 set_age(int)：age<0 时 throw NegativeAgeError("negative age")。
+  catch 后输出 `error: negative age`。
+
+  输入 `-5`，输出 `error: negative age`。
+starter_code: |
+  #include <iostream>
+  #include <stdexcept>
+  using namespace std;
+
+  // 在这里定义 class NegativeAgeError : public runtime_error
+
+  void set_age(int age) {
+      if (age < 0) throw NegativeAgeError("negative age");
+  }
+
+  int main() {
+      int age; cin >> age;
+      try {
+          set_age(age);
+      } catch (const NegativeAgeError& e) {
+          cout << "error: " << e.what() << endl;
+      }
+      return 0;
+  }
+expected_output: |
+  error: negative age
+tests:
+  - stdin: "-5\n"
+    expected_output: "error: negative age\n"
+hints:
+  - "class NegativeAgeError : public runtime_error { public: NegativeAgeError(const string& m) : runtime_error(m) {} };"
+  - "继承父类构造函数（C++11+）也行：using runtime_error::runtime_error;"
+  - "what() 自动用基类的实现"

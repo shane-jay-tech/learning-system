@@ -1,0 +1,46 @@
+title: "月度离职趋势折线图"
+topic: "21_hr_viz"
+difficulty: 3
+tags: ["matplotlib", "line", "hr", "datetime"]
+judge_mode: ai_open
+statement: |
+  用 matplotlib 画一个**折线图**，展示每月离职人数趋势。
+
+  要求：
+  - 读取 hr_employees.csv
+  - 把 leave_date 按年-月分组（YYYY-MM），统计每月离职人数
+  - 只画有数据的月份（忽略 NaN）
+  - 加标题 "Monthly Turnover Trend"
+  - 保存为 output.png
+
+  提交你的完整代码。
+starter_code: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 画月度离职折线图并保存
+rubric:
+  - "正确过滤了 NaN 的 leave_date"
+  - "按年月分组统计了人数"
+  - "使用了折线图（plot 或 plot_date）"
+  - "保存为 png"
+reference_answer: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  left = df[df['leave_date'].notna()].copy()
+  left['month'] = pd.to_datetime(left['leave_date']).dt.to_period('M')
+  monthly = left.groupby('month').size()
+  plt.figure(figsize=(10, 5))
+  plt.plot(monthly.index.astype(str), monthly.values, marker='o')
+  plt.title("Monthly Turnover Trend")
+  plt.xticks(rotation=45)
+  plt.ylabel("Turnover Count")
+  plt.tight_layout()
+  plt.savefig("output.png")
+hints:
+  - "pd.to_datetime(df['leave_date']).dt.to_period('M') 把日期转成年月"
+  - "先 dropna 再分组，否则 NaN 会干扰"

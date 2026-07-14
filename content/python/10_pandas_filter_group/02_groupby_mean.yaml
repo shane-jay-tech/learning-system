@@ -1,0 +1,26 @@
+title: "各班平均分"
+topic: "10_pandas_filter_group"
+difficulty: 2
+tags: ["groupby", "mean"]
+statement: |
+  按 `class` 分组算 score 平均值，按班级字母升序，每行 `班 平均分（保留 1 位小数）`。
+
+  数据：A 班 [85,78,95]、B 班 [92,88]
+  期望：A 86.0；B 90.0。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+      "class": ["A", "B", "A", "B", "A"],
+  })
+  # 按 class 分组求平均，输出每行 "班 平均"（1 位小数）
+
+expected_output: |
+  A 86.0
+  B 90.0
+hints:
+  - "g = df.groupby('class')['score'].mean().sort_index()"
+  - "for k, v in g.items(): print(f'{k} {v:.1f}')"
+  - "f-string 的 .1f 保留 1 位小数"

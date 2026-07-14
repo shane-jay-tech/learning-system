@@ -1,0 +1,25 @@
+title: "log-rank 检验 p 值"
+topic: "11_survival"
+difficulty: 3
+tags: ["survdiff", "logrank"]
+statement: |
+  比较 A 组和 B 组的生存曲线，用 `survdiff` 算 p 值（保留 2 位小数）。
+
+  样本数据下 p 应约 0.31（不显著差异）。
+starter_code: |
+  suppressMessages(library(survival))
+  df <- data.frame(
+    time = c(12, 24, 8, 36, 5, 18, 30, 6, 22, 14),
+    event = c(1, 0, 1, 0, 1, 1, 0, 1, 1, 1),
+    group = factor(c("A","A","A","A","A","B","B","B","B","B"))
+  )
+  test <- survdiff(Surv(time, event) ~ group, data=df)
+  # p 值在 test$chisq 转换；或用 1-pchisq(test$chisq, df=length(test$n)-1)
+  # 直接用 broom::glance 或 sprintf 提取
+
+expected_output: |
+  0.94
+hints:
+  - "p <- 1 - pchisq(test$chisq, df=length(test$n) - 1)"
+  - "cat(round(p, 2), \"\\n\")"
+  - "test$chisq 是检验统计量"

@@ -1,0 +1,23 @@
+title: "survfit 中位生存"
+topic: "11_survival"
+difficulty: 3
+tags: ["survival", "survfit", "median"]
+statement: |
+  对上面的数据做 `survfit(Surv(time, event) ~ 1)`，输出**中位生存时间**。
+
+  应为 `12`（数据的中位事件时间）。
+starter_code: |
+  suppressMessages(library(survival))
+  df <- data.frame(
+    time = c(12, 24, 8, 36, 5, 18),
+    event = c(1, 0, 1, 0, 1, 1)
+  )
+  fit <- survfit(Surv(time, event) ~ 1, data=df)
+  # summary(fit)$table['median'] 或 quantile
+
+expected_output: |
+  15
+hints:
+  - "med <- summary(fit)$table[\"median\"]"
+  - "cat(med, \"\\n\")"
+  - "中位生存时间是 50% 还活着的时点"

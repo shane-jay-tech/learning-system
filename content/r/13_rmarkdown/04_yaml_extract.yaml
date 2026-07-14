@@ -1,0 +1,19 @@
+title: "提取 Rmd 头部 title"
+topic: "13_rmarkdown"
+difficulty: 3
+tags: ["rmarkdown", "yaml"]
+statement: |
+  用正则从 Rmd 头部提取 title 字段的值，输出。
+
+  期望：`员工流失分析`。
+starter_code: |
+  rmd <- "---\ntitle: \"员工流失分析\"\nauthor: \"我\"\ndate: \"2026-05-29\"\noutput: html_document\n---\n\n# 第一章\n"
+  m <- regmatches(rmd, regexec("title:\\s*\"([^\"]*)\"", rmd))
+  # m[[1]][2] 就是括号捕获的内容
+
+expected_output: |
+  员工流失分析
+hints:
+  - "title <- m[[1]][2]"
+  - "cat(title, \"\\n\")"
+  - "regexec + regmatches 是 base R 提取捕获组的方式"

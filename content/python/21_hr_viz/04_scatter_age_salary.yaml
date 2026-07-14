@@ -1,0 +1,46 @@
+title: "年龄-薪资散点图"
+topic: "21_hr_viz"
+difficulty: 2
+tags: ["matplotlib", "scatter", "hr"]
+judge_mode: ai_open
+statement: |
+  用 matplotlib 画一个**散点图**，展示年龄与薪资的关系。
+
+  要求：
+  - 读取 hr_employees.csv
+  - X 轴 = age，Y 轴 = salary
+  - 在职员工用蓝色点，已离职用红色点
+  - 加图例（"在职" / "离职"）
+  - 加标题 "Age vs Salary"
+  - 保存为 output.png
+starter_code: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 画散点图（在职蓝/离职红）并保存
+rubric:
+  - "正确区分了在职和离职（按 leave_date 是否 NaN）"
+  - "使用了不同颜色"
+  - "加了图例"
+  - "保存为 png"
+reference_answer: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  active = df[df['leave_date'].isna()]
+  left = df[df['leave_date'].notna()]
+  plt.figure(figsize=(8, 6))
+  plt.scatter(active['age'], active['salary'], c='blue', alpha=0.5, label='在职')
+  plt.scatter(left['age'], left['salary'], c='red', alpha=0.5, label='离职')
+  plt.xlabel("Age")
+  plt.ylabel("Salary")
+  plt.title("Age vs Salary")
+  plt.legend()
+  plt.tight_layout()
+  plt.savefig("output.png")
+hints:
+  - "分两次 scatter 画不同颜色的点"
+  - "alpha=0.5 让重叠的点能看清"

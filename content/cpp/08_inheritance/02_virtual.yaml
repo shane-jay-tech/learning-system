@@ -1,0 +1,41 @@
+title: "virtual 多态"
+topic: "08_inheritance"
+difficulty: 3
+tags: ["virtual", "polymorphism"]
+statement: |
+  改 Animal 的 `speak` 为 virtual，写 Dog 重写 speak 输出 `Woof!`，Cat 重写输出 `Meow!`。
+  题目用 `Animal*` 指针 `new Dog`/`new Cat` 调 speak() 各一次。
+
+  期望输出：
+  ```
+  Woof!
+  Meow!
+  ```
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  class Animal {
+  public:
+      virtual void speak() { cout << "some sound" << endl; }
+      virtual ~Animal() = default;
+  };
+
+  // 在这里定义 Dog 和 Cat，重写 speak
+
+  int main() {
+      Animal* a1 = new Dog();
+      Animal* a2 = new Cat();
+      a1->speak();
+      a2->speak();
+      delete a1;
+      delete a2;
+      return 0;
+  }
+expected_output: |
+  Woof!
+  Meow!
+hints:
+  - "class Dog : public Animal { public: void speak() override { cout << \"Woof!\" << endl; } };"
+  - "class Cat : public Animal { public: void speak() override { cout << \"Meow!\" << endl; } };"
+  - "virtual + override 让基类指针调用时分派到子类版本"

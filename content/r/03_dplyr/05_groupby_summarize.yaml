@@ -1,0 +1,29 @@
+title: "group_by + summarize"
+topic: "03_dplyr"
+difficulty: 2
+tags: ["dplyr", "group_by", "summarize"]
+statement: |
+  按 class 分组算 score 均值，输出 `班 平均`，按字母升序。
+
+  A 班 [85,78,95] 平均 86；B 班 [92,88] 平均 90。
+  期望：
+  ```
+  A 86
+  B 90
+  ```
+starter_code: |
+  library(dplyr)
+  df <- data.frame(
+    name = c("Alice","Bob","Cathy","David","Eve"),
+    score = c(85, 92, 78, 88, 95),
+    class = c("A","B","A","B","A")
+  )
+  # group_by + summarize + arrange，然后逐行输出
+
+expected_output: |
+  A 86
+  B 90
+hints:
+  - "agg <- df %>% group_by(class) %>% summarize(avg = mean(score)) %>% arrange(class)"
+  - "writeLines(paste(agg$class, agg$avg))  # paste 拼接，writeLines 每行一个、无尾空格"
+  - "数据是整数 → 平均是整数；如果是小数 R 会自动带 .0"

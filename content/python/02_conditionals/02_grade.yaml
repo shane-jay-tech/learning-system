@@ -1,0 +1,29 @@
+title: "成绩等级"
+topic: "02_conditionals"
+difficulty: 2
+tags: ["if-elif-else"]
+statement: |
+  从标准输入读一个整数成绩 `score`（0-100），按下表输出等级：
+
+  | 分数        | 等级 |
+  |-----------|----|
+  | 90 及以上    | A  |
+  | 80-89     | B  |
+  | 70-79     | C  |
+  | 60-69     | D  |
+  | 60 以下     | F  |
+
+  例如输入 `85`，应输出 `B`。
+starter_code: |
+  score = int(input())
+  # 在下面用 if/elif/else 输出 A/B/C/D/F
+
+expected_output: |
+  B
+tests:
+  - stdin: "85\n"
+    expected_output: "B\n"
+hints:
+  - "用 if-elif 串起来，从最高分往下判"
+  - "每个 elif 后面跟条件和冒号"
+  - "输出是单个大写字母"

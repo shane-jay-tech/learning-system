@@ -1,0 +1,41 @@
+title: "特征重要性分析"
+topic: "22_hr_model"
+difficulty: 2
+tags: ["sklearn", "feature_importance", "hr"]
+judge_mode: ai_open
+statement: |
+  接上一题的逻辑回归模型，输出各特征的**系数绝对值**，
+  按重要性从大到小排序。
+
+  输出格式（每行）：
+  特征名 系数绝对值（保留 4 位小数）
+
+  这能告诉我们哪个因素对离职预测影响最大。
+starter_code: |
+  import pandas as pd
+  from sklearn.linear_model import LogisticRegression
+  from sklearn.model_selection import train_test_split
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  df['left'] = df['leave_date'].notna().astype(int)
+  features = ['salary', 'performance_score', 'satisfaction_score', 'training_hours', 'age']
+  X = df[features]
+  y = df['left']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  model = LogisticRegression(max_iter=1000)
+  model.fit(X_train, y_train)
+
+  # 输出特征系数绝对值排序
+rubric:
+  - "正确获取了 model.coef_[0]"
+  - "用了绝对值 abs()"
+  - "按从大到小排序输出"
+  - "每行格式清晰"
+reference_answer: |
+  import numpy as np
+  coefs = pd.Series(np.abs(model.coef_[0]), index=features)
+  for name, val in coefs.sort_values(ascending=False).items():
+      print(f"{name} {val:.4f}")
+hints:
+  - "model.coef_[0] 是一维数组，对应 features 列表的顺序"
+  - "系数越大 = 对预测离职的影响越大（但注意量纲问题）"

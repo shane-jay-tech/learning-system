@@ -1,0 +1,19 @@
+title: "str_to_upper 转大写"
+topic: "10_stringr_lubridate"
+difficulty: 1
+tags: ["stringr"]
+statement: |
+  对向量 `c("alice", "bob", "cathy")` 全转大写，输出空格分隔。
+
+  期望：`ALICE BOB CATHY`。
+starter_code: |
+  suppressMessages(library(stringr))
+  v <- c("alice", "bob", "cathy")
+  # str_to_upper + cat
+
+expected_output: |
+  ALICE BOB CATHY
+hints:
+  - "result <- str_to_upper(v)"
+  - "cat(result, \"\\n\")"
+  - "str_to_upper 一次处理整个向量"

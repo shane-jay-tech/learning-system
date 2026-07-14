@@ -1,0 +1,24 @@
+title: "用 apply 求每行总和"
+topic: "02b_dataframe"
+difficulty: 3
+tags: ["apply", "matrix"]
+statement: |
+  矩阵 `m` 已写好（3 行 4 列，元素 1-12）：
+  ```
+       1  4  7  10
+       2  5  8  11
+       3  6  9  12
+  ```
+  请用 `apply` 对**每一行求和**，把 3 个结果用空格分开输出在一行。
+
+  期望输出 `22 26 30`。
+starter_code: |
+  m <- matrix(1:12, nrow = 3)
+  # 用 apply(..., 1, sum) 求每行和，cat 空格输出
+
+expected_output: |
+  22 26 30
+hints:
+  - "row_sums <- apply(m, 1, sum)"
+  - "apply 第 2 个参数 1 表示按行；2 表示按列"
+  - "cat(row_sums, \"\\n\")  # cat 自动用空格分隔"

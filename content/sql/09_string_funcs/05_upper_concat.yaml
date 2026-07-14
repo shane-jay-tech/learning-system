@@ -1,0 +1,23 @@
+title: "拼接姓名 + 部门"
+topic: "09_string_funcs"
+difficulty: 2
+tags: ["concat", "upper"]
+statement: |
+  请输出 `<姓名（大写）> @ <部门>` 格式，例如 `ALICE @ HR`。
+  按 student id 升序，期望 3 行。
+starter_code: |
+  -- SELECT UPPER(s.name) || ' @ ' || d.name FROM students s JOIN departments d ON s.dept_id=d.id ORDER BY s.id
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1,'HR'),(2,'Eng');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',2),(3,'Cathy',1);
+expected_rows:
+  - ["ALICE @ HR"]
+  - ["BOB @ Eng"]
+  - ["CATHY @ HR"]
+hints:
+  - "|| 是 SQLite 的字符串拼接（不是 +）"
+  - "UPPER(s.name) || ' @ ' || d.name"
+  - "JOIN 后才能取到 d.name"

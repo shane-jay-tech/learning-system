@@ -1,0 +1,26 @@
+title: "关联子查询数人数"
+topic: "08_exists"
+difficulty: 3
+tags: ["correlated-subquery", "count"]
+statement: |
+  请输出每个部门的名字 + 学生人数，按部门 id 升序。
+  用关联子查询（不要 JOIN+GROUP BY）。
+
+  期望：HR 2, Eng 1, Finance 0。
+starter_code: |
+  -- SELECT d.name, (SELECT COUNT(*) FROM students s WHERE s.dept_id = d.id) AS n
+  -- FROM departments d ORDER BY d.id
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1,'HR'),(2,'Eng'),(3,'Finance');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',2),(3,'Cathy',1);
+expected_rows:
+  - ["HR", 2]
+  - ["Eng", 1]
+  - ["Finance", 0]
+hints:
+  - "在 SELECT 里嵌一个 COUNT 子查询"
+  - "WHERE s.dept_id = d.id 关联外层"
+  - "JOIN 也能做，但 0 学生的部门会丢；关联子查询保留所有部门"

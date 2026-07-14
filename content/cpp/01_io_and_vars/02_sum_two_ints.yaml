@@ -1,0 +1,26 @@
+title: "读两个整数输出和"
+topic: "01_io_and_vars"
+difficulty: 2
+tags: ["io", "arithmetic"]
+statement: |
+  从标准输入读两个整数（中间用空格分隔），输出它们的和。
+  例如输入 `3 5`，应输出 `8`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int a, b;
+      // 用 cin 读两个整数，然后 cout 输出和
+
+      return 0;
+  }
+expected_output: |
+  8
+tests:
+  - stdin: "3 5\n"
+    expected_output: "8\n"
+hints:
+  - "cin >> a >> b; 一次读两个整数"
+  - "cout << a + b << endl;"
+  - "声明用 int a, b; 已经替你写好"

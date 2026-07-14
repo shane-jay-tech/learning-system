@@ -1,0 +1,37 @@
+title: "虚析构函数"
+topic: "08_inheritance"
+difficulty: 3
+tags: ["virtual-destructor"]
+statement: |
+  Resource 类析构时 print "Resource freed"。
+  Wrapper : public Resource，析构时 print "Wrapper freed"。
+  题目用 `Resource* p = new Wrapper()` 然后 delete——**只有 virtual 析构才能让两个析构都执行**。
+
+  期望输出：
+  ```
+  Wrapper freed
+  Resource freed
+  ```
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  class Resource {
+  public:
+      virtual ~Resource() { cout << "Resource freed" << endl; }
+  };
+
+  // 在这里定义 Wrapper : public Resource，析构 print "Wrapper freed"
+
+  int main() {
+      Resource* p = new Wrapper();
+      delete p;
+      return 0;
+  }
+expected_output: |
+  Wrapper freed
+  Resource freed
+hints:
+  - "class Wrapper : public Resource { public: ~Wrapper() override { cout << \"Wrapper freed\" << endl; } };"
+  - "Resource 的析构必须 virtual，否则 delete p 只调 Resource 的析构"
+  - "析构顺序：子类先，父类后"

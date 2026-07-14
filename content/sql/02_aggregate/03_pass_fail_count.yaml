@@ -1,0 +1,33 @@
+title: "及格 vs 不及格人数"
+topic: "02_aggregate"
+difficulty: 3
+tags: ["aggregate", "case-when", "group-by"]
+statement: |
+  统计 `students` 表中及格（score ≥ 60）和不及格（< 60）的人数。
+  返回**两列两行**——第一列叫 `category`（取值 `pass` 或 `fail`），第二列叫 `cnt`（人数）。
+  按 `category` 字母升序排（即 fail 行在 pass 行之前）。
+
+  期望返回：
+  ```
+  fail | 1
+  pass | 4
+  ```
+starter_code: |
+  -- 提示：用 CASE WHEN 把 score 映射成 'pass'/'fail'，再 GROUP BY 这一列
+  -- SELECT
+  --   CASE WHEN score >= 60 THEN 'pass' ELSE 'fail' END AS category,
+  --   COUNT(*) AS cnt
+  -- FROM students
+  -- GROUP BY category
+  -- ORDER BY category;
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',55),(5,'Eve',95);
+expected_rows:
+  - ["fail", 1]
+  - ["pass", 4]
+hints:
+  - "CASE WHEN ... THEN 'pass' ELSE 'fail' END 把成绩映射到分类"
+  - "GROUP BY category 按这个分类汇总"
+  - "ORDER BY category 让顺序固定（fail 在 pass 之前）"

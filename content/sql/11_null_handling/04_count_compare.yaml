@@ -1,0 +1,20 @@
+title: "COUNT(*) vs COUNT(col) 区别"
+topic: "11_null_handling"
+difficulty: 2
+tags: ["count", "null"]
+statement: |
+  对 employees 表，输出 `<总行数> <salary 非空数>`，单行两列。
+
+  数据 4 行（其中 1 个 salary NULL）。期望 `4 3`。
+starter_code: |
+  -- SELECT COUNT(*), COUNT(salary) FROM employees;
+
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, salary INTEGER);
+  INSERT INTO employees VALUES (1,'Alice',5000),(2,'Bob',NULL),(3,'Cathy',8000),(4,'David',6000);
+expected_rows:
+  - [4, 3]
+hints:
+  - "COUNT(*) 数所有行（含 NULL）"
+  - "COUNT(列名) 只数该列非 NULL 的"
+  - "理解这个区别能避免很多统计 bug"

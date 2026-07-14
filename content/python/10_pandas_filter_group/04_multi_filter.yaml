@@ -1,0 +1,24 @@
+title: "多条件筛选"
+topic: "10_pandas_filter_group"
+difficulty: 2
+tags: ["filter", "and-or"]
+statement: |
+  请筛选 **A 班 且 score ≥ 90** 的学生。输出 name，每行一个。
+
+  数据中只有 Eve（A 班 95），输出 `Eve` 一行。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+      "class": ["A", "B", "A", "B", "A"],
+  })
+  # A 班且 score >= 90
+
+expected_output: |
+  Eve
+hints:
+  - "sub = df[(df['class'] == 'A') & (df['score'] >= 90)]"
+  - "& 表示与，每个条件必须用括号包"
+  - "用 and 会报错：'truth value of a Series is ambiguous'"

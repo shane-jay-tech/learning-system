@@ -1,0 +1,30 @@
+title: "CFA 模型比较"
+topic: "15_cfa"
+difficulty: 3
+tags: ["cfa", "comparison", "chi_square"]
+judge_mode: ai_open
+statement: |
+  你有一份 23 题的量表数据，理论上应该有 3 个维度。
+  你跑了两个 CFA 模型：
+
+  模型 A（单因子）: CFI=0.82, RMSEA=0.091, chi-sq=423, df=230
+  模型 B（三因子）: CFI=0.95, RMSEA=0.048, chi-sq=267, df=227
+
+  请回答：
+  1. 哪个模型更好？证据是什么？
+  2. 可以用卡方差异检验比较吗？怎么做？
+  3. 如果模型 B 更好，这支持了什么结论？
+starter_code: ""
+rubric:
+  - "模型 B 更好（CFI 更高、RMSEA 更低、卡方更小）"
+  - "可以用卡方差异检验: delta_chi = 423-267=156, delta_df=230-227=3, p<.001"
+  - "支持量表确实有 3 个独立维度，不是一个大杂烩"
+reference_answer: |
+  1. 模型 B（三因子）明显更好:
+     - CFI: 0.95 vs 0.82（差距很大）
+     - RMSEA: 0.048 vs 0.091（B 达标，A 超标）
+  2. 卡方差异检验: delta_chi = 423-267 = 156, delta_df = 3, 查卡方表 p < .001，差异显著
+     代码: anova(fit_a, fit_b) 在 lavaan 中直接比较
+  3. 结论: 数据支持三维结构——这 23 题确实在测 3 个不同但相关的构念，而不是一个单一因子
+hints:
+  - "嵌套模型（单因子是三因子的特殊情况）才能用卡方差异检验"

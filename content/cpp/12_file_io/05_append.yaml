@@ -1,0 +1,33 @@
+title: "ios::app 追加模式"
+topic: "12_file_io"
+difficulty: 2
+tags: ["fstream", "append"]
+statement: |
+  先写 "first\n" 到 log.txt，然后用 `ios::app` 追加 "second\n"。
+  最后读出来 print（保持两行）。
+
+  期望：
+  ```
+  first
+  second
+  ```
+starter_code: |
+  #include <iostream>
+  #include <fstream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      // 1) ofstream out("log.txt"); out << "first\n";
+      // 2) ofstream out2("log.txt", ios::app); out2 << "second\n";
+      // 3) ifstream in 读出来 print
+
+      return 0;
+  }
+expected_output: |
+  first
+  second
+hints:
+  - "ios::app 让写入追加到末尾，不清空原内容"
+  - "{ ofstream out(\"log.txt\"); out << \"first\\n\"; }"
+  - "{ ofstream out(\"log.txt\", ios::app); out << \"second\\n\"; }"

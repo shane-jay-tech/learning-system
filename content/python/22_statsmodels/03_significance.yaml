@@ -1,0 +1,34 @@
+title: "判断系数显著性"
+topic: "22_statsmodels"
+difficulty: 4
+tags: ["statsmodels", "p-value", "significance"]
+statement: |
+  对以下数据做多元回归（y ~ x1 + x2）：
+
+  ```python
+  x1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  x2 = [5, 3, 6, 2, 7, 1, 8, 4, 9, 3]
+  y  = [3.1, 5.0, 7.2, 8.8, 11.1, 11.9, 14.2, 15.8, 18.0, 20.1]
+  ```
+
+  输出每个自变量是否显著（p < 0.05），格式：
+  ```
+  x1: 显著
+  x2: 不显著
+  ```
+starter_code: |
+  import numpy as np
+  import statsmodels.api as sm
+
+  x1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  x2 = [5, 3, 6, 2, 7, 1, 8, 4, 9, 3]
+  y  = [3.1, 5.0, 7.2, 8.8, 11.1, 11.9, 14.2, 15.8, 18.0, 20.1]
+
+  # 构建 X 矩阵（含常数项），拟合，判断显著性
+expected_output: |
+  x1: 显著
+  x2: 不显著
+hints:
+  - "X = sm.add_constant(np.column_stack([x1, x2]))"
+  - "model.pvalues 返回各系数的 p 值（含截距）"
+  - "pvalues[1] 对应 x1，pvalues[2] 对应 x2"

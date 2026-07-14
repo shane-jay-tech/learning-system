@@ -1,0 +1,26 @@
+title: "数文件行数"
+topic: "12_file_io"
+difficulty: 2
+tags: ["fstream", "getline"]
+statement: |
+  写 4 行（apple/banana/cherry/date）到 data.txt，再读出来数行数。
+
+  期望输出 `4`。
+starter_code: |
+  #include <iostream>
+  #include <fstream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      // 1) 写 4 行到 data.txt（每行一个词）
+      // 2) ifstream + getline 数行数
+
+      return 0;
+  }
+expected_output: |
+  4
+hints:
+  - "{ ofstream out(\"data.txt\"); out << \"apple\\nbanana\\ncherry\\ndate\\n\"; }"
+  - "ifstream in(\"data.txt\"); int n=0; string line; while(getline(in, line)) n++;"
+  - "cout << n << endl;"

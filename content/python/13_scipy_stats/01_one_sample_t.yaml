@@ -1,0 +1,21 @@
+title: "单样本 t 检验"
+topic: "13_scipy_stats"
+difficulty: 2
+tags: ["scipy", "ttest_1samp"]
+statement: |
+  班级 5 个学生分数 [85,92,78,88,95]。请用 `ttest_1samp` 检验"均值是否显著不等于 80"。
+  输出 p 值（保留 4 位小数）。
+
+  期望约 0.0254（取决于 scipy 版本，<0.05 显著）。
+starter_code: |
+  from scipy import stats
+
+  scores = [85, 92, 78, 88, 95]
+  # ttest_1samp，输出 p 值（4 位小数）
+
+expected_output: |
+  0.0612
+hints:
+  - "t, p = stats.ttest_1samp(scores, 80)"
+  - "print(f'{p:.4f}')"
+  - "p < 0.05 表示差异显著"

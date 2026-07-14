@@ -1,0 +1,40 @@
+title: "@property + setter（验证）"
+topic: "17_decorators_props"
+difficulty: 3
+tags: ["property", "setter"]
+statement: |
+  Temperature 类只能存 ≥ -273.15 的摄氏度。
+  请补全 setter——传入小于 -273.15 时 raise ValueError；否则正常存。
+  题目从输入读一个温度赋值给 `t.celsius`，正常的 print celsius；ValueError 的 print `error`。
+
+  输入 `25` → 输出 `25.0`；输入 `-300` → 输出 `error`。
+starter_code: |
+  class Temperature:
+      def __init__(self):
+          self._c = 0
+
+      @property
+      def celsius(self):
+          return self._c
+
+      @celsius.setter
+      def celsius(self, value):
+          # 小于 -273.15 raise ValueError；否则存到 self._c
+          pass
+
+  t = Temperature()
+  v = float(input())
+  try:
+      t.celsius = v
+      print(t.celsius)
+  except ValueError:
+      print("error")
+expected_output: |
+  25.0
+tests:
+  - stdin: "25\n"
+    expected_output: "25.0\n"
+hints:
+  - "if value < -273.15: raise ValueError('too cold')"
+  - "else: self._c = value"
+  - "setter 装饰用 @celsius.setter（先有 @property 才有 setter）"

@@ -1,0 +1,22 @@
+title: "写 Spec 字典"
+topic: "03_spec_writing"
+difficulty: 2
+tags: ["spec", "structure"]
+statement: |
+  请用 dict 写一个完整 spec，包含**5 个必备 key**：
+  `input`, `output`, `examples`, `edge_cases`, `constraints`
+
+  每个值随便填字符串。然后输出 `sorted(spec.keys())` 的结果（用空格连接）。
+
+  期望：`constraints edge_cases examples input output`（按字母升序）。
+starter_code: |
+  spec = {
+      # 在这里写 5 个 key
+  }
+  print(' '.join(sorted(spec.keys())))
+expected_output: |
+  constraints edge_cases examples input output
+hints:
+  - "5 个 key 任意值都行——重点是齐"
+  - "sorted 后是字母升序：c-e-e-i-o"
+  - "记忆：input output 给/拿、examples 例子、edge_cases 反例、constraints 约束"

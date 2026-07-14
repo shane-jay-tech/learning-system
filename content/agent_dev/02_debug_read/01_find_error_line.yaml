@@ -1,0 +1,26 @@
+title: "从 Stack Trace 找错误行号"
+topic: "02_debug_read"
+difficulty: 2
+tags: ["debug", "stack-trace"]
+statement: |
+  下面是一个 Python 报错信息：
+  ```
+  Traceback (most recent call last):
+    File "app.py", line 12, in <module>
+      result = compute(data)
+    File "app.py", line 7, in compute
+      return data[10] / data[0]
+  IndexError: list index out of range
+  ```
+  请输出**实际触发错误的行号**（一个数字）。
+starter_code: |
+  # 看 traceback：哪一行是真正出错的（不是调用方）
+  # print 那个数字
+  line_no = 0  # 改成正确的
+  print(line_no)
+expected_output: |
+  7
+hints:
+  - "倒数第二行的 'line X' 是真正出错的位置"
+  - "倒数第三行（line 12）是调用方——它没错"
+  - "最后一行是错误类型"

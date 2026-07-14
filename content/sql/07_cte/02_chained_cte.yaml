@@ -1,0 +1,28 @@
+title: "多 CTE 串联"
+topic: "07_cte"
+difficulty: 2
+tags: ["cte", "chained"]
+statement: |
+  分两步：
+  1. CTE 1 `pass_s` 选出 score>=60 的学生
+  2. CTE 2 `cnt` 按 class 数 pass_s 的人数
+
+  最后输出每个 class 及人数（按 class 字母升序）。
+
+  数据：A 班 [92,75,95], B 班 [87,60], C 班 [55, 45]。
+  期望：A 3, B 2（C 班无人 ≥60，被过滤）。
+starter_code: |
+  -- WITH pass_s AS (SELECT * FROM students WHERE score >= 60),
+  --      cnt AS (SELECT class, COUNT(*) AS n FROM pass_s GROUP BY class)
+  -- SELECT class, n FROM cnt ORDER BY class;
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER, class TEXT);
+  INSERT INTO students VALUES (1,'Alice',92,'A'),(2,'Bob',87,'B'),(3,'Cathy',75,'A'),(4,'David',60,'B'),(5,'Eve',95,'A'),(6,'Frank',55,'C'),(7,'Grace',45,'C');
+expected_rows:
+  - ["A", 3]
+  - ["B", 2]
+hints:
+  - "WITH 后多个 CTE 用逗号分隔"
+  - "后面的 CTE 可引用前面的"
+  - "ORDER BY class 让顺序固定"

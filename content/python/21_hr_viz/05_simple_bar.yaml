@@ -1,0 +1,28 @@
+title: "画一个最简柱状图"
+topic: "21_hr_viz"
+difficulty: 1
+tags: ["matplotlib", "bar", "basics"]
+statement: |
+  用 matplotlib 画一个柱状图，展示 3 个水果的数量：
+  - 苹果: 5
+  - 香蕉: 3
+  - 橘子: 7
+
+  不需要显示图片，只需要用 plt.savefig('output.png') 保存。
+  输出 "done" 表示完成。
+
+starter_code: |
+  import matplotlib
+  matplotlib.use('Agg')
+  import matplotlib.pyplot as plt
+
+  fruits = ["苹果", "香蕉", "橘子"]
+  counts = [5, 3, 7]
+  # 画柱状图并保存
+
+expected_output: |
+  done
+hints:
+  - "plt.bar(fruits, counts)"
+  - "plt.savefig('output.png')"
+  - "print('done')"

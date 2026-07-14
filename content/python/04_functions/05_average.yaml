@@ -1,0 +1,28 @@
+title: "求平均值函数"
+topic: "04_functions"
+difficulty: 2
+tags: ["def", "sum", "input"]
+statement: |
+  请定义一个 `average(numbers)` 函数：
+  - 参数 `numbers` 是一个数字列表
+  - 返回它们的算术平均值（**用 round 保留两位小数**）
+
+  从标准输入读一行空格分隔的浮点数，调用并输出结果。
+
+  例如输入 `85 92 78 88 95`，输出 `87.6`（5 个数平均 87.6）。
+starter_code: |
+  def average(numbers):
+      # 用 sum() / len() 求平均，再用 round 保留 2 位小数
+      pass
+
+  nums = [float(x) for x in input().split()]
+  print(average(nums))
+expected_output: |
+  87.6
+tests:
+  - stdin: "85 92 78 88 95\n"
+    expected_output: "87.6\n"
+hints:
+  - "return round(sum(numbers) / len(numbers), 2)"
+  - "sum() 求和、len() 算个数，都是 Python 自带"
+  - "round(x, 2) 是保留 2 位小数；85+92+78+88+95=438，438/5=87.6"

@@ -1,0 +1,24 @@
+title: "求 N 的阶乘"
+topic: "03_loops"
+difficulty: 2
+tags: ["for", "accumulate"]
+statement: |
+  从标准输入读一个正整数 `N`，输出 `N!` 的值（阶乘 = 1 × 2 × 3 × ... × N）。
+
+  例如输入 `5`，应输出 `120`（即 1×2×3×4×5）。
+  Python 的整数没有上限，不用担心溢出。
+starter_code: |
+  n = int(input())
+  result = 1
+  # 用 for 循环累乘 1 到 n
+
+  print(result)
+expected_output: |
+  120
+tests:
+  - stdin: "5\n"
+    expected_output: "120\n"
+hints:
+  - "累乘要先初始化 result = 1（不能是 0）"
+  - "for i in range(1, n+1): result *= i"
+  - "*= 是把右边乘进左边的简写"

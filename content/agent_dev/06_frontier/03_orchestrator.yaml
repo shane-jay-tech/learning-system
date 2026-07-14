@@ -1,0 +1,18 @@
+title: "多 Agent 模式：主 agent 拆任务派子 agent"
+topic: "06_frontier"
+difficulty: 2
+tags: ["frontier", "multi-agent"]
+statement: |
+  下面这种"一个主 agent 把任务拆给多个子 agent，最后汇总结果"的模式叫什么？
+  请输出英文小写名（一个单词）。
+
+  期望：`orchestrator`。
+starter_code: |
+  pattern_name = "..."
+  print(pattern_name)
+expected_output: |
+  orchestrator
+hints:
+  - "orchestrator = 协调者；和 worker 们对应"
+  - "你这个学习系统的多模型协作就是这种模式（Opus 协调，GPT/DeepSeek/Kimi 干活）"
+  - "另一种是 pipeline / sequential（流水线）"

@@ -1,0 +1,25 @@
+title: "魔法数字抽常量"
+topic: "05_modular_config"
+difficulty: 1
+tags: ["constant", "magic-number"]
+statement: |
+  代码用了魔法数字 86400 表示"一天的秒数"。请抽成命名常量 `SECONDS_PER_DAY`，
+  题目读 days，输出总秒数。
+
+  输入 `7`，输出 `604800`。
+starter_code: |
+  # 抽常量
+  ... = ...
+
+  days = int(input())
+  total = days * 86400  # 改成用常量
+  print(total)
+expected_output: |
+  604800
+tests:
+  - stdin: "7\n"
+    expected_output: "604800\n"
+hints:
+  - "SECONDS_PER_DAY = 86400"
+  - "total = days * SECONDS_PER_DAY"
+  - "命名常量让 3 个月后的你看得懂代码"

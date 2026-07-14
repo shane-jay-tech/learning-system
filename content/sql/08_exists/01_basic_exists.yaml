@@ -1,0 +1,25 @@
+title: "EXISTS 找有学生的部门"
+topic: "08_exists"
+difficulty: 2
+tags: ["exists", "subquery"]
+statement: |
+  用 EXISTS 找出**至少有 1 个学生**的部门，输出 name（按 id 升序）。
+
+  3 个部门 HR、Eng、Finance，但只有 HR 和 Eng 有人。期望返回 2 行。
+starter_code: |
+  -- SELECT name FROM departments d
+  -- WHERE EXISTS (SELECT 1 FROM students s WHERE s.dept_id = d.id)
+  -- ORDER BY d.id
+
+setup_sql: |
+  CREATE TABLE departments (id INTEGER, name TEXT);
+  INSERT INTO departments VALUES (1,'HR'),(2,'Eng'),(3,'Finance');
+  CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER);
+  INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',2),(3,'Cathy',1);
+expected_rows:
+  - ["HR"]
+  - ["Eng"]
+hints:
+  - "EXISTS 子查询里 SELECT 1 是惯例"
+  - "条件 s.dept_id = d.id 是关联子查询的关键"
+  - "ORDER BY d.id 让顺序固定"

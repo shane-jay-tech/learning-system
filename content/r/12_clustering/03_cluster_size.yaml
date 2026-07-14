@@ -1,0 +1,21 @@
+title: "WSS（簇内方差）"
+topic: "12_clustering"
+difficulty: 3
+tags: ["kmeans", "wss"]
+statement: |
+  对 scale 后的数据 kmeans(centers=2, nstart=10, seed 42)，输出 WSS 总和（保留 2 位小数）。
+starter_code: |
+  df <- data.frame(
+    age = c(22, 25, 23, 40, 42, 45),
+    salary = c(4000, 4500, 4200, 12000, 13000, 12500)
+  )
+  set.seed(42)
+  km <- kmeans(scale(df), centers = 2, nstart = 10)
+  # km$tot.withinss
+
+expected_output: |
+  0.19
+hints:
+  - "cat(round(km$tot.withinss, 2), \"\\n\")"
+  - "tot.withinss 是簇内方差总和"
+  - "scale 后值通常 < 1"

@@ -1,0 +1,18 @@
+title: "separate 拆分列"
+topic: "08_tidyr"
+difficulty: 2
+tags: ["tidyr", "separate"]
+statement: |
+  数据列 `info = c("Alice/HR", "Bob/Eng")`。用 `separate` 拆成 name 和 dept 两列。
+  输出第 1 行的 dept（应为 `HR`）。
+starter_code: |
+  suppressMessages(library(tidyr))
+  df <- data.frame(info=c("Alice/HR", "Bob/Eng"))
+  # separate(df, info, into=c("name","dept"), sep="/")
+
+expected_output: |
+  HR
+hints:
+  - "df2 <- df %>% separate(info, into=c(\"name\",\"dept\"), sep=\"/\")"
+  - "cat(df2$dept[1], \"\\n\")"
+  - "into 是新列名向量；sep 是分隔符"

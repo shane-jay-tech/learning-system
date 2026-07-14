@@ -1,0 +1,29 @@
+title: "用 NOT EXISTS 实现 EXCEPT"
+topic: "08_exists"
+difficulty: 3
+tags: ["not-exists", "except"]
+statement: |
+  在校生表 students 和校友表 alumni 都有 name 列。
+  请输出**只在 students 不在 alumni** 的姓名（按字母升序）。
+
+  Students: Alice, Bob, Cathy, David, Eve；Alumni: Alice, Frank。
+  期望：Bob, Cathy, David, Eve（4 人）。
+starter_code: |
+  -- SELECT name FROM students s
+  -- WHERE NOT EXISTS (SELECT 1 FROM alumni a WHERE a.name = s.name)
+  -- ORDER BY name
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT);
+  INSERT INTO students VALUES (1,'Alice'),(2,'Bob'),(3,'Cathy'),(4,'David'),(5,'Eve');
+  CREATE TABLE alumni (id INTEGER, name TEXT);
+  INSERT INTO alumni VALUES (1,'Alice'),(2,'Frank');
+expected_rows:
+  - ["Bob"]
+  - ["Cathy"]
+  - ["David"]
+  - ["Eve"]
+hints:
+  - "NOT EXISTS 找 students 里「在 alumni 找不到对应 name 的行」"
+  - "和 SQL 标准的 EXCEPT 操作等价"
+  - "比 NOT IN 安全（NULL 也能正确处理）"

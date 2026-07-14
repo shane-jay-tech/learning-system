@@ -1,0 +1,18 @@
+title: "lm 的 R²"
+topic: "05_lm_anova"
+difficulty: 2
+tags: ["lm", "r-squared"]
+statement: |
+  同上数据，输出 **R²**（保留 3 位小数）。
+
+  应约 0.711。
+starter_code: |
+  df <- data.frame(x=c(1,2,3,4,5), y=c(2,4,5,4,6))
+  # lm 后用 summary(model)$r.squared
+
+expected_output: |
+  0.727
+hints:
+  - "model <- lm(y ~ x, data = df)"
+  - "cat(round(summary(model)$r.squared, 3), \"\\n\")"
+  - "summary(model) 自身打印很多东西；要数值用 $r.squared"

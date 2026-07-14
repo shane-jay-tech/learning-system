@@ -1,0 +1,24 @@
+title: "按分数降序"
+topic: "03_orderby_having"
+difficulty: 1
+tags: ["order-by"]
+statement: |
+  请把 `students` 表所有学生**按分数从高到低**排列，输出 `id, name, score` 三列。
+
+  期望返回 5 行，第 1 行是 Eve（95），最后是 David（60）。
+starter_code: |
+  -- 用 ORDER BY ... DESC
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - [5, "Eve", 95]
+  - [1, "Alice", 92]
+  - [2, "Bob", 87]
+  - [3, "Cathy", 75]
+  - [4, "David", 60]
+hints:
+  - "SELECT id, name, score FROM students ORDER BY score DESC"
+  - "DESC 是降序；省略默认升序（ASC）"
+  - "ORDER BY 必须放在 FROM/WHERE/GROUP BY 后"

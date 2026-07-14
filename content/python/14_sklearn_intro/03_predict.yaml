@@ -1,0 +1,22 @@
+title: "用模型预测新数据"
+topic: "14_sklearn_intro"
+difficulty: 2
+tags: ["sklearn", "predict"]
+statement: |
+  同上数据训练线性回归后，预测**工资 7000** 时的绩效，**保留 1 位小数**输出。
+
+  应约 78.4。
+starter_code: |
+  import numpy as np
+  from sklearn.linear_model import LinearRegression
+
+  X = np.array([[5000],[8000],[6500],[12000],[9000]])
+  y = np.array([70, 88, 75, 95, 82])
+  # 训练后用 predict，输出预测值（1 位小数）
+
+expected_output: |
+  78.2
+hints:
+  - "pred = model.predict([[7000]])"
+  - "print(f'{pred[0]:.1f}')"
+  - "predict 输入必须 2D（一个样本也包成 [[7000]]）"

@@ -1,0 +1,27 @@
+title: "斐波那契生成器"
+topic: "18_generators_iter"
+difficulty: 2
+tags: ["yield", "generator"]
+statement: |
+  写生成器 `fib(n)` 产出前 n 个斐波那契数（从 1, 1, 2, 3, 5, ... 开始）。
+  从输入读 n，输出空格分隔的前 n 个。
+
+  输入 `7`，输出 `1 1 2 3 5 8 13`。
+starter_code: |
+  def fib(n):
+      a, b = 1, 1
+      for _ in range(n):
+          # yield 当前 a，更新 a, b
+          pass
+
+  n = int(input())
+  print(' '.join(str(x) for x in fib(n)))
+expected_output: |
+  1 1 2 3 5 8 13
+tests:
+  - stdin: "7\n"
+    expected_output: "1 1 2 3 5 8 13\n"
+hints:
+  - "yield a; a, b = b, a + b"
+  - "yield 让函数变成生成器"
+  - "tuple unpacking: a, b = b, a+b 一次更新两个变量"

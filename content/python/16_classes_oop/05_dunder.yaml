@@ -1,0 +1,33 @@
+title: "运算符重载 __add__"
+topic: "16_classes_oop"
+difficulty: 3
+tags: ["dunder", "magic-method"]
+statement: |
+  定义 `Money` 类，含 `amount` 属性。重写 `__add__` 让 `m1 + m2` 返回新的 `Money(amount之和)`，重写 `__repr__` 返回 `Money(<amount>)`。
+  从输入读两数，用 `Money(...) + Money(...)` 后 print 输出。
+
+  输入 `100 50`，输出 `Money(150)`。
+starter_code: |
+  class Money:
+      def __init__(self, amount):
+          self.amount = amount
+
+      def __add__(self, other):
+          # 返回新的 Money(两个 amount 之和)
+          pass
+
+      def __repr__(self):
+          # 返回 f"Money({self.amount})"
+          pass
+
+  a, b = [int(x) for x in input().split()]
+  print(Money(a) + Money(b))
+expected_output: |
+  Money(150)
+tests:
+  - stdin: "100 50\n"
+    expected_output: "Money(150)\n"
+hints:
+  - "def __add__(self, other): return Money(self.amount + other.amount)"
+  - "def __repr__(self): return f'Money({self.amount})'"
+  - "print() 默认调 __repr__；显式 str() 调 __str__"

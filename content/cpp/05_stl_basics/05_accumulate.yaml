@@ -1,0 +1,31 @@
+title: "accumulate 求和"
+topic: "05_stl_basics"
+difficulty: 2
+tags: ["algorithm", "accumulate"]
+statement: |
+  读 N + N 个整数，用 `<numeric>` 头里的 `accumulate` 求和并输出。
+
+  输入 `5\n3 5 7 11 14`，输出 `40`。
+starter_code: |
+  #include <iostream>
+  #include <vector>
+  #include <numeric>
+  using namespace std;
+
+  int main() {
+      int n; cin >> n;
+      vector<int> v(n);
+      for (int i = 0; i < n; i++) cin >> v[i];
+      // accumulate(v.begin(), v.end(), 0) 输出
+
+      return 0;
+  }
+expected_output: |
+  40
+tests:
+  - stdin: "5\n3 5 7 11 14\n"
+    expected_output: "40\n"
+hints:
+  - "cout << accumulate(v.begin(), v.end(), 0) << endl;"
+  - "第三个参数是初始值；可以用来求积（初值 1）：accumulate(..., 1, multiplies<int>())"
+  - "需要 #include <numeric>"

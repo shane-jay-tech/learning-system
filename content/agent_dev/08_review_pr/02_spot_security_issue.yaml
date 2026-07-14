@@ -1,0 +1,33 @@
+title: "审 PR：找安全问题"
+topic: "08_review_pr"
+difficulty: 3
+tags: ["review", "security", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：AI agent 提交了一个搜索功能的 PR：
+
+  ```python
+  @app.route("/search")
+  def search():
+      query = request.args.get("q", "")
+      results = db.execute(f"SELECT * FROM products WHERE name LIKE '%{query}%'")
+      html = f"<h1>搜索结果: {query}</h1>"
+      for row in results:
+          html += f"<p>{row['name']} - {row['price']}元</p>"
+      return html
+  ```
+
+  请找出这段代码中的**安全问题**（至少 2 个），并说明如何修复。
+starter_code: ""
+rubric:
+  - "指出了 SQL 注入问题（f-string 拼接 SQL）"
+  - "指出了 XSS 问题（用户输入直接插入 HTML）"
+  - "给出了修复建议（参数化查询 + 转义/模板）"
+reference_answer: |
+  安全问题:
+  1. SQL 注入: 用户输入 query 直接拼入 SQL 字符串，输入 '; DROP TABLE products; -- 就能删表
+     修复: 用参数化查询 db.execute("SELECT ... WHERE name LIKE ?", (f"%{query}%",))
+  2. XSS: query 直接嵌入 HTML 返回，输入 <script>alert(1)</script> 会执行
+     修复: 用 html.escape(query) 或使用模板引擎（Jinja2 自动转义）
+hints:
+  - "看看用户的输入（query）流向了哪里——每个出口都可能有安全问题。"

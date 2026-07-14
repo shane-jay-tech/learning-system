@@ -1,0 +1,22 @@
+title: "LIKE 找含 'a' 的姓名"
+topic: "09_string_funcs"
+difficulty: 1
+tags: ["like"]
+statement: |
+  找出 name 中**含字母 a（不分大小写）**的学生，输出 name 按 id 升序。
+
+  期望：Alice, Cathy, David（包含 a/A）；Bob 和 Eve 不含。
+starter_code: |
+  -- SELECT name FROM students WHERE LOWER(name) LIKE '%a%' ORDER BY id
+
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT);
+  INSERT INTO students VALUES (1,'Alice'),(2,'Bob'),(3,'Cathy'),(4,'David'),(5,'Eve');
+expected_rows:
+  - ["Alice"]
+  - ["Cathy"]
+  - ["David"]
+hints:
+  - "LIKE '%a%' 包含 a 的"
+  - "% 任意 0+ 字符"
+  - "LOWER 让比较不分大小写"

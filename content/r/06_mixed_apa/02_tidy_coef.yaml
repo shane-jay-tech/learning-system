@@ -1,0 +1,24 @@
+title: "broom::tidy 提系数行数"
+topic: "06_mixed_apa"
+difficulty: 2
+tags: ["broom", "tidy"]
+statement: |
+  对 `lm(salary ~ years + age + gender, data=df)` 的结果用 `tidy()`，输出**返回的数据框行数**。
+
+  应为 4（截距 + 3 个自变量）。
+starter_code: |
+  suppressMessages(library(broom))
+  df <- data.frame(
+    salary = c(5000,8000,9000,12000,15000,7000),
+    years = c(1,3,5,7,10,2),
+    age = c(22,25,30,35,40,28),
+    gender = factor(c("M","F","M","F","M","F"))
+  )
+  # tidy(lm(...))，输出 nrow
+
+expected_output: |
+  4
+hints:
+  - "fit <- lm(salary ~ years + age + gender, data=df)"
+  - "cat(nrow(tidy(fit)), \"\\n\")"
+  - "tidy 把 summary 的系数表变 data.frame"

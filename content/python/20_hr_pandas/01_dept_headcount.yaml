@@ -1,0 +1,23 @@
+title: "各部门人数统计"
+topic: "20_hr_pandas"
+difficulty: 2
+tags: ["pandas", "groupby", "hr"]
+statement: |
+  读取 HR 员工数据（已用变量 df 加载好），统计每个部门的人数，
+  按人数从多到少排序，输出前 3 个部门名称和人数。
+
+  输出格式（每行一个）：
+  部门名 人数
+starter_code: |
+  import pandas as pd
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 统计各部门人数，按从多到少排序，输出前 3
+expected_output: |
+  Finance 79
+  Sales 70
+  Legal 68
+hints:
+  - "df['department'].value_counts() 直接给你从多到少的排序"
+  - "用 .head(3) 取前 3"

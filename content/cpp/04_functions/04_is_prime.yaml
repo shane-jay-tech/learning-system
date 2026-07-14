@@ -1,0 +1,33 @@
+title: "判断质数"
+topic: "04_functions"
+difficulty: 3
+tags: ["function", "loop"]
+statement: |
+  定义 `bool is_prime(int n)`：
+  - n < 2 返回 false
+  - 否则检查 2 到 n-1 是否能整除 n
+
+  从输入读 n，输出 `true` 或 `false`（**注意 cout 默认输出 1/0，需要 boolalpha**）。
+
+  输入 `7`，输出 `true`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  // 在这里定义 is_prime
+
+  int main() {
+      int n;
+      cin >> n;
+      cout << boolalpha << is_prime(n) << endl;
+      return 0;
+  }
+expected_output: |
+  true
+tests:
+  - stdin: "7\n"
+    expected_output: "true\n"
+hints:
+  - "if (n < 2) return false; for (int i=2; i<n; i++) if (n%i==0) return false; return true;"
+  - "boolalpha 让 cout 把 bool 输出为 true/false 而不是 1/0"
+  - "进阶：循环到 sqrt(n) 即可，效率更高"

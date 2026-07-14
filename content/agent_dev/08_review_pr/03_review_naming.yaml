@@ -1,0 +1,42 @@
+title: "审 PR：改善命名和可读性"
+topic: "08_review_pr"
+difficulty: 2
+tags: ["review", "readability", "ai_judge"]
+judge_mode: ai_open
+statement: |
+  **场景**：AI agent 写了这段代码：
+
+  ```python
+  def proc(d, t):
+      r = []
+      for i in d:
+          if i['s'] > t:
+              r.append(i)
+      return r
+  ```
+
+  这段代码能运行，但完全看不懂在做什么。
+
+  请你：
+  1. 猜测这段代码的功能
+  2. 重命名变量和函数，让代码「自解释」
+  3. 写出你会给 AI 的 review 反馈（1-2 句话）
+starter_code: ""
+rubric:
+  - "正确推断了功能（筛选某个字段超过阈值的记录）"
+  - "给出了有意义的命名（如 filter_by_score, records, threshold, result）"
+  - "review 反馈简洁明确（不是笼统的「改好点」）"
+reference_answer: |
+  功能: 过滤列表中 score > threshold 的记录
+
+  重命名后:
+  def filter_above_threshold(records, threshold):
+      result = []
+      for item in records:
+          if item['score'] > threshold:
+              result.append(item)
+      return result
+
+  Review 反馈: "所有变量名用了单字母，完全无法理解意图。请用有意义的英文名：函数名说明动作，参数名说明是什么。"
+hints:
+  - "如果你明天再看这段代码，能在 5 秒内看懂吗？不能就是命名问题。"

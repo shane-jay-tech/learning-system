@@ -1,0 +1,44 @@
+title: "部门薪资箱线图"
+topic: "21_hr_viz"
+difficulty: 2
+tags: ["matplotlib", "boxplot", "hr"]
+judge_mode: ai_open
+statement: |
+  用 matplotlib 画一个**箱线图**，比较不同部门的薪资分布。
+
+  要求：
+  - 读取 hr_employees.csv
+  - 每个部门一个箱体
+  - 加标题 "Salary Distribution by Department"
+  - X 轴标签旋转 45 度避免重叠
+  - 保存为 output.png
+
+  提交你的完整代码。
+starter_code: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+
+  # 画箱线图并保存
+rubric:
+  - "使用了 boxplot 或 plt.boxplot"
+  - "按部门分组了"
+  - "旋转了 X 轴标签"
+  - "保存为 png"
+reference_answer: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  departments = sorted(df['department'].unique())
+  data = [df[df['department'] == d]['salary'].values for d in departments]
+  plt.figure(figsize=(10, 6))
+  plt.boxplot(data, labels=departments)
+  plt.title("Salary Distribution by Department")
+  plt.xticks(rotation=45)
+  plt.ylabel("Salary (yuan)")
+  plt.tight_layout()
+  plt.savefig("output.png")
+hints:
+  - "也可以用 df.boxplot(column='salary', by='department')"

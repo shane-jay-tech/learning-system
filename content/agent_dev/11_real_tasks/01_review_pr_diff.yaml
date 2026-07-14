@@ -1,0 +1,54 @@
+title: "审一段 PR Diff"
+topic: "11_real_tasks"
+difficulty: 3
+tags: ["review", "real-task"]
+judge_mode: ai_open
+
+statement: |
+  你的 AI agent 刚提交了一段代码修改（PR），请审阅下面的 diff 并写出你的 review 意见。
+
+  ```diff
+  --- a/utils/auth.py
+  +++ b/utils/auth.py
+  @@ -12,8 +12,12 @@ import hashlib
+
+   def verify_password(stored_hash, password):
+  -    return stored_hash == hashlib.md5(password.encode()).hexdigest()
+  +    salt = stored_hash[:32]
+  +    key = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+  +    return stored_hash[32:] == key.hex()
+
+  +def generate_token(user_id):
+  +    token = str(user_id) + "_" + str(time.time())
+  +    return token
+  ```
+
+  请写出你的审阅意见（至少 3 条），格式：
+  1. 【问题/建议】具体描述
+  2. 【问题/建议】具体描述
+  3. ...
+
+  提示：从安全性、正确性、命名、遗漏等角度思考。
+
+starter_code: |
+  # 在这里写你的 PR 审阅意见（至少 3 条）
+
+rubric:
+  - "指出 generate_token 不安全（可预测、无签名、无过期）得 20 分"
+  - "指出 time 模块未 import 得 15 分"
+  - "指出密码验证改进方向正确（MD5→PBKDF2）但 salt 应为 bytes 不是 str 得 15 分"
+  - "指出缺少单元测试或向后兼容（旧 MD5 哈希迁移）得 15 分"
+  - "意见具体可执行（不是泛泛的'需要改进'）得 20 分"
+  - "格式清晰、条目分明得 15 分"
+
+reference_answer: |
+  1. 【安全问题】generate_token 用 user_id + time.time() 拼接，攻击者可以猜测和伪造 token。应该用 secrets.token_urlsafe() 或 JWT。
+  2. 【Bug】generate_token 里用了 time.time() 但文件顶部没有 import time，运行时会 NameError。
+  3. 【兼容性】verify_password 从 MD5 改成 PBKDF2 是好的，但现有用户的密码哈希还是 MD5 格式，需要迁移逻辑或双模式验证。
+  4. 【实现细节】salt 从 stored_hash[:32] 取出后用 .encode() 转字节——但如果 salt 本身是十六进制字符串，应该用 bytes.fromhex()。
+  5. 【缺失】没有对应的单元测试，尤其是密码验证这种核心安全功能应该有测试覆盖。
+
+hints:
+  - "想想：如果你是攻击者，能不能伪造这个 token？"
+  - "检查一下：用到的模块都 import 了吗？"
+  - "旧用户的密码哈希格式变了，会不会登录不了？"

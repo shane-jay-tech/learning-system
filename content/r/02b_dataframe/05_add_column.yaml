@@ -1,0 +1,20 @@
+title: "添加 grade 列（Pass/Fail）"
+topic: "02b_dataframe"
+difficulty: 2
+tags: ["data.frame", "ifelse"]
+statement: |
+  数据框 `df` 已写好。给它加一列 `grade`：score ≥ 60 是 `"Pass"`，否则 `"Fail"`。
+  然后 `cat` 输出 `Pass` 行的人数（应为 3）。
+starter_code: |
+  df <- data.frame(
+    name = c("Alice", "Bob", "Cathy", "David"),
+    score = c(92, 78, 85, 50)
+  )
+  # 加 grade 列后，输出 Pass 人数
+
+expected_output: |
+  3
+hints:
+  - "df$grade <- ifelse(df$score >= 60, \"Pass\", \"Fail\")"
+  - "sum(df$grade == \"Pass\") 数出 TRUE 个数"
+  - "cat(sum(df$grade == \"Pass\"), \"\\n\")"

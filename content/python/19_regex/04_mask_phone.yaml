@@ -1,0 +1,24 @@
+title: "屏蔽手机号中间 4 位"
+topic: "19_regex"
+difficulty: 3
+tags: ["regex", "sub"]
+statement: |
+  把 `138-1234-5678` 中间 4 位数字替换成 `****`。
+  请用 `re.sub` 把 11 位连续数字（含 - 分隔）的中间 4 位换星号。
+
+  输入 `Phone: 138-1234-5678`，输出 `Phone: 138-****-5678`。
+starter_code: |
+  import re
+
+  text = input()
+  # 用 re.sub(r"(\d{3})-\d{4}-(\d{4})", r"\1-****-\2", text)
+
+expected_output: |
+  Phone: 138-****-5678
+tests:
+  - stdin: "Phone: 138-1234-5678\n"
+    expected_output: "Phone: 138-****-5678\n"
+hints:
+  - "result = re.sub(r'(\\d{3})-\\d{4}-(\\d{4})', r'\\1-****-\\2', text)"
+  - "print(result)"
+  - "替换串里 \\1 引用第 1 组捕获"

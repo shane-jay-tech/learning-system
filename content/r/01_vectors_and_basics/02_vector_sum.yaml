@@ -1,0 +1,17 @@
+title: "向量求和"
+topic: "01_vectors_and_basics"
+difficulty: 2
+tags: ["vector", "sum"]
+statement: |
+  向量 `v <- c(3, 5, 7)` 已经替你写好了。
+  请用 `cat` 输出 `v` 的总和（也就是 `15`）。
+starter_code: |
+  v <- c(3, 5, 7)
+  # 在下面用 cat 输出 sum(v)
+
+expected_output: |
+  15
+hints:
+  - "sum(v) 计算向量所有元素之和"
+  - "cat(sum(v), \"\\n\") 把结果打印出来并换行"
+  - "结果是数字 15，不要输出 'sum(v)' 这个字符串"

@@ -1,0 +1,18 @@
+title: "map_dbl 求平方根"
+topic: "09_purrr_map"
+difficulty: 1
+tags: ["purrr", "map"]
+statement: |
+  用 `map_dbl(c(1,4,9,16,25), sqrt)` 算每个数的平方根，输出空格分隔。
+
+  期望：`1 2 3 4 5`。
+starter_code: |
+  suppressMessages(library(purrr))
+  # map_dbl 后 cat
+
+expected_output: |
+  1 2 3 4 5
+hints:
+  - "result <- map_dbl(c(1,4,9,16,25), sqrt)"
+  - "cat(result, \"\\n\")"
+  - "map_dbl 强制返回 double 向量"

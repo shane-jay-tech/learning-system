@@ -1,0 +1,21 @@
+title: "Cohen's d 计算"
+topic: "06_mixed_apa"
+difficulty: 3
+tags: ["effectsize", "cohens-d"]
+statement: |
+  两组数据 a=c(85,92,78,88,95)、b=c(72,68,75,82,70)。
+  请用 `effectsize::cohens_d` 算 Cohen's d，输出**绝对值保留 2 位小数**。
+
+  应约 2.28（极大效应）。
+starter_code: |
+  suppressMessages(library(effectsize))
+  a <- c(85, 92, 78, 88, 95)
+  b <- c(72, 68, 75, 82, 70)
+  # cohens_d 接受向量；返回数据框
+
+expected_output: |
+  2.35
+hints:
+  - "result <- cohens_d(a, b)"
+  - "cat(round(abs(result$Cohens_d), 2), \"\\n\")"
+  - "结果是 data.frame；列名 Cohens_d"

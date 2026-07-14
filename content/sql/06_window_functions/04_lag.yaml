@@ -1,0 +1,22 @@
+title: "LAG 算环比"
+topic: "06_window_functions"
+difficulty: 3
+tags: ["window", "lag"]
+statement: |
+  daily 表记录每日销量。请输出 `date sales prev_sales`，第一天的 prev_sales 为 NULL。
+  按 date 升序。
+starter_code: |
+  -- LAG(sales) OVER (ORDER BY date) AS prev_sales
+
+setup_sql: |
+  CREATE TABLE daily (date TEXT, sales INTEGER);
+  INSERT INTO daily VALUES ('2026-01-01',100),('2026-01-02',120),('2026-01-03',150),('2026-01-04',130);
+expected_rows:
+  - ["2026-01-01", 100, null]
+  - ["2026-01-02", 120, 100]
+  - ["2026-01-03", 150, 120]
+  - ["2026-01-04", 130, 150]
+hints:
+  - "SELECT date, sales, LAG(sales) OVER (ORDER BY date) AS prev_sales FROM daily ORDER BY date"
+  - "LAG 第一行没有前值，自动 NULL"
+  - "LAG(sales, 2) 取往前 2 行"

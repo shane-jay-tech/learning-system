@@ -1,0 +1,31 @@
+title: "加 passed 方法"
+topic: "16_classes_oop"
+difficulty: 2
+tags: ["class", "method"]
+statement: |
+  在 `Student` 类里加 `passed()` 方法（参数只有 self），返回 `score >= 60`。
+  从输入读 `name score`，输出 `<name> True/False`。
+
+  输入 `Alice 85`，输出 `Alice True`。
+starter_code: |
+  class Student:
+      def __init__(self, name, score):
+          self.name = name
+          self.score = score
+
+      def passed(self):
+          # 返回 score 是否 >= 60
+          pass
+
+  parts = input().split()
+  s = Student(parts[0], int(parts[1]))
+  print(s.name, s.passed())
+expected_output: |
+  Alice True
+tests:
+  - stdin: "Alice 85\n"
+    expected_output: "Alice True\n"
+hints:
+  - "return self.score >= 60"
+  - "调用：s.passed() 不是 s.passed"
+  - "返回 bool 直接 print 输出 True/False"

@@ -1,0 +1,20 @@
+title: "拆任务"
+topic: "03_spec_writing"
+difficulty: 3
+tags: ["spec", "decomposition"]
+statement: |
+  把"做一个 todo app"拆成至少 4 个独立小步骤，每步是一个字符串放进 list。
+  输出 list 长度。
+
+  期望：`>= 4`（题目用 `cat int(len(steps) >= 4)` 输出 1 表示通过）。
+starter_code: |
+  steps = [
+      # 至少 4 个步骤的字符串描述
+  ]
+  print(int(len(steps) >= 4))
+expected_output: |
+  1
+hints:
+  - "推荐拆法：1) 数据模型 2) CRUD 函数 3) 最简 UI 4) 测试"
+  - "每步独立可验证 = 拆得好"
+  - "len >= 4 即可，但实战拆 5-10 步更稳"

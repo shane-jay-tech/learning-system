@@ -1,0 +1,24 @@
+title: "shared_ptr 引用计数"
+topic: "07_pointers_class"
+difficulty: 3
+tags: ["smart-pointer", "shared_ptr", "use_count"]
+statement: |
+  用 `make_shared<int>` 构造一个 shared_ptr 指向 100，再 copy 一份给 q，
+  输出 `p.use_count()`（应为 2，因为有 2 个引用）。
+starter_code: |
+  #include <iostream>
+  #include <memory>
+  using namespace std;
+
+  int main() {
+      auto p = make_shared<int>(100);
+      // 拷贝一份给 q，再输出 p.use_count()
+
+      return 0;
+  }
+expected_output: |
+  2
+hints:
+  - "auto q = p; // 引用计数 +1"
+  - "cout << p.use_count() << endl;"
+  - "use_count() 返回当前指向同一对象的 shared_ptr 个数"

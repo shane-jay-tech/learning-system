@@ -1,0 +1,21 @@
+title: "替换字符"
+topic: "06_strings"
+difficulty: 2
+tags: ["replace"]
+statement: |
+  从标准输入读一行字符串，把其中所有的 `a` 替换成 `*`（保持大小写敏感，只换小写 `a`），输出结果。
+
+  例如输入 `banana split`，输出 `b*n*n* split`。
+starter_code: |
+  s = input()
+  # 把 a 替换成 *
+
+expected_output: |
+  b*n*n* split
+tests:
+  - stdin: "banana split\n"
+    expected_output: "b*n*n* split\n"
+hints:
+  - "print(s.replace('a', '*'))"
+  - "replace(old, new) 把所有 old 替换成 new"
+  - "原字符串不变，要拿返回值"

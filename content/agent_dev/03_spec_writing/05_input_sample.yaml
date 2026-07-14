@@ -1,0 +1,22 @@
+title: "Spec 里加输入样本"
+topic: "03_spec_writing"
+difficulty: 2
+tags: ["spec", "sample"]
+statement: |
+  Spec 里贴**真实数据样本**比纯文字描述好 10 倍。
+  请把这段 spec 字典里的 `input_sample` 字段填上一段 csv 的前 2 行（date,product,amount + 1 条数据），
+  输出 `input_sample` 的字符数（应 > 30）。
+starter_code: |
+  spec = {
+      "input": "csv",
+      "input_sample": """
+  ...
+  """  # 在这里填一段含 header 的 csv 样本（≥ 30 字符）
+  }
+  print(int(len(spec["input_sample"]) > 30))
+expected_output: |
+  1
+hints:
+  - "样本就是几行真实数据：date,product,amount\\n2026-01-01,apple,100"
+  - "len > 30 即过；想想真实数据有多少字符"
+  - "贴样本是 spec 的'省时神技'"

@@ -1,0 +1,21 @@
+title: "map2 两输入加和"
+topic: "09_purrr_map"
+difficulty: 2
+tags: ["purrr", "map2"]
+statement: |
+  对 a=c(1,2,3,4) 和 b=c(10,20,30,40)，用 `map2_dbl(a, b, ~ .x + .y)` 算 a+b。
+  输出空格分隔。
+
+  期望：`11 22 33 44`。
+starter_code: |
+  suppressMessages(library(purrr))
+  a <- c(1,2,3,4)
+  b <- c(10,20,30,40)
+  # map2_dbl + cat
+
+expected_output: |
+  11 22 33 44
+hints:
+  - "result <- map2_dbl(a, b, ~ .x + .y)"
+  - "cat(result, \"\\n\")"
+  - "~ 是 lambda 的简写；.x 和 .y 是参数"

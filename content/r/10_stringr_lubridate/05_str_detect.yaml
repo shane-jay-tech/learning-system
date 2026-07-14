@@ -1,0 +1,19 @@
+title: "str_detect 过滤含字符"
+topic: "10_stringr_lubridate"
+difficulty: 2
+tags: ["stringr", "str_detect"]
+statement: |
+  在 `c("apple","banana","cherry","grape","kiwi")` 中找含字母 `a` 的水果，输出空格分隔。
+
+  期望：`apple banana grape`。
+starter_code: |
+  suppressMessages(library(stringr))
+  v <- c("apple","banana","cherry","grape","kiwi")
+  # str_subset + cat
+
+expected_output: |
+  apple banana grape
+hints:
+  - "result <- str_subset(v, \"a\")"
+  - "cat(result, \"\\n\")"
+  - "str_subset 等价于 v[str_detect(v, \"a\")]"

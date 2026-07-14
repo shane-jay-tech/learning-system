@@ -1,0 +1,30 @@
+title: "简单线性回归"
+topic: "22_statsmodels"
+difficulty: 3
+tags: ["statsmodels", "ols", "regression"]
+statement: |
+  用 statsmodels 对以下数据做简单线性回归：
+
+  - X（工作年限）: [1, 2, 3, 4, 5]
+  - y（月薪，万元）: [0.8, 1.2, 1.5, 2.0, 2.3]
+
+  输出回归系数（截距和斜率），保留 2 位小数，格式为：
+  ```
+  截距: X.XX
+  斜率: X.XX
+  ```
+starter_code: |
+  import numpy as np
+  import statsmodels.api as sm
+
+  X = np.array([1, 2, 3, 4, 5])
+  y = np.array([0.8, 1.2, 1.5, 2.0, 2.3])
+
+  # 加常数项并拟合
+expected_output: |
+  截距: 0.44
+  斜率: 0.38
+hints:
+  - "sm.add_constant(X) 给 X 加截距列"
+  - "model = sm.OLS(y, X_with_const).fit()"
+  - "model.params[0] 是截距，model.params[1] 是斜率"

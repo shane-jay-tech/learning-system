@@ -1,0 +1,31 @@
+title: "agg 多个统计"
+topic: "10_pandas_filter_group"
+difficulty: 3
+tags: ["groupby", "agg"]
+statement: |
+  按 `class` 分组同时算 score 的 `min, max, mean`。
+  按字母升序，每行格式 `班 min max 平均(1 位小数)`，空格分隔。
+
+  期望：
+  ```
+  A 78.0 95.0 86.0
+  B 88.0 92.0 90.0
+  ```
+  注意：pandas 的 agg 输出 `min/max` 是 float（带 .0），不要去转 int。
+starter_code: |
+  import pandas as pd
+
+  df = pd.DataFrame({
+      "name": ["Alice","Bob","Cathy","David","Eve"],
+      "score": [85, 92, 78, 88, 95],
+      "class": ["A", "B", "A", "B", "A"],
+  })
+  # 用 agg 同时算 min/max/mean，按字母升序输出
+
+expected_output: |
+  A 78.0 95.0 86.0
+  B 88.0 92.0 90.0
+hints:
+  - "g = df.groupby('class')['score'].agg(['min','max','mean']).sort_index()"
+  - "for cls, row in g.iterrows(): print(f\"{cls} {row['min']} {row['max']} {row['mean']:.1f}\")"
+  - "iterrows 同时给索引和行（Series）"
