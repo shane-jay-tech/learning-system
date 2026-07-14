@@ -119,6 +119,7 @@ hints:
 
 ```bash
 pytest
+pytest --cov=. --cov-branch --cov-config=.coveragerc --cov-report=term-missing
 ```
 
 C++ 和 R 的 runner 测试在工具不在 PATH 时会自动 skip，不会失败。
