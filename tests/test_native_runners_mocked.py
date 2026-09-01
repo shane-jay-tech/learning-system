@@ -48,36 +48,46 @@ def test_cpp_missing_compiler_returns_actionable_sandbox_error(monkeypatch):
 
 def test_cpp_compile_timeout(monkeypatch):
     monkeypatch.setattr(CppRunner, "_resolve_compiler", lambda self: r"C:\bin\g++.exe")
-    monkeypatch.setattr(
-        cpp_mod.subprocess,
-        "run",
-        lambda *a, **kw: (_ for _ in ()).throw(subprocess.TimeoutExpired("g++", 7)),
-    )
+    compile_proc = FakeProcess([subprocess.TimeoutExpired("g++", 7), (b"", b"")])
+    monkeypatch.setattr(cpp_mod.subprocess, "Popen", lambda *a, **kw: compile_proc)
+    killed = []
+    monkeypatch.setattr(cpp_mod, "_kill_tree", lambda p: killed.append(p))
     result = CppRunner().run("int main(){}")
     assert result.timed_out
     assert result.error_kind == "timeout"
     assert "编译超时" in result.stderr
+    assert killed == [compile_proc]  # 编译超时也走整棵进程树清理
 
 
 def test_cpp_compile_error_is_decoded_and_truncated(monkeypatch):
     monkeypatch.setattr(CppRunner, "_resolve_compiler", lambda self: r"C:\bin\g++.exe")
-    compile_result = SimpleNamespace(returncode=1, stderr="编译失败".encode("utf-8"))
-    monkeypatch.setattr(cpp_mod.subprocess, "run", lambda *a, **kw: compile_result)
+    compile_proc = FakeProcess([(b"", "编译失败".encode("utf-8"))], returncode=1)
+    monkeypatch.setattr(cpp_mod.subprocess, "Popen", lambda *a, **kw: compile_proc)
     result = CppRunner().run("broken")
     assert result.error_kind == "compile"
     assert result.exit_code == 1
     assert result.stderr == "编译失败"
 
 
+def test_cpp_compile_error_gets_chinese_hint(monkeypatch):
+    monkeypatch.setattr(CppRunner, "_resolve_compiler", lambda self: r"C:\bin\g++.exe")
+    compile_proc = FakeProcess([(b"", b"main.cpp:3: error: expected ';' before '}'")], returncode=1)
+    monkeypatch.setattr(cpp_mod.subprocess, "Popen", lambda *a, **kw: compile_proc)
+    result = CppRunner().run("broken")
+    assert "中文提示" in result.stderr
+    assert "分号" in result.stderr
+
+
 def test_cpp_success_uses_restricted_environment_and_stdin(monkeypatch):
     monkeypatch.setattr(CppRunner, "_resolve_compiler", lambda self: r"C:\tool\g++.exe")
-    monkeypatch.setattr(cpp_mod.subprocess, "run", lambda *a, **kw: SimpleNamespace(returncode=0, stderr=b""))
+    compile_proc = FakeProcess([(b"", b"")], returncode=0)
     proc = FakeProcess([(b"hello\n", b"warn")], returncode=0)
+    procs = iter([compile_proc, proc])
     captured = {}
 
     def fake_popen(*args, **kwargs):
         captured.update(kwargs)
-        return proc
+        return next(procs)
 
     monkeypatch.setattr(cpp_mod.subprocess, "Popen", fake_popen)
     result = CppRunner().run("int main(){}", stdin="input")
@@ -90,10 +100,12 @@ def test_cpp_success_uses_restricted_environment_and_stdin(monkeypatch):
 
 def test_cpp_runtime_timeout_kills_process(monkeypatch):
     monkeypatch.setattr(CppRunner, "_resolve_compiler", lambda self: r"C:\tool\g++.exe")
-    monkeypatch.setattr(cpp_mod.subprocess, "run", lambda *a, **kw: SimpleNamespace(returncode=0, stderr=b""))
+    compile_proc = FakeProcess([(b"", b"")], returncode=0)
     timeout = subprocess.TimeoutExpired("main.exe", 1)
     proc = FakeProcess([timeout, (b"partial", b"ignored")])
-    monkeypatch.setattr(cpp_mod.subprocess, "Popen", lambda *a, **kw: proc)
+    procs = iter([compile_proc, proc])
+    monkeypatch.setattr(cpp_mod.subprocess, "Popen", lambda *a, **kw: next(procs))
+    monkeypatch.setattr(cpp_mod, "_kill_tree", lambda p: p.kill())
     result = CppRunner().run("int main(){}")
     assert result.timed_out
     assert result.stdout == "partial"
@@ -106,7 +118,6 @@ def test_rscript_resolution_uses_path(monkeypatch):
     assert runner._resolve_rscript() == r"C:\R\Rscript.exe"
 
 
-@pytest.mark.xfail(reason="Existing bug: fallback R versions are sorted lexicographically, so 4.9 wins over 4.10", strict=True)
 def test_rscript_fallback_chooses_highest_numeric_version(monkeypatch):
     runner = RRunner()
     monkeypatch.setattr(r_mod.shutil, "which", lambda name: None)

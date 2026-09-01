@@ -57,11 +57,69 @@ def _normalize(s: str, lang: str = "") -> str:
     if s is None:
         return ""
     s = s.replace("\r\n", "\n").rstrip("\n")
-    # R 的 print() 会产生 [1] 前缀，归一化以兼容 cat() 和 print() 两种写法
+    # R 的 print() 会产生 [1] 前缀与列对齐空格，归一化以兼容 cat() 和 print()
     if lang == "r":
         import re
-        s = re.sub(r"^\[\d+\]\s*", "", s, flags=re.MULTILINE)
+        lines = []
+        for line in s.split("\n"):
+            line = re.sub(r"^\s*\[\d+\]\s*", "", line)
+            line = re.sub(r"\s+", " ", line).strip()
+            lines.append(line)
+        return "\n".join(lines).rstrip("\n")
     return s
+
+
+def _cell_eq(a, b) -> bool:
+    """宽松单元格比较：数值 1 与 1.0 视为相等；None 只与 None 相等；其余按字符串。"""
+    if isinstance(a, bool) or isinstance(b, bool):
+        return bool(a) == bool(b)
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        return float(a) == float(b)
+    if a is None or b is None:
+        return a is None and b is None
+    return str(a) == str(b)
+
+
+def _rows_equal(actual_rows, expected_rows) -> bool:
+    if len(actual_rows) != len(expected_rows):
+        return False
+    return all(len(a) == len(e) and all(_cell_eq(x, y) for x, y in zip(a, e))
+               for a, e in zip(actual_rows, expected_rows))
+
+
+def _first_diff_cell(actual_rows, expected_rows):
+    """返回 (行号, 列号, 实际值, 期望值)——行数/列数不同时用 None 表示缺失。"""
+    for i in range(max(len(actual_rows), len(expected_rows))):
+        a = actual_rows[i] if i < len(actual_rows) else None
+        e = expected_rows[i] if i < len(expected_rows) else None
+        width = max(len(a) if a is not None else 0, len(e) if e is not None else 0)
+        for j in range(width):
+            av = a[j] if a is not None and j < len(a) else None
+            ev = e[j] if e is not None and j < len(e) else None
+            if not _cell_eq(av, ev):
+                return i + 1, j + 1, av, ev
+    return None
+
+
+def _error_summary(stderr: str) -> str:
+    """从 stderr 提取最有信息量的一行作为 diff 提示。
+
+    Python 的 traceback 第一行恒为 "Traceback (most recent call last):"，
+    真正错误在最后一行；g++ 的编译错误含 "error:" 关键字。逐个过滤。
+    """
+    if not stderr:
+        return "运行失败"
+    lines = [l.strip() for l in stderr.splitlines() if l.strip()]
+    if not lines:
+        return "运行失败"
+    for l in lines:
+        if "error:" in l.lower() and not l.lower().startswith("traceback"):
+            return l[:120]
+    meaningful = [l for l in lines
+                  if not (l.startswith("Traceback") or l.startswith(("File ", "  File ", "    ")))]
+    if meaningful:
+        return meaningful[-1][:120]
+    return lines[-1][:120]
 
 
 def _check_recommendation_completed(d: ProgressDAO, lang: str, pid: str) -> None:
@@ -92,6 +150,10 @@ def _record_attempt(lang: str, pid: str, code: str, passed: bool,
                     difficulty: int = 3) -> None:
     """统一的作答持久化：run 题和开放题共用，避免两处逻辑漂移。"""
     if not pid:
+        return
+    if pid.startswith("AI_VARIANT::"):
+        # AI 变式题不落库：伪 ID 写进 attempts/problems_status 会污染
+        # 错题本、进度统计、间隔复习与成就（幽灵条目 + 死按钮）
         return
     own_dao = dao is None
     d = dao or ProgressDAO()
@@ -135,15 +197,23 @@ def _run_test_cases(runner, lang: str, code: str, pdict: dict) -> tuple:
             if case_run.rows is not None:
                 actual_rows = [list(r) for r in case_run.rows]
                 expected_rows = [list(r) for r in pdict["expected_rows"]]
-                if actual_rows != expected_rows:
+                if not _rows_equal(actual_rows, expected_rows):
                     passed = False
-                    diff_hint = f"行数：实际 {len(actual_rows)} / 期望 {len(expected_rows)}"
+                    if len(actual_rows) != len(expected_rows):
+                        diff_hint = f"行数：实际 {len(actual_rows)} / 期望 {len(expected_rows)}"
+                    else:
+                        r_i, c_i, av, ev = _first_diff_cell(actual_rows, expected_rows)
+                        diff_hint = (f"第 {r_i} 行第 {c_i} 列不一致：实际 {av} / 期望 {ev}。"
+                                     f"请检查 SELECT 字段顺序与 ORDER BY。")
                     break
             else:
                 passed = False
+                diff_hint = "SQL 执行失败：" + _error_summary(case_run.stderr)
                 break
         else:
-            case_expected_out = tc.get("expected_output") or pdict.get("expected_output") or ""
+            # 期望输出可能合法为空串：必须用 is not None，不能 or（空串会误回退到题目级期望）
+            case_expected_out = tc["expected_output"] if tc.get("expected_output") is not None \
+                else pdict.get("expected_output") or ""
             expected_out = _normalize(str(case_expected_out), lang)
             actual_out = _normalize(case_run.stdout, lang)
             case_passed = case_run.ok and (expected_out == actual_out)
@@ -152,8 +222,7 @@ def _run_test_cases(runner, lang: str, code: str, pdict: dict) -> tuple:
                 if case_run.ok:
                     diff_hint = "输出与期望不一致，注意空格、大小写、标点和换行。"
                 else:
-                    err_short = (case_run.stderr or "").splitlines()[0] if case_run.stderr else "运行失败"
-                    diff_hint = f"运行错误：{err_short[:80]}"
+                    diff_hint = f"运行错误：{_error_summary(case_run.stderr)}"
                 if len(test_cases) > 1:
                     diff_hint = f"第 {ti+1} 组测试未通过——" + diff_hint
                 break
@@ -167,8 +236,8 @@ def _build_display(lang: str, pdict: dict, run_result) -> tuple:
         expected_display = _format_rows(pdict["expected_rows"])
         actual_display = (
             _format_rows(run_result.rows) if run_result and run_result.rows is not None
-            else (run_result.stdout if run_result else "(空)")
-        )
+            else ((run_result.stdout or "") if run_result else "(空)")
+        ) or "(空)"
     else:
         expected_display = _normalize(pdict.get("expected_output") or "", lang) or "(空)"
         actual_display = _normalize(run_result.stdout if run_result else "", lang) or "(空)"
@@ -177,6 +246,16 @@ def _build_display(lang: str, pdict: dict, run_result) -> tuple:
 
 def judge(lang: str, problem, code: str, dao: Optional[ProgressDAO] = None) -> JudgeResult:
     pdict = _to_problem_dict(problem)
+
+    if not (code or "").strip():
+        # 空代码：直接友好拒绝，四语言行为统一（此前 Python/R 空代码会"通过"）
+        expected_display, _ = _build_display(lang, pdict, None)
+        return JudgeResult(
+            passed=False, run_result=None,
+            ai_feedback="代码为空：请在编辑器中写下你的解答，再点「提交」。",
+            expected_display=expected_display, actual_display="(空)",
+            diff_hint="代码为空",
+        )
 
     if pdict.get("judge_mode") == "ai_open":
         return _judge_open(lang, pdict, answer=code, dao=dao)
@@ -217,7 +296,7 @@ def _judge_open(lang: str, pdict: dict, answer: str, dao: Optional[ProgressDAO] 
         actual_display=answer or "(空)",
         diff_hint="",
     )
-    if res.get("llm_ok"):
+    if res.get("llm_ok") and not str(pdict.get("id") or "").startswith("AI_VARIANT::"):
         pid = pdict.get("id") or ""
         own_dao = dao is None
         d = dao or ProgressDAO()

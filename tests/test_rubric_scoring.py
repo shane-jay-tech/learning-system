@@ -57,6 +57,50 @@ class TestRubricStorage:
         assert avgs["完整性"] == 65.0
 
 
+class TestDimensionStandardization:
+    def test_record_stores_dimension_id(self, dao):
+        dao.record_rubric_scores("agent_dev", "p1", 1, [
+            {"name": "内容完整性", "score": 80, "comment": ""},
+            {"name": "表述清晰", "score": 90, "comment": ""},
+        ])
+        rows = dao.conn.execute(
+            "SELECT dimension, dimension_id FROM rubric_scores ORDER BY id"
+        ).fetchall()
+        assert rows[0][1] == "completeness"
+        assert rows[1][1] == "clarity"
+
+    def test_dimension_averages_group_by_canonical(self, dao):
+        # 同一能力的不同自由文本名应聚合到同一规范维度
+        dao.record_rubric_scores("agent_dev", "p1", 1, [
+            {"name": "内容完整性", "score": 80, "comment": ""},
+        ])
+        dao.record_rubric_scores("agent_dev", "p2", 2, [
+            {"name": "要点覆盖全面", "score": 60, "comment": ""},
+        ])
+        avgs = dao.dimension_averages()
+        assert avgs["完整性"] == 70.0  # (80+60)/2 聚合
+
+    def test_dimension_trends_returns_labeled_rows(self, dao):
+        dao.record_rubric_scores("agent_dev", "p1", 1, [
+            {"name": "边界没处理", "score": 40, "comment": ""},
+            {"name": "命名风格好", "score": 90, "comment": ""},
+        ])
+        trends = dao.dimension_trends(days=30)
+        by_label = {t["label"]: t for t in trends}
+        assert by_label["边界处理"]["avg"] == 40.0
+        assert by_label["代码风格"]["avg"] == 90.0
+
+    def test_legacy_rows_without_dimension_id_fall_back_to_name(self, dao):
+        # 老库行没有 dimension_id：COALESCE 回退到自由文本名，仍可聚合
+        with dao.conn:
+            dao.conn.execute(
+                "INSERT INTO rubric_scores (lang, problem_id, attempt_id, dimension, score, comment, prompt_version, model) "
+                "VALUES ('agent_dev','p1',1,'老维度名',70,'',NULL,NULL)"
+            )
+        avgs = dao.dimension_averages()
+        assert avgs["老维度名"] == 70.0
+
+
 class TestJsonExtraction:
     def test_valid_json(self):
         text = '{"passed": true, "score": 85, "feedback": "good", "dimensions": []}'

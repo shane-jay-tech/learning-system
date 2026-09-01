@@ -25,6 +25,51 @@ def _problem_key(pid: str) -> str:
     return f"code::{pid}"
 
 
+def _editor_key(active_id: str) -> str:
+    """编辑器 widget key（带 epoch 计数）。
+
+    ACE/text_area 是带 key 的 widget：其内部状态优先级高于 value 参数，
+    直接改 session_state["code::..."] 不会让编辑器视觉重置（前端未受控、
+    下次 rerun 还会把旧值写回）。重置时把 epoch+1 → key 变化 → 组件重建，
+    starter_code 才能真正生效。
+    """
+    epoch = st.session_state.setdefault(f"editor_epoch::{active_id}", 0)
+    return f"editor_{active_id}_{epoch}"
+
+
+_PROBLEM_STATE_PREFIXES = ("code::", "chat_ctx::", "chat_history::", "preask_hist::",
+                           "show_preask::", "editor_epoch::")
+_LRU_CAP = 30  # 只保留最近访问的 30 道题的状态，防止长会话 session_state 无界累积
+
+
+def _touch_problem(active_id: str) -> None:
+    """记录访问并回收过期的题目状态（代码/对话/编辑器）。
+
+    每道题的 code::/chat::/editor 状态常驻 session_state，长会话刷几百道题
+    会无界累积。用 LRU 队列保留最近 30 道题，其余按前缀清理。
+    """
+    if active_id.startswith("AI_VARIANT::"):
+        return  # 变式题状态短暂，不参与 LRU
+    lru = st.session_state.setdefault("_problem_lru", [])
+    if not lru or lru[-1] != active_id:
+        lru.append(active_id)
+    keep_ids = set(lru[-_LRU_CAP:]) | {active_id}
+    for pid in list(lru[:-_LRU_CAP]):
+        if pid in keep_ids:
+            continue
+        for prefix in _PROBLEM_STATE_PREFIXES:
+            st.session_state.pop(prefix + pid, None)
+        # 编辑器 widget 状态 key：editor_<pid>_<epoch>（pid 本身可能含下划线，
+        # 精确按 pid 匹配：去掉前缀后从最后一个 _ 切分）
+        for k in list(st.session_state.keys()):
+            if not k.startswith("editor_"):
+                continue
+            body = k[len("editor_"):]
+            if "_" in body and body.rsplit("_", 1)[0] == pid:
+                st.session_state.pop(k, None)
+    st.session_state["_problem_lru"] = lru[-_LRU_CAP:]
+
+
 def _active_problem(base_problem):
     """返回当前展示的题（base 或 AI 变式题）+ is_variant 标志。"""
     variants = st.session_state.get("ai_variants", {})
@@ -65,11 +110,12 @@ def render_language():
                 st.session_state.selected_topic_idx = i
                 st.session_state.selected_problem_idx = 0
                 st.session_state.pop("last_judge_result", None)
-                st.session_state[f"topic_radio_{lang}"] = i
+                st.session_state[f"topic_select_{lang}"] = i
                 if target_problem_id:
                     for j, p in enumerate(t.problems):
                         if p.id == target_problem_id:
                             st.session_state.selected_problem_idx = j
+                            st.session_state[f"problem_select_{lang}_{t.slug}"] = j
                             break
                 break
 
@@ -82,7 +128,7 @@ def render_language():
     if st.session_state.selected_problem_idx >= len(topic.problems):
         st.session_state.selected_problem_idx = 0
 
-    hero(f"{meta['icon']} {meta['name']} 学习", meta["tagline"])
+    hero(f"{meta['name']} 练习", f"{meta['tagline']} · 选择专题与题目，完成后立即获得反馈")
 
     # 整段用 try/finally 保证 dao 在 st.rerun() 抛 StopException 时也释放
     dao = ProgressDAO()
@@ -94,28 +140,24 @@ def render_language():
 
 def _render_body(lang, topics, topic, dao):
     # 顶部：醒目的返回主页 / 换语言入口（不必去翻侧栏）
-    top_l, _ = st.columns([1, 4])
+    top_l, _ = st.columns([1, 5])
     with top_l:
-        if st.button("← 返回主页 / 换语言", use_container_width=True, key=f"back_home_{lang}"):
+        if st.button("← 返回首页", use_container_width=True, key=f"back_home_{lang}"):
             st.session_state.route = "home"
             st.rerun()
 
-    # 专题 / 题目导航并入左侧栏（全局菜单下方）；点侧栏顶部 « 可整体收起 = "列表回收"
-    with st.sidebar:
-        st.markdown("---")
-        section_title("专题")
+    # 专题 / 题目是当前任务的核心控制项，放在正文顶部，避免被全局侧栏挤到折叠区下方。
+    nav_topic, nav_problem = st.columns([3, 2], gap="medium")
+    with nav_topic:
         topic_titles = [t.title for t in topics]
-        # radio 完全由 session key 驱动（不用 index=，避免 key 与默认值双重设定的告警）。
-        # 这样程序改 key（见 render_language 的待切换块）就能压过前端回传的旧值。
-        radio_key = f"topic_radio_{lang}"
-        if radio_key not in st.session_state:
-            st.session_state[radio_key] = st.session_state.selected_topic_idx
-        new_topic_idx = st.radio(
-            "topic_radio",
+        select_key = f"topic_select_{lang}"
+        if select_key not in st.session_state:
+            st.session_state[select_key] = st.session_state.selected_topic_idx
+        new_topic_idx = st.selectbox(
+            "选择专题",
             options=list(range(len(topics))),
             format_func=lambda i: topic_titles[i],
-            label_visibility="collapsed",
-            key=radio_key,
+            key=select_key,
         )
         if new_topic_idx != st.session_state.selected_topic_idx:
             st.session_state.selected_topic_idx = new_topic_idx
@@ -123,19 +165,30 @@ def _render_body(lang, topics, topic, dao):
             st.session_state.pop("last_judge_result", None)
             st.rerun()
 
-        section_title("题目")
-        for i, p in enumerate(topic.problems):
+    with nav_problem:
+        problem_options = []
+        for p in topic.problems:
             status = dao.get_status(lang, p.id)
-            badge = {"solved": "✓ 已通过", "wrong": "× 待改", "unseen": "未尝试"}.get(status, "")
-            label = f"{i+1}. {p.title}"
-            if st.button(f"{label}\n{badge}", key=f"pbtn_{lang}_{p.id}", use_container_width=True):
-                st.session_state.selected_problem_idx = i
-                st.session_state.pop("last_judge_result", None)
-                st.rerun()
+            badge = {"solved": "已通过", "wrong": "待改", "unseen": "未尝试"}.get(status, "未尝试")
+            problem_options.append(f"{p.title} · {badge}")
+        problem_key = f"problem_select_{lang}_{topic.slug}"
+        if problem_key not in st.session_state:
+            st.session_state[problem_key] = st.session_state.selected_problem_idx
+        new_problem_idx = st.selectbox(
+            "选择题目",
+            options=list(range(len(topic.problems))),
+            format_func=lambda i: problem_options[i],
+            key=problem_key,
+        )
+        if new_problem_idx != st.session_state.selected_problem_idx:
+            st.session_state.selected_problem_idx = new_problem_idx
+            st.session_state.pop("last_judge_result", None)
+            st.rerun()
 
     base_problem = topic.problems[st.session_state.selected_problem_idx]
     active, is_variant = _active_problem(base_problem)
     active_id = active["id"]
+    _touch_problem(active_id)  # LRU 回收：防止长会话 session_state 无界累积
 
     _viewed_key = f"_lesson_viewed_{lang}_{topic.slug}"
     if _viewed_key not in st.session_state:
@@ -177,7 +230,7 @@ def _render_body(lang, topics, topic, dao):
         gen_col, back_col = st.columns(2)
         with gen_col:
             if st.button("✨ AI 变式题", key=f"gen_{base_problem.id}", use_container_width=True):
-                with st.spinner("AI 正在出题..."):
+                with st.spinner("AI 正在出题（最长约 45 秒）..."):
                     variant = generate_variant(lang, base_problem.to_dict())
                 if variant:
                     st.session_state.ai_variants[base_problem.id] = variant
@@ -192,20 +245,16 @@ def _render_body(lang, topics, topic, dao):
                     st.session_state.pop("last_judge_result", None)
                     st.rerun()
 
-        # 做题中问 AI
-        if st.session_state.get(f"show_preask::{active_id}"):
-            _render_pre_submit_chat(lang, topic, active, active_id, st.session_state.get(key, ""))
-
     with right_col:
         section_title("你的回答" if is_open else "代码编辑器")
         if is_open:
             code = st.text_area(
                 "answer", value=st.session_state[key], height=320,
-                key=f"editor_{active_id}", label_visibility="collapsed",
+                key=_editor_key(active_id), label_visibility="collapsed",
                 placeholder="用你自己的话作答……AI 老师会按评分标准给你点评。",
             )
         else:
-            code = code_editor(st.session_state[key], lang=lang, key=f"editor_{active_id}")
+            code = code_editor(st.session_state[key], lang=lang, key=_editor_key(active_id))
         if code is not None:
             st.session_state[key] = code
 
@@ -216,6 +265,9 @@ def _render_body(lang, topics, topic, dao):
         with reset_col:
             if st.button("↺ 重置", use_container_width=True, key=f"reset_{active_id}"):
                 st.session_state[key] = active.get("starter_code", "")
+                # epoch+1 → 编辑器 key 变化 → 组件重建，重置真正生效
+                epoch_key = f"editor_epoch::{active_id}"
+                st.session_state[epoch_key] = st.session_state.get(epoch_key, 0) + 1
                 st.session_state.pop("last_judge_result", None)
                 st.rerun()
         with ask_col:
@@ -223,13 +275,20 @@ def _render_body(lang, topics, topic, dao):
                 st.session_state[f"show_preask::{active_id}"] = True
                 st.rerun()
 
+        # 做题中问 AI：渲染在右栏按钮下方，紧邻触发按钮（此前在左栏，点击后要跨栏找输入框）
+        if st.session_state.get(f"show_preask::{active_id}"):
+            _render_pre_submit_chat(lang, topic, active, active_id, st.session_state.get(key, ""))
+
         if run_clicked:
-            spinner_msg = "⏳ AI 老师正在评判你的回答（约 5-15 秒）..." if is_open else "⏳ 正在运行代码并请 AI 点评（约 5-15 秒）..."
+            spinner_msg = ("⏳ AI 老师正在评判你的回答（通常几秒，网络慢时最长约 45 秒）..."
+                           if is_open else "⏳ 正在运行代码并请 AI 点评（通常几秒，网络慢时最长约 45 秒）...")
             with st.spinner(spinner_msg):
                 judge_dao = None if is_variant else dao
                 result = judge(lang, active, code or "", dao=judge_dao)
             st.session_state.last_judge_result = result
             st.session_state.last_judge_pid = active_id
+            # 判定完成即时提示：结果区在编辑器下方，rerun 后页面回顶，用户容易看不到
+            st.toast("✅ 已判定，结果在下方" if result.passed else "❌ 未通过，看下方对比与点评")
             st.session_state[f"chat_ctx::{active_id}"] = {
                 "code": code or "",
                 "run_result": result.run_result,
@@ -353,7 +412,7 @@ def _render_chat(lang: str, active: dict, active_id: str):
                 "title": active.get("title", ""),
                 "statement": statement,
             }
-            with st.spinner("AI 老师在想..."):
+            with st.spinner("AI 老师在想…（最长约 45 秒）"):
                 answer = follow_up(
                     lang=lang,
                     problem=problem_dict,
@@ -367,6 +426,8 @@ def _render_chat(lang: str, active: dict, active_id: str):
             history.append({"role": "user", "text": question.strip()})
             history.append({"role": "ai", "text": answer})
             st.session_state[history_key] = history
+            # 发送后清空输入框（发完问题文字还留着，用户得手动删，反人类）
+            st.session_state.pop(f"chat_input_{active_id}", None)
             st.rerun()
 
 
@@ -409,7 +470,7 @@ def _render_pre_submit_chat(lang: str, topic, active: dict, active_id: str, code
                 st.rerun()
 
         if ask_clicked and question.strip():
-            with st.spinner("AI 老师在想…"):
+            with st.spinner("AI 老师在想…（最长约 45 秒）"):
                 answer = ask_lesson(
                     lang=lang,
                     topic_title=topic.title,
@@ -420,6 +481,7 @@ def _render_pre_submit_chat(lang: str, topic, active: dict, active_id: str, code
             history.append({"role": "user", "text": question.strip()})
             history.append({"role": "ai", "text": answer})
             st.session_state[hist_key] = history
+            st.session_state.pop(f"preask_input_{active_id}", None)
             st.rerun()
 
 
@@ -463,7 +525,7 @@ def _render_lesson_chat(lang: str, topic):
                 st.rerun()
 
         if ask_clicked and question.strip():
-            with st.spinner("AI 老师在想…"):
+            with st.spinner("AI 老师在想…（最长约 45 秒）"):
                 answer = ask_lesson(
                     lang=lang,
                     topic_title=topic.title,
@@ -474,4 +536,5 @@ def _render_lesson_chat(lang: str, topic):
             history.append({"role": "user", "text": question.strip()})
             history.append({"role": "ai", "text": answer})
             st.session_state[hist_key] = history
+            st.session_state.pop(f"lesson_q_{lang}_{topic.slug}", None)
             st.rerun()

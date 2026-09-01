@@ -6,9 +6,9 @@ import streamlit as st
 
 from core.achievements import check_achievements, get_all_earned, get_all_with_state, get_progress_summary, get_achievement
 from core.loader import find_problem
-from core.progress import ProgressDAO
+from core.progress import ProgressDAO, format_local_ts
 from core.recommend import cross_recommend, recommend
-from core.report import generate_report, report_to_markdown
+from core.report import generate_report, report_to_html, report_to_markdown
 from ui.components import ALL_LANGS, LANG_META, hero, metric_tile, navigate_to_problem, section_title
 
 
@@ -20,8 +20,7 @@ def _make_rec_id(surface: str, reason_code: str, lang: str, pid: str, rank: int)
 def _streak_html(streak: int) -> str:
     flame = "🔥" if streak >= 3 else ("⭐" if streak >= 1 else "·")
     return (
-        f'<div class="metric-tile" style="background:linear-gradient(135deg,#FEF3C7 0%,#FDE68A 100%);">'
-        f'<div class="num" style="color:#B45309;">{flame} {streak}</div>'
+        f'<div class="metric-tile streak"><div class="num">{flame} {streak}</div>'
         f'<div class="lbl">连续打卡（天）</div></div>'
     )
 
@@ -39,7 +38,7 @@ def _build_chart_data(daily, days: int = 14):
 
 
 def render_dashboard():
-    hero("📊 学习面板", "看看自己最近学了多少、连续坚持了几天")
+    hero("学习面板", "用趋势与复习状态了解进展，决定下一步学什么")
 
     dao = ProgressDAO()
     try:
@@ -99,7 +98,7 @@ def _render_dashboard_body(dao):
     _render_rubric_trends(dao)
 
     section_title("今日推荐（优先错题，再做新题）")
-    plan = recommend(n=5)
+    plan = recommend(n=5, dao=dao)  # 复用当前连接，不再内部另开 DAO
     if not plan:
         st.info("题库还没加载到推荐项；试着进入语言主页直接选题。")
     else:
@@ -126,32 +125,32 @@ def _render_dashboard_body(dao):
             pass
         for it in plan:
             meta = LANG_META[it["lang"]]
-            cols2 = st.columns([3, 1])
-            with cols2[0]:
-                with st.container(border=True):
+            with st.container(border=True):
+                cols2 = st.columns([3, 1])
+                with cols2[0]:
                     st.markdown(
                         f"**{meta['icon']} {meta['name']} · {html.escape(it['title'])}**"
                         f"  <span style='color:#64748B;'>难度 {it['difficulty']} · {html.escape(it['topic_title'])}</span>",
                         unsafe_allow_html=True,
                     )
-            with cols2[1]:
-                if st.button("去做 →", key=f"reco_{it['problem_id']}", type="primary", use_container_width=True):
-                    try:
-                        imp = st.session_state.get(impressions_key, {}).get(
-                            (it["lang"], it["problem_id"], "dashboard"), {})
-                        dao.emit_event("recommendation_clicked", lang=it["lang"],
-                                       problem_id=it["problem_id"],
-                                       payload={
-                                           "recommendation_id": imp.get("recommendation_id", ""),
-                                           "reason_code": it.get("reason_code", ""),
-                                           "surface": "dashboard",
-                                           "rank": imp.get("rank", 0),
-                                       })
-                    except Exception:
-                        pass
-                    navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
+                with cols2[1]:
+                    if st.button("去做 →", key=f"reco_{it['problem_id']}", type="primary", use_container_width=True):
+                        try:
+                            imp = st.session_state.get(impressions_key, {}).get(
+                                (it["lang"], it["problem_id"], "dashboard"), {})
+                            dao.emit_event("recommendation_clicked", lang=it["lang"],
+                                           problem_id=it["problem_id"],
+                                           payload={
+                                               "recommendation_id": imp.get("recommendation_id", ""),
+                                               "reason_code": it.get("reason_code", ""),
+                                               "surface": "dashboard",
+                                               "rank": imp.get("rank", 0),
+                                           })
+                        except Exception:
+                            pass
+                        navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
 
-    _render_cross_recommend()
+    _render_cross_recommend(dao)
     _render_achievements(dao)
     _render_heatmap(dao)
 
@@ -159,25 +158,84 @@ def _render_dashboard_body(dao):
     rpt_col1, rpt_col2, _ = st.columns([1, 1, 3])
     with rpt_col1:
         if st.button("生成周报", use_container_width=True, key="gen_weekly"):
-            report = generate_report(dao, days=7)
-            md = report_to_markdown(report)
+            with st.spinner("正在生成报告…"):
+                report = generate_report(dao, days=7)
+                md = report_to_markdown(report)
+                html_report = report_to_html(report)
             st.session_state["last_report_md"] = md
+            st.session_state["last_report_html"] = html_report
+            st.session_state["last_report_days"] = 7
     with rpt_col2:
         if st.button("生成月报", use_container_width=True, key="gen_monthly"):
-            report = generate_report(dao, days=30)
-            md = report_to_markdown(report)
+            with st.spinner("正在生成报告…"):
+                report = generate_report(dao, days=30)
+                md = report_to_markdown(report)
+                html_report = report_to_html(report)
             st.session_state["last_report_md"] = md
+            st.session_state["last_report_html"] = html_report
+            st.session_state["last_report_days"] = 30
 
     if st.session_state.get("last_report_md"):
-        st.download_button(
-            "⬇️ 下载报告 (.md)",
-            data=st.session_state["last_report_md"],
-            file_name=f"learning_report_{date.today().isoformat()}.md",
-            mime="text/markdown",
-            use_container_width=False,
-        )
+        dl_col1, dl_col2, _ = st.columns([1, 1, 3])
+        days = st.session_state.get("last_report_days", 7)
+        with dl_col1:
+            st.download_button(
+                "⬇️ 下载报告 (.md)",
+                data=st.session_state["last_report_md"],
+                file_name=f"learning_report_{date.today().isoformat()}.md",
+                mime="text/markdown",
+                use_container_width=True,
+            )
+        with dl_col2:
+            st.download_button(
+                "🖨️ 打印版 (.html)",
+                data=st.session_state.get("last_report_html", ""),
+                file_name=f"learning_report_{date.today().isoformat()}.html",
+                mime="text/html",
+                use_container_width=True,
+                help="下载后用浏览器打开，Ctrl+P 即可打印或另存为 PDF",
+            )
         with st.expander("预览报告", expanded=False):
             st.markdown(st.session_state["last_report_md"])
+
+    section_title("📦 学习数据")
+    exp_col, imp_col = st.columns([1, 2])
+    with exp_col:
+        from core.data_portability import export_json
+        # 导出全库 JSON 有成本：按「答题数+事件数」做渲染内缓存，
+        # 数据没变化时复用上次序列化结果
+        _exp_key = f"{dao.total_attempts()}_{dao.event_count()}"
+        if st.session_state.get("_export_cache_key") != _exp_key:
+            st.session_state["_export_cache_json"] = export_json(dao)
+            st.session_state["_export_cache_key"] = _exp_key
+        st.download_button(
+            "⬇️ 导出全部学习数据 (.json)",
+            data=st.session_state["_export_cache_json"],
+            file_name=f"learning_data_{date.today().isoformat()}.json",
+            mime="application/json",
+            use_container_width=True,
+            help="包含答题记录、错题、复习状态、成就与事件——可导入到另一台机器",
+        )
+    with imp_col:
+        with st.expander("📥 导入学习数据（换机器迁移）", expanded=False):
+            st.caption("导入会**合并**进当前数据：状态/复习按题覆盖，答题记录追加。建议先做一次备份。")
+            uploaded = st.file_uploader("选择之前导出的 .json 文件", type=["json"],
+                                        key="data_import_uploader")
+            if uploaded is not None:
+                if st.button("确认导入", type="primary", key="data_import_confirm"):
+                    from core.data_portability import import_json
+                    try:
+                        raw = uploaded.getvalue().decode("utf-8")
+                        stats = import_json(dao, raw)
+                        st.success(
+                            f"导入完成：答题 {stats['attempts']} 条 · 事件 {stats['learning_events']} 条 · "
+                            f"状态 {stats['problems_status']} 题 · 复习 {stats['review_state']} 题 · "
+                            f"元数据 {stats['meta']} 项"
+                        )
+                        dao._clear_memo()
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"导入失败：{exc}（当前数据未受影响）")
 
     section_title("最近活动")
     if not recent:
@@ -197,14 +255,14 @@ def _render_dashboard_body(dao):
             st.markdown(
                 f'<div style="padding:8px 12px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;">'
                 f'<span>{badge} {meta["icon"]} {meta["name"]} · {html.escape(title)}</span>'
-                f'<span style="color:#64748B;font-size:12px;">{r["ts"]}</span></div>',
+                f'<span style="color:#64748B;font-size:12px;">{format_local_ts(r["ts"])}</span></div>',
                 unsafe_allow_html=True,
             )
 
 
-def _render_cross_recommend():
+def _render_cross_recommend(dao):
     """跨路径推荐区：完成某里程碑后，推荐其他路径的互补内容。"""
-    cross = cross_recommend(n=3)
+    cross = cross_recommend(n=3, dao=dao)  # 复用当前连接
     if not cross:
         return
 
@@ -212,26 +270,20 @@ def _render_cross_recommend():
     impressions_key = "_rec_impressions"
     if impressions_key not in st.session_state:
         st.session_state[impressions_key] = {}
-    dao = ProgressDAO()
-    try:
-        cross_shown_key = "_cross_rec_shown_ids"
-        if cross_shown_key not in st.session_state:
-            st.session_state[cross_shown_key] = set()
-        for rank, it in enumerate(cross, 1):
-            pid_key = (it["lang"], it["problem_id"])
-            if pid_key not in st.session_state[cross_shown_key]:
-                st.session_state[cross_shown_key].add(pid_key)
-                rec_id = _make_rec_id("cross_path", "cross_path", it["lang"], it["problem_id"], rank)
-                st.session_state[impressions_key][(it["lang"], it["problem_id"], "cross_path")] = {
-                    "recommendation_id": rec_id, "reason_code": "cross_path", "rank": rank,
-                }
-                dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
-                               payload={"reason_code": "cross_path", "surface": "cross_path",
-                                        "rank": rank, "recommendation_id": rec_id})
-    except Exception:
-        pass
-    finally:
-        dao.close()
+    cross_shown_key = "_cross_rec_shown_ids"
+    if cross_shown_key not in st.session_state:
+        st.session_state[cross_shown_key] = set()
+    for rank, it in enumerate(cross, 1):
+        pid_key = (it["lang"], it["problem_id"])
+        if pid_key not in st.session_state[cross_shown_key]:
+            st.session_state[cross_shown_key].add(pid_key)
+            rec_id = _make_rec_id("cross_path", "cross_path", it["lang"], it["problem_id"], rank)
+            st.session_state[impressions_key][(it["lang"], it["problem_id"], "cross_path")] = {
+                "recommendation_id": rec_id, "reason_code": "cross_path", "rank": rank,
+            }
+            dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
+                           payload={"reason_code": "cross_path", "surface": "cross_path",
+                                    "rank": rank, "recommendation_id": rec_id})
 
     for it in cross:
         meta = LANG_META[it["lang"]]
@@ -241,7 +293,7 @@ def _render_cross_recommend():
                 st.markdown(
                     f"**{meta['icon']} {meta['name']} · {html.escape(it['title'])}**"
                     f"  <span style='color:#64748B;'>难度 {it['difficulty']} · {html.escape(it['topic_title'])}</span>"
-                    f"<br><span style='color:#6366F1;font-size:13px;'>💡 {html.escape(it['cross_reason'])}</span>",
+                    f"<br><span style='color:#5B5BD6;font-size:13px;'>💡 {html.escape(it['cross_reason'])}</span>",
                     unsafe_allow_html=True,
                 )
         with cols2[1]:
@@ -249,15 +301,13 @@ def _render_cross_recommend():
                 try:
                     imp = st.session_state.get(impressions_key, {}).get(
                         (it["lang"], it["problem_id"], "cross_path"), {})
-                    d2 = ProgressDAO()
-                    d2.emit_event("recommendation_clicked", lang=it["lang"], problem_id=it["problem_id"],
-                                  payload={
-                                      "recommendation_id": imp.get("recommendation_id", ""),
-                                      "reason_code": "cross_path",
-                                      "surface": "cross_path",
-                                      "rank": imp.get("rank", 0),
-                                  })
-                    d2.close()
+                    dao.emit_event("recommendation_clicked", lang=it["lang"], problem_id=it["problem_id"],
+                                   payload={
+                                       "recommendation_id": imp.get("recommendation_id", ""),
+                                       "reason_code": "cross_path",
+                                       "surface": "cross_path",
+                                       "rank": imp.get("rank", 0),
+                                   })
                 except Exception:
                     pass
                 navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
@@ -290,7 +340,7 @@ def _render_achievements(dao):
             with cols[j]:
                 if state == "earned":
                     bg = "#FAFAFA"
-                    border = "#6366F1"
+                    border = "#5B5BD6"
                     opacity = "1"
                     extra = ""
                 elif state == "approaching":
@@ -307,8 +357,8 @@ def _render_achievements(dao):
                     f'<div style="text-align:center;padding:12px;border:2px solid {border};'
                     f'border-radius:12px;background:{bg};opacity:{opacity};">'
                     f'<div style="font-size:28px;">{a.icon}</div>'
-                    f'<div style="font-size:12px;font-weight:600;margin-top:4px;">{html.escape(a.title)}</div>'
-                    f'<div style="font-size:11px;color:#64748B;">{html.escape(a.description)}</div>'
+                    f'<div style="font-size:13px;font-weight:600;margin-top:4px;">{html.escape(a.title)}</div>'
+                    f'<div style="font-size:12px;color:#475569;">{html.escape(a.description)}</div>'
                     f'{extra}</div>',
                     unsafe_allow_html=True,
                 )
@@ -319,7 +369,7 @@ def _render_heatmap(dao):
     section_title("📅 学习热力图（最近 90 天）")
 
     rows = dao.conn.execute(
-        "SELECT DATE(ts) AS d, COUNT(*) AS n, SUM(passed) AS p "
+        "SELECT DATE(ts, 'localtime') AS d, COUNT(*) AS n, SUM(passed) AS p "
         "FROM attempts WHERE ts >= datetime('now', '-90 days') "
         "GROUP BY d ORDER BY d"
     ).fetchall()
@@ -356,7 +406,7 @@ def _render_heatmap(dao):
         )
 
     legend = (
-        '<div style="display:flex;align-items:center;gap:4px;margin-top:8px;font-size:11px;color:#64748B;">'
+        '<div style="display:flex;align-items:center;gap:4px;margin-top:8px;font-size:12px;color:#475569;">'
         '<span>少</span>'
         '<div style="width:12px;height:12px;background:#EBEDF0;border-radius:2px;"></div>'
         '<div style="width:12px;height:12px;background:#C6E48B;border-radius:2px;"></div>'
@@ -443,7 +493,7 @@ def _render_review_health(dao):
         st.markdown(
             f"逾期分桶：**1-3天** {b['1_3']} · **4-7天** {b['4_7']} · **>7天** {b['7_plus']}"
         )
-        st.caption(f"有 {stats['total_due']} 道题到期待复习，去「错题本 → 到期复习」页面集中练习。")
+        st.caption(f"有 {stats['total_due']} 道题已到期待复习，去「错题本 → 到期复习」页面集中练习。")
 
     if stats["high_risk"]:
         with st.expander(f"⚠️ 高风险题（上次失败且逾期，共 {len(stats['high_risk'])} 题）"):
@@ -452,28 +502,25 @@ def _render_review_health(dao):
 
 
 def _render_rubric_trends(dao):
-    """能力维度趋势：最近 30 天各维度平均分。"""
+    """能力维度趋势：最近 30 天各维度平均分（按规范维度聚合，跨题可比）。"""
     section_title("🎯 能力维度趋势（近 30 天）")
-    rows = dao.conn.execute(
-        "SELECT dimension, AVG(score), COUNT(*) FROM rubric_scores "
-        "WHERE ts >= datetime('now', '-30 days') "
-        "GROUP BY dimension ORDER BY AVG(score) ASC"
-    ).fetchall()
+    rows = dao.dimension_trends(days=30)
     if not rows:
         st.caption("还没有开放题维度评分数据。做几道开放题后这里会展示能力趋势。")
         return
 
-    for dim, avg, cnt in rows:
+    for item in rows:
+        label, avg, cnt = item["label"], item["avg"], item["count"]
         pct = min(avg / 100.0, 1.0)
         bar_color = "#EF4444" if avg < 50 else ("#F59E0B" if avg < 70 else "#10B981")
         st.markdown(
             f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-            f'<span style="min-width:80px;font-size:13px;">{html.escape(dim)}</span>'
+            f'<span style="min-width:80px;font-size:13px;">{html.escape(label)}</span>'
             f'<div style="flex:1;background:#E2E8F0;border-radius:4px;height:14px;">'
             f'<div style="width:{pct*100:.0f}%;background:{bar_color};border-radius:4px;height:14px;"></div></div>'
-            f'<span style="min-width:60px;font-size:12px;color:#64748B;">{avg:.0f} 分 ({cnt}题)</span>'
+            f'<span style="min-width:60px;font-size:13px;color:#475569;">{avg:.0f} 分 ({cnt}题)</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
     weakest = rows[0]
-    st.caption(f"最薄弱维度：**{weakest[0]}**（{weakest[1]:.0f} 分），建议针对性练习。")
+    st.caption(f"最薄弱维度：**{weakest['label']}**（{weakest['avg']:.0f} 分），建议针对性练习。")

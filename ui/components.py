@@ -1,11 +1,25 @@
 import html
 import streamlit as st
 
-try:
-    from streamlit_ace import st_ace
-    _HAS_ACE = True
-except Exception:
-    _HAS_ACE = False
+# streamlit_ace 的 import 链实测 ~0.5s：惰性加载，把成本挪到第一次
+# 真正渲染编辑器时（语言页），首页/首屏不再替它付费。
+_HAS_ACE = False
+_ACE_LOADED = False
+st_ace = None
+
+
+def _ensure_ace():
+    global _HAS_ACE, _ACE_LOADED, st_ace
+    if _ACE_LOADED:
+        return
+    _ACE_LOADED = True
+    try:
+        from streamlit_ace import st_ace as _ace
+        st_ace = _ace
+        _HAS_ACE = True
+    except Exception:
+        st_ace = None
+        _HAS_ACE = False
 
 
 # 5 个语言的元数据——所有 UI 都从这里取
@@ -22,9 +36,22 @@ ALL_LANGS = list(LANG_META.keys())
 
 
 def navigate_to_problem(lang: str, topic_slug: str | None = None, problem_id: str | None = None):
-    """Unified navigation helper — all pages use this to jump to a problem."""
+    """Unified navigation helper — all pages use this to jump to a problem.
+
+    不带 topic_slug（如侧栏「按语言刷题」）时重置专题/题目索引：
+    否则残留的旧索引 + 持久化选择状态会把用户带回上一语言的任意位置。
+    """
     st.session_state.route = "language"
     st.session_state.selected_lang = lang
+    if topic_slug is None:
+        st.session_state.selected_topic_idx = 0
+        st.session_state.selected_problem_idx = 0
+        # 清掉该语言的专题控件持久状态，让它按 selected_topic_idx=0 重建
+        st.session_state.pop(f"topic_radio_{lang}", None)  # 清理旧版本遗留状态
+        st.session_state.pop(f"topic_select_{lang}", None)
+        for state_key in list(st.session_state.keys()):
+            if state_key.startswith(f"problem_select_{lang}_"):
+                st.session_state.pop(state_key, None)
     st.session_state.selection = {
         "lang": lang,
         "topic_slug": topic_slug,
@@ -46,6 +73,7 @@ def code_highlight_lang(lang: str) -> str:
 
 
 def code_editor(value: str, lang: str, key: str, height: int = 540) -> str:
+    _ensure_ace()
     if _HAS_ACE:
         ace_lang = LANG_META.get(lang, {}).get("ace", "text")
         return st_ace(
@@ -59,8 +87,8 @@ def code_editor(value: str, lang: str, key: str, height: int = 540) -> str:
             show_gutter=True,
             show_print_margin=False,
             auto_update=True,
-            min_lines=24,
-            max_lines=44,
+            min_lines=20,
+            max_lines=36,
             key=key,
         )
     return st.text_area("code", value=value, height=height, key=key, label_visibility="collapsed")
@@ -68,7 +96,7 @@ def code_editor(value: str, lang: str, key: str, height: int = 540) -> str:
 
 def hero(title: str, subtitle: str = ""):
     st.markdown(
-        f'<div class="hero"><h1>{html.escape(title)}</h1>'
+        f'<div class="hero" role="banner"><h1>{html.escape(title)}</h1>'
         f'<p>{html.escape(subtitle)}</p></div>',
         unsafe_allow_html=True,
     )
@@ -79,8 +107,8 @@ def lang_card_html(lang: str, total: int, solved: int, wrong: int) -> str:
     pct = int(round(solved / total * 100)) if total else 0
     return (
         f'<div class="lang-card">'
-        f'<div class="icon">{meta["icon"]}</div>'
-        f'<div class="title">{html.escape(meta["name"])}</div>'
+        f'<div class="head"><div class="icon">{meta["icon"]}</div>'
+        f'<div class="title">{html.escape(meta["name"])}</div></div>'
         f'<div class="subtitle">{html.escape(meta["tagline"])}</div>'
         f'<div class="stat-row">'
         f'<span>已通过 <b>{solved}</b></span>'
@@ -92,7 +120,10 @@ def lang_card_html(lang: str, total: int, solved: int, wrong: int) -> str:
 
 
 def metric_tile(num, lbl: str) -> str:
-    return f'<div class="metric-tile"><div class="num">{num}</div><div class="lbl">{html.escape(lbl)}</div></div>'
+    return (
+        f'<div class="metric-tile"><div class="num">{html.escape(str(num))}</div>'
+        f'<div class="lbl">{html.escape(lbl)}</div></div>'
+    )
 
 
 def section_title(text: str):
@@ -107,9 +138,10 @@ def lesson_box(md: str):
 
 def verdict_banner(passed: bool, elapsed_ms: int = 0):
     if passed:
+        timing = f" 用时 {elapsed_ms} 毫秒。" if elapsed_ms > 0 else ""
         st.markdown(
             f'<div class="verdict pass"><span class="ico">✅</span>'
-            f'<div><b>通过！</b> 用时 {elapsed_ms} 毫秒。继续保持～</div></div>',
+            f'<div><b>通过！</b>{timing}继续保持～</div></div>',
             unsafe_allow_html=True,
         )
     else:
@@ -131,7 +163,7 @@ def ai_feedback_block(text: str):
     if not text:
         return
     st.markdown(
-        '<div class="ai-feedback"><span class="label">🤖 AI 老师点评</span></div>',
+        '<div class="ai-feedback"><span class="label">AI 老师点评</span></div>',
         unsafe_allow_html=True,
     )
     st.markdown(text)

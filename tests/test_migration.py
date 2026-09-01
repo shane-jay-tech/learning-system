@@ -83,6 +83,7 @@ class TestOldDatabaseMissingColumns:
             cols = {r[1] for r in dao.conn.execute("PRAGMA table_info(rubric_scores)").fetchall()}
             assert "prompt_version" in cols
             assert "model" in cols
+            assert "dimension_id" in cols  # 能力维度标准化列（v0.6.5）
             # Original data preserved
             count = dao.conn.execute("SELECT COUNT(*) FROM attempts").fetchone()[0]
             assert count == 1

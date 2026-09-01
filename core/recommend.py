@@ -61,11 +61,8 @@ def _topic_weakness(items: List[Dict], status: Dict) -> Dict[str, float]:
 
 
 def _due_reviews_from_state(dao: ProgressDAO) -> set:
-    """从 review_state 表获取到期复习题目，由真实间隔算法驱动。"""
-    return {
-        (r["lang"], r["problem_id"])
-        for r in dao.get_due_reviews(limit=1000)
-    }
+    """从 review_state 表获取到期复习题目，由真实间隔算法驱动（轻量 id 查询）。"""
+    return dao.due_review_ids(limit=1000)
 
 
 def recommend(n: int = 5, dao: Optional[ProgressDAO] = None) -> List[Dict]:

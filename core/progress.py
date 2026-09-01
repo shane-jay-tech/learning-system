@@ -1,15 +1,35 @@
+import logging
 import os
 import sqlite3
 from pathlib import Path
 from typing import Dict, List, Optional
 
+logger = logging.getLogger(__name__)
+
 
 _DEFAULT_DB = str(Path(__file__).resolve().parent.parent / "data" / "progress.db")
 
 
+def format_local_ts(ts_str: Optional[str]) -> str:
+    """把库里存的 UTC 时间戳转成本地 'YYYY-MM-DD HH:MM'（解析失败原样返回）。
+
+    直接用 UTC 原文展示会差 8 小时，用户看到"昨晚的提交显示成今天下午"，反人类。
+    """
+    if not ts_str:
+        return ""
+    try:
+        from datetime import datetime, timezone
+        dt = datetime.strptime(ts_str.split('.')[0], "%Y-%m-%d %H:%M:%S")
+        dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone().strftime("%Y-%m-%d %H:%M")
+    except (ValueError, TypeError):
+        return ts_str
+
+
 class ProgressDAO:
     def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path or _DEFAULT_DB
+        # LS_PROGRESS_DB 环境变量覆盖默认库路径——AppTest 等集成测试用它隔离真实数据
+        self.db_path = db_path or os.environ.get("LS_PROGRESS_DB") or _DEFAULT_DB
         parent = os.path.dirname(os.path.abspath(self.db_path))
         if parent:
             os.makedirs(parent, exist_ok=True)
@@ -17,6 +37,8 @@ class ProgressDAO:
         # 并发：WAL + 5s busy_timeout 避免 Streamlit 多线程触发 database is locked
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.execute("PRAGMA busy_timeout=5000")
+        # 单次渲染内重复查询去重（dashboard 一次渲染会多次调 daily_streak 等）
+        self._memo: dict = {}
         self.conn.executescript("""
             CREATE TABLE IF NOT EXISTS attempts (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,6 +104,20 @@ class ProgressDAO:
             CREATE INDEX IF NOT EXISTS idx_events_lang_pid ON learning_events(lang, problem_id);
         """)
         self.conn.commit()
+        # 时间列索引：attempts_by_day / 热力图 / rubric 趋势 / 漏斗都按时间过滤，
+        # 缺索引时全部 SCAN 全表（EXPLAIN 实测）。逐个容错创建：
+        # 老库缺列（如 learning_events.created_at）时跳过而不是崩溃。
+        for _index_ddl in (
+            "CREATE INDEX IF NOT EXISTS idx_attempts_ts ON attempts(ts)",
+            "CREATE INDEX IF NOT EXISTS idx_rubric_ts ON rubric_scores(ts)",
+            "CREATE INDEX IF NOT EXISTS idx_events_created ON learning_events(created_at)",
+            "CREATE INDEX IF NOT EXISTS idx_status_status_ts ON problems_status(status, last_attempt_ts)",
+        ):
+            try:
+                self.conn.execute(_index_ddl)
+            except sqlite3.OperationalError as e:
+                logger.warning("skip index (old schema?): %s — %s", _index_ddl, e)
+        self.conn.commit()
         self._migrate()
 
     def _migrate(self):
@@ -91,6 +127,9 @@ class ProgressDAO:
             self.conn.execute("ALTER TABLE rubric_scores ADD COLUMN prompt_version TEXT")
         if "model" not in cols:
             self.conn.execute("ALTER TABLE rubric_scores ADD COLUMN model TEXT")
+        if "dimension_id" not in cols:
+            # 能力维度标准化：规范 id（correctness/completeness/…）跨题可比
+            self.conn.execute("ALTER TABLE rubric_scores ADD COLUMN dimension_id TEXT")
         cur = self.conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_meta'")
         if not cur.fetchone():
             self.conn.execute(
@@ -98,6 +137,21 @@ class ProgressDAO:
             self.conn.execute(
                 "INSERT OR REPLACE INTO schema_meta VALUES ('schema_version', '2')")
         self.conn.commit()
+
+    def _memoized(self, key: str, fn, ttl: float = 3.0):
+        """单次渲染内去重：dashboard 一次渲染会 3 次调用 daily_streak 等，
+        TTL 内复用结果；写操作（record/mark_status）会清空 memo。"""
+        import time as _time
+        hit = self._memo.get(key)
+        now = _time.monotonic()
+        if hit is not None and now - hit[1] < ttl:
+            return hit[0]
+        value = fn()
+        self._memo[key] = (value, now)
+        return value
+
+    def _clear_memo(self) -> None:
+        self._memo.clear()
 
     def record_attempt_and_status(self, lang: str, pid: str, code: str,
                                   passed: bool, ai_feedback: str) -> int:
@@ -115,6 +169,7 @@ class ProgressDAO:
                 "VALUES (?,?,?, CURRENT_TIMESTAMP)",
                 (lang, pid, status),
             )
+            self._clear_memo()
             return cur.lastrowid
 
     # 兼容旧 API（test_progress 等）
@@ -124,6 +179,7 @@ class ProgressDAO:
                 "INSERT INTO attempts (lang, problem_id, code, passed, ai_feedback) VALUES (?,?,?,?,?)",
                 (lang, pid, code, 1 if passed else 0, ai_feedback),
             )
+            self._clear_memo()
             return cur.lastrowid
 
     def mark_status(self, lang: str, pid: str, status: str) -> None:
@@ -133,6 +189,7 @@ class ProgressDAO:
                 "VALUES (?,?,?, CURRENT_TIMESTAMP)",
                 (lang, pid, status),
             )
+        self._clear_memo()
 
     def get_status(self, lang: str, pid: str) -> str:
         row = self.conn.execute(
@@ -142,34 +199,40 @@ class ProgressDAO:
         return row[0] if row else "unseen"
 
     def list_mistakes(self) -> List[Dict]:
-        rows = self.conn.execute("""
-            SELECT ps.lang, ps.problem_id, ps.last_attempt_ts,
-                   (SELECT a.code FROM attempts a
-                      WHERE a.lang=ps.lang AND a.problem_id=ps.problem_id
-                      ORDER BY a.id DESC LIMIT 1) AS last_code,
-                   (SELECT a.ai_feedback FROM attempts a
-                      WHERE a.lang=ps.lang AND a.problem_id=ps.problem_id
-                      ORDER BY a.id DESC LIMIT 1) AS last_feedback
-            FROM problems_status ps
-            WHERE ps.status='wrong'
-            ORDER BY ps.last_attempt_ts DESC
-        """).fetchall()
-        return [
-            {"lang": r[0], "problem_id": r[1], "ts": r[2], "code": r[3] or "", "ai_feedback": r[4] or ""}
-            for r in rows
-        ]
+        def _query():
+            rows = self.conn.execute("""
+                WITH latest AS (
+                  SELECT lang, problem_id, code, ai_feedback,
+                         ROW_NUMBER() OVER (PARTITION BY lang, problem_id ORDER BY id DESC) rn
+                  FROM attempts
+                )
+                SELECT ps.lang, ps.problem_id, ps.last_attempt_ts, l.code, l.ai_feedback
+                FROM problems_status ps
+                LEFT JOIN latest l
+                  ON l.lang=ps.lang AND l.problem_id=ps.problem_id AND l.rn=1
+                WHERE ps.status='wrong'
+                ORDER BY ps.last_attempt_ts DESC
+            """).fetchall()
+            return [
+                {"lang": r[0], "problem_id": r[1], "ts": r[2], "code": r[3] or "", "ai_feedback": r[4] or ""}
+                for r in rows
+            ]
+        # 窗口函数一次扫描替代 2×N 相关子查询（EXPLAIN 实测原版每错题 2 次索引探测）
+        return self._memoized("list_mistakes", _query)
 
     def summary_by_lang(self) -> Dict[str, Dict[str, int]]:
-        out: Dict[str, Dict[str, int]] = {}
-        rows = self.conn.execute(
-            "SELECT lang, status, COUNT(*) FROM problems_status GROUP BY lang, status"
-        ).fetchall()
-        for lang, status, n in rows:
-            out.setdefault(lang, {"total": 0, "solved": 0, "wrong": 0})
-            out[lang]["total"] += n
-            if status in ("solved", "wrong"):
-                out[lang][status] += n
-        return out
+        def _query():
+            out: Dict[str, Dict[str, int]] = {}
+            rows = self.conn.execute(
+                "SELECT lang, status, COUNT(*) FROM problems_status GROUP BY lang, status"
+            ).fetchall()
+            for lang, status, n in rows:
+                out.setdefault(lang, {"total": 0, "solved": 0, "wrong": 0})
+                out[lang]["total"] += n
+                if status in ("solved", "wrong"):
+                    out[lang][status] += n
+            return out
+        return self._memoized("summary_by_lang", _query)
 
     def attempt_count(self, lang: str, pid: str) -> int:
         row = self.conn.execute(
@@ -207,8 +270,10 @@ class ProgressDAO:
         ]
 
     def attempts_by_day(self, days: int = 14) -> List[Dict]:
+        # ts 存的是 UTC，按本地日期分组（中国用户 UTC+8：本地凌晨提交会
+        # 被 UTC 日期归到"昨天"，趋势图错位）
         rows = self.conn.execute(
-            "SELECT DATE(ts) AS d, COUNT(*) AS n, SUM(passed) AS p "
+            "SELECT DATE(ts, 'localtime') AS d, COUNT(*) AS n, SUM(passed) AS p "
             "FROM attempts WHERE ts >= datetime('now', ?) "
             "GROUP BY d ORDER BY d",
             (f"-{int(days)} days",),
@@ -216,44 +281,46 @@ class ProgressDAO:
         return [{"date": r[0], "attempts": r[1], "passed": r[2] or 0} for r in rows]
 
     def daily_streak(self) -> int:
-        # ts 存储为 UTC (CURRENT_TIMESTAMP)，转换为本地日期后计算连续天数
-        from datetime import date, timedelta, datetime, timezone
-        rows = self.conn.execute(
-            "SELECT ts FROM attempts ORDER BY id DESC LIMIT 500"
-        ).fetchall()
-        if not rows:
-            return 0
-        local_dates = set()
-        for (ts_str,) in rows:
-            if not ts_str:
-                continue
-            try:
-                utc_dt = datetime.strptime(ts_str.split('.')[0], "%Y-%m-%d %H:%M:%S")
-                utc_dt = utc_dt.replace(tzinfo=timezone.utc)
-                local_dt = utc_dt.astimezone()
-                local_dates.add(local_dt.date())
-            except (ValueError, TypeError):
-                continue
-        if not local_dates:
-            return 0
-        today = date.today()
-        cursor = today
-        if today not in local_dates and (today - timedelta(days=1)) not in local_dates:
-            return 0
-        if today not in local_dates:
-            cursor = today - timedelta(days=1)
-        streak = 0
-        while cursor in local_dates:
-            streak += 1
-            cursor -= timedelta(days=1)
-        return streak
+        # 去重后的本地日期（LIMIT 400 个日期，足以覆盖 streak_30 成就；
+        # 此前 LIMIT 500 行会被高频用户的一天多次提交迅速耗光，streak 被低估）
+        from datetime import date, timedelta
+
+        def _query():
+            rows = self.conn.execute(
+                "SELECT DISTINCT DATE(ts, 'localtime') AS d "
+                "FROM attempts ORDER BY d DESC LIMIT 400"
+            ).fetchall()
+            local_dates = set()
+            for (d_str,) in rows:
+                if not d_str:
+                    continue
+                try:
+                    local_dates.add(date.fromisoformat(d_str))
+                except ValueError:
+                    continue
+            if not local_dates:
+                return 0
+            today = date.today()
+            cursor = today
+            if today not in local_dates and (today - timedelta(days=1)) not in local_dates:
+                return 0
+            if today not in local_dates:
+                cursor = today - timedelta(days=1)
+            streak = 0
+            while cursor in local_dates:
+                streak += 1
+                cursor -= timedelta(days=1)
+            return streak
+        return self._memoized("daily_streak", _query)
 
     def all_problems_status(self) -> Dict[tuple, str]:
         """{(lang, problem_id): status}——给 recommend 等模块用。"""
-        rows = self.conn.execute(
-            "SELECT lang, problem_id, status FROM problems_status"
-        ).fetchall()
-        return {(r[0], r[1]): r[2] for r in rows}
+        def _query():
+            rows = self.conn.execute(
+                "SELECT lang, problem_id, status FROM problems_status"
+            ).fetchall()
+            return {(r[0], r[1]): r[2] for r in rows}
+        return self._memoized("all_status", _query)
 
     def solved_with_timestamps(self) -> List[Dict]:
         """返回所有 solved 状态的题目及其最后尝试时间，供间隔复习使用。"""
@@ -272,19 +339,23 @@ class ProgressDAO:
         row = self.conn.execute("SELECT COUNT(*) FROM attempts").fetchone()
         return row[0] if row else 0
 
-    def milestone_progress(self, topic_problems: List[Dict]) -> Dict:
+    def milestone_progress(self, topic_problems: List[Dict],
+                           status: Optional[Dict] = None) -> Dict:
         """Calculate progress for a set of problems.
 
         topic_problems: [{"lang": "python", "problem_id": "01_hello_world"}, ...]
+        status: 可传 all_problems_status() 的 {(lang, pid): status} 快照，
+                避免逐题回查数据库（推荐/成就/路径页每渲染要算数十个里程碑）。
         Returns: {"total": int, "solved": int, "pct": float}
         """
         total = len(topic_problems)
         if total == 0:
             return {"total": 0, "solved": 0, "pct": 0.0}
         solved = 0
+        if status is None:
+            status = self.all_problems_status()
         for p in topic_problems:
-            status = self.get_status(p["lang"], p["problem_id"])
-            if status == "solved":
+            if status.get((p["lang"], p["problem_id"])) == "solved":
                 solved += 1
         return {"total": total, "solved": solved, "pct": solved / total}
 
@@ -339,13 +410,23 @@ class ProgressDAO:
             for r in rows
         ]
 
+    def due_review_ids(self, limit: int = 1000) -> set:
+        """到期复习题目的 (lang, problem_id) 集合——推荐引擎用，只取 id 不拉全字段。"""
+        from datetime import date
+        today = date.today().isoformat()
+        rows = self.conn.execute(
+            "SELECT lang, problem_id FROM review_state WHERE next_due_date <= ? LIMIT ?",
+            (today, limit),
+        ).fetchall()
+        return {(r[0], r[1]) for r in rows}
+
     def review_health_stats(self) -> Dict:
         """Review health v2: overdue bucketing + high-risk problems."""
         from datetime import date
         today = date.today()
         rows = self.conn.execute(
             "SELECT lang, problem_id, next_due_date, last_result, review_streak "
-            "FROM review_state WHERE next_due_date <= ?",
+            "FROM review_state WHERE next_due_date <= ? LIMIT 5000",
             (today.isoformat(),),
         ).fetchall()
         buckets = {"1_3": 0, "4_7": 0, "7_plus": 0}
@@ -371,40 +452,71 @@ class ProgressDAO:
     def record_rubric_scores(self, lang: str, pid: str, attempt_id: int,
                              dimensions: List[Dict],
                              prompt_version: str = None, model: str = None) -> None:
-        """Store per-dimension rubric scores for an open question attempt."""
+        """Store per-dimension rubric scores for an open question attempt.
+
+        dimension_id 由维度名标准化而来（core.rubric_dims），
+        自由文本维度名因此可以跨题聚合比较。
+        """
         if not dimensions:
             return
+        from core.rubric_dims import canonical_dimension
+        rows = []
+        for d in dimensions:
+            name = str(d.get("name", ""))
+            dim_id, _canon = canonical_dimension(name)
+            rows.append((lang, pid, attempt_id, name, d.get("score", 0),
+                         d.get("comment", ""), prompt_version, model, dim_id))
         with self.conn:
-            for d in dimensions:
-                self.conn.execute(
-                    "INSERT INTO rubric_scores "
-                    "(lang, problem_id, attempt_id, dimension, score, comment, prompt_version, model) "
-                    "VALUES (?,?,?,?,?,?,?,?)",
-                    (lang, pid, attempt_id, d.get("name", ""), d.get("score", 0),
-                     d.get("comment", ""), prompt_version, model),
-                )
+            self.conn.executemany(
+                "INSERT INTO rubric_scores "
+                "(lang, problem_id, attempt_id, dimension, score, comment, "
+                " prompt_version, model, dimension_id) "
+                "VALUES (?,?,?,?,?,?,?,?,?)",
+                rows,
+            )
 
     def rubric_history(self, lang: str, pid: str, limit: int = 10) -> List[Dict]:
         """Get rubric score history for a problem, grouped by attempt."""
         rows = self.conn.execute(
-            "SELECT attempt_id, dimension, score, comment, ts FROM rubric_scores "
+            "SELECT attempt_id, dimension, score, comment, ts, dimension_id "
+            "FROM rubric_scores "
             "WHERE lang=? AND problem_id=? ORDER BY id DESC LIMIT ?",
             (lang, pid, limit * 10),
         ).fetchall()
         by_attempt: Dict[int, List] = {}
         for r in rows:
             by_attempt.setdefault(r[0], []).append(
-                {"dimension": r[1], "score": r[2], "comment": r[3], "ts": r[4]}
+                {"dimension": r[1], "score": r[2], "comment": r[3], "ts": r[4],
+                 "dimension_id": r[5]}
             )
         return [{"attempt_id": k, "dimensions": v} for k, v in
                 sorted(by_attempt.items(), reverse=True)[:limit]]
 
     def dimension_averages(self) -> Dict[str, float]:
-        """Get average scores across all dimensions for the user."""
+        """各维度的平均分，key 为规范维度名（dimension_id 映射后，遗留数据用原名）。
+
+        COALESCE(dimension_id, dimension)：老库行没有 id 时回退到自由文本名。
+        """
+        from core.rubric_dims import canonical_label
         rows = self.conn.execute(
-            "SELECT dimension, AVG(score) FROM rubric_scores GROUP BY dimension"
+            "SELECT COALESCE(dimension_id, dimension) AS key, AVG(score) "
+            "FROM rubric_scores GROUP BY key"
         ).fetchall()
-        return {r[0]: round(r[1], 1) for r in rows if r[0]}
+        return {canonical_label(r[0]): round(r[1], 1) for r in rows if r[0]}
+
+    def dimension_trends(self, days: int = 30) -> List[Dict]:
+        """最近 N 天各能力维度平均分（规范维度名 + 题数），供 dashboard 趋势区。"""
+        from core.rubric_dims import canonical_label
+        rows = self.conn.execute(
+            "SELECT COALESCE(dimension_id, dimension) AS key, AVG(score), COUNT(*) "
+            "FROM rubric_scores WHERE ts >= datetime('now', ?) "
+            "GROUP BY key ORDER BY AVG(score) ASC",
+            (f"-{int(days)} days",),
+        ).fetchall()
+        return [
+            {"label": canonical_label(r[0]), "avg": r[1], "count": r[2]}
+            for r in rows if r[0]
+        ]
 
     def emit_event(self, event_type: str, lang: str = None, topic_id: str = None,
                    problem_id: str = None, path_id: str = None,
@@ -496,6 +608,20 @@ class ProgressDAO:
             elif etype == "recommendation_completed":
                 result[rc]["completed"] = cnt
         return result
+
+    def checkpoint_wal(self, mode: str = "TRUNCATE") -> int:
+        """把 WAL 里未合并的数据落盘并截断 WAL 文件。
+
+        WAL 默认会在 1000 页时自动 checkpoint，单机场景足够；本方法供
+        备份/清理等维护脚本在需要「此刻完整落盘」时显式调用。
+        返回 busy 值（0 = 完全 checkpoint）。
+        """
+        try:
+            row = self.conn.execute(f"PRAGMA wal_checkpoint({mode})").fetchone()
+            return row[0] if row else 0
+        except sqlite3.OperationalError:
+            return 0
+
 
     def close(self) -> None:
         try:

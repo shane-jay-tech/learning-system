@@ -5,6 +5,8 @@ __pycache__/
 .env.local
 data/progress.db
 data/*.db
+data/webview_profile/
+data/backups/
 .pytest_cache/
 .coverage
 .coverage.*

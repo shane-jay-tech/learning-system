@@ -15,7 +15,7 @@ def _cached_load_language(lang: str):
 
 def render_path_list():
     """Render the path selection page."""
-    hero("学习路径", "选一条路径，按顺序学习 —— 比漫无目的刷题高效 10 倍")
+    hero("学习路径", "按阶段推进，每次只关注一个清晰的里程碑")
 
     paths = load_all_paths()
     if not paths:
@@ -56,7 +56,7 @@ def _render_path_card(path: LearningPath, dao: ProgressDAO):
 
     status_emoji = "✅" if pct >= 1.0 else ("🔄" if pct > 0 else "⬜")
 
-    with st.container():
+    with st.container(border=True):
         col1, col2 = st.columns([4, 1])
         with col1:
             st.markdown(f"### {path.icon} {path.title}")
@@ -71,9 +71,6 @@ def _render_path_card(path: LearningPath, dao: ProgressDAO):
             st.session_state.route = "path_detail"
             st.session_state.selected_path_id = path.id
             st.rerun()
-
-        st.markdown("---")
-
 
 def render_path_detail():
     """Render a single path's milestone list with progress."""
@@ -117,9 +114,13 @@ def _render_milestone(path: LearningPath, milestone: Milestone, idx: int, dao: P
 
     prereqs_met = _check_prereqs(path, milestone, dao)
 
+    # 诊断推荐跳转时定位到指定里程碑（默认展开它）
+    focus_id = st.session_state.get("selected_milestone_id", "")
+    if focus_id == milestone.id:
+        st.session_state.pop("selected_milestone_id", None)  # 一次性定位，下次进入恢复正常
     with st.expander(
         f"{status_icon} {milestone.title} — {progress['solved']}/{progress['total']} 题 · ~{milestone.estimated_hours}h",
-        expanded=not is_complete and prereqs_met,
+        expanded=(focus_id == milestone.id) or (not is_complete and prereqs_met),
     ):
         st.markdown(milestone.description)
 

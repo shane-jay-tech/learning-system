@@ -69,14 +69,18 @@ def audit():
         for m in path.milestones:
             for topic_ref in m.topics:
                 parts = topic_ref.split("/", 1)
-                if len(parts) == 2:
-                    lang_ref, slug_ref = parts
-                else:
-                    lang_ref, slug_ref = path.id.split("_")[0], parts[0]
-                if lang_ref in langs:
-                    topics = load_language(lang_ref, str(ROOT / "content"))
-                    if not any(t.slug == slug_ref for t in topics):
-                        errors.append(f"[path:{path.id}/{m.id}] references non-existent topic: {topic_ref}")
+                if len(parts) != 2:
+                    # 此前这段用 path.id 前缀推语言（永远不在 langs 里），等于死代码：
+                    # 缺语言前缀的引用从未被校验过
+                    errors.append(f"[path:{path.id}/{m.id}] topic 引用缺语言前缀: {topic_ref}")
+                    continue
+                lang_ref, slug_ref = parts
+                if lang_ref not in langs:
+                    errors.append(f"[path:{path.id}/{m.id}] 未知语言: {lang_ref} (in {topic_ref})")
+                    continue
+                topics = load_language(lang_ref, str(ROOT / "content"))
+                if not any(t.slug == slug_ref for t in topics):
+                    errors.append(f"[path:{path.id}/{m.id}] references non-existent topic: {topic_ref}")
 
     return errors, warnings
 

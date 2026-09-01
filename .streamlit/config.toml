@@ -3,12 +3,13 @@
 [client]
 # 隐藏顶部 deploy 按钮、汉堡菜单（让它更像 app 而不是网页）
 toolbarMode = "minimal"
-# 显示详细错误（调试需要）
-showErrorDetails = true
+# 面向零基础用户：不展示裸 traceback（开发排障看 data/streamlit.log）
+showErrorDetails = false
 showSidebarNavigation = true
 
 [server]
-headless = true
+# headless 默认 false（浏览器模式自动开浏览器）。桌面 launcher 显式传
+# --server.headless true 覆盖它，因此这里放开不会影响桌面模式。
 fileWatcherType = "none"
 runOnSave = false
 # enableCORS / enableXsrfProtection 保留默认（本地 webview 无需调整）
@@ -18,10 +19,10 @@ gatherUsageStats = false
 
 [theme]
 # 主题色和我们 CSS 变量保持一致（indigo）
-primaryColor = "#6366F1"
-backgroundColor = "#F8FAFC"
+primaryColor = "#5B5BD6"
+backgroundColor = "#F5F6FA"
 secondaryBackgroundColor = "#FFFFFF"
-textColor = "#0F172A"
+textColor = "#172033"
 font = "sans serif"
 
 [ui]

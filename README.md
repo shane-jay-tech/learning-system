@@ -1,4 +1,4 @@
-# 编程 + Agent 开发学习平台 v0.6.3
+# 编程 + Agent 开发学习平台 v0.6.5
 
 面向中文零基础用户的 **Python · SQL · C++ · R · Agent 开发** 交互式学习系统。
 
@@ -32,7 +32,7 @@ powershell -ExecutionPolicy Bypass -File scripts/create_shortcut.ps1
 streamlit run app.py
 ```
 
-浏览器自动打开 http://localhost:8501。**改代码后页面自动刷新**——开发用这个。
+浏览器自动打开 http://localhost:8511（与心理系统 8501 错开）。**改代码后页面自动刷新**——开发用这个。
 
 ## 环境要求
 
@@ -131,6 +131,7 @@ C++ 和 R 的 runner 测试在工具不在 PATH 时会自动 skip，不会失败
 ```bash
 python scripts/health_check.py            # 环境和依赖
 python scripts/audit_content.py --strict   # 内容质量
+python scripts/audit_content_deep.py       # 内容深度校验（SQL setup 试跑/语法/id）
 python -m pytest tests -q                  # 全量测试
 python scripts/perf_baseline.py            # 性能
 python scripts/generate_system_report.py   # 系统指标
@@ -172,4 +173,6 @@ python scripts/generate_system_report.py   # 系统指标
 - v0.6.1 ✅ cross_recommend修复+路径事件+推荐漏斗v2+事件surface标注
 - v0.6.2 ✅ 漏斗SQL修复+DAO聚合方法+recommendation_id+漏斗测试
 - v0.6.3 ✅ 推荐归因全链路+复习健康度v2+逾期分桶+高风险题识别
+- v0.6.4 ✅ 性能大修（签名memo，页面重跑提速50-100×）+启动优化（惰性ACE、WebView持久缓存）+4个bug修复（诊断导航/弱项导航/R版本排序/重置失效）+时间本地化+AI等待预算
+- v0.6.5 ✅ 四路深度审计修复：判题正确性（SQL列序/递归CTE/注释/空代码/进程树/结果集上限）+数据层（streak截断bug/窗口函数/时间索引/查询memo/AI反馈缓存）+启动器脚本（僵尸进程/健康检查/快捷方式/回填时区）+交互体验（变式题不落库/切语言状态/诊断重测）
 - v0.7 📋 PDF报告导出、AI变式题增强、数据导入导出

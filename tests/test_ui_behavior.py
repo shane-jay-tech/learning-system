@@ -115,6 +115,8 @@ def test_component_html_escapes_user_content_and_renders_states(monkeypatch):
 def test_code_editor_ace_and_fallback(monkeypatch):
     fake = FakeStreamlit()
     monkeypatch.setattr(components, "st", fake)
+    # 惰性加载已发生：直接用假 st_ace 验证编辑器参数透传
+    monkeypatch.setattr(components, "_ACE_LOADED", True)
     monkeypatch.setattr(components, "_HAS_ACE", True)
     monkeypatch.setattr(components, "st_ace", lambda **kw: f"ace:{kw['language']}:{kw['value']}")
     assert components.code_editor("x", "python", "k") == "ace:python:x"
@@ -245,6 +247,34 @@ def test_home_pulse_events(monkeypatch):
     assert home_page._detect_pulse_event(DAO(complete=False, mistakes=[], total=2), 0) == ""
 
 
+def test_problem_state_lru_prunes_old_problems(monkeypatch):
+    fake = FakeStreamlit()
+    monkeypatch.setattr(language_page, "st", fake)
+    # 访问 40 道题，每道题留下一堆状态 key
+    for i in range(40):
+        pid = f"python/topic/p{i}"
+        fake.session_state[f"code::{pid}"] = "x"
+        fake.session_state[f"chat_history::{pid}"] = ["old"]
+        fake.session_state[f"editor_{pid}_0"] = "x"
+        language_page._touch_problem(pid)
+    # 旧题（前 10 道）状态被回收
+    for i in range(10):
+        pid = f"python/topic/p{i}"
+        assert f"code::{pid}" not in fake.session_state
+        assert f"editor_{pid}_0" not in fake.session_state
+    # 最近 30 道题状态保留
+    for i in range(10, 40):
+        pid = f"python/topic/p{i}"
+        assert fake.session_state[f"code::{pid}"] == "x"
+    # LRU 队列自身有界
+    assert len(fake.session_state["_problem_lru"]) == language_page._LRU_CAP
+    # AI 变式题不参与 LRU
+    fake2 = FakeStreamlit()
+    monkeypatch.setattr(language_page, "st", fake2)
+    language_page._touch_problem("AI_VARIANT::python/topic/p0")
+    assert "_problem_lru" not in fake2.session_state
+
+
 def test_language_state_and_active_variant(monkeypatch):
     fake = FakeStreamlit()
     monkeypatch.setattr(language_page, "st", fake)
@@ -314,7 +344,6 @@ def test_app_initial_state_sidebar_and_unknown_route(monkeypatch):
     assert any(call[0] == "error" and "未知路由" in call[1][0] for call in fake.calls)
 
 
-@pytest.mark.xfail(reason="Existing bug: diagnostic actions write session_state.page instead of route", strict=True)
 def test_diagnostic_skip_uses_global_route_key(monkeypatch):
     fake = FakeStreamlit(buttons={"跳过诊断": True})
     monkeypatch.setattr(diagnostic_page, "st", fake)

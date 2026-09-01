@@ -15,7 +15,7 @@ def _load_totals():
 
 
 def render_home():
-    hero("编程 + Agent 开发学习平台", "Python · SQL · C++ · R · Agent 开发　从零基础到 AI 时代个人工具开发者")
+    hero("编程学习工作台", "继续上次进度，或选择一条清晰路径开始今天的学习")
 
     dao = ProgressDAO()
     try:
@@ -74,7 +74,7 @@ def _render_home_body(dao):
     with m4:
         st.markdown(metric_tile(grand_attempted, "已尝试"), unsafe_allow_html=True)
 
-    section_title("选一门语言开始")
+    section_title("按语言练习")
     for i in range(0, len(ALL_LANGS), 2):
         chunk = ALL_LANGS[i:i + 2]
         cols = st.columns(2)
@@ -92,12 +92,9 @@ def _render_home_body(dao):
                 else:
                     st.caption("(暂无题目)")
                 if st.button(f"进入 {LANG_META[lang]['name']}", key=f"enter_{lang}", use_container_width=True):
-                    st.session_state.route = "language"
-                    st.session_state.selected_lang = lang
-                    st.session_state.selected_topic_idx = 0
-                    st.session_state.selected_problem_idx = 0
-                    st.session_state.pop("last_judge_result", None)
-                    st.rerun()
+                    # 统一走 navigate_to_problem：同时重置 topic/problem 索引
+                    # 并清掉专题选择状态（否则旧值会把索引反压回旧专题）
+                    navigate_to_problem(lang)
 
     section_title("错题与复习")
     mistakes = dao.list_mistakes()
@@ -168,7 +165,7 @@ def _render_ai_pulse(dao):
     days_monthly = _days_since(dao.get_meta_ts("ai_pulse_monthly"))
     days_quarterly = _days_since(dao.get_meta_ts("ai_pulse_quarterly"))
 
-    section_title("🤖 跟上 AI 进展")
+    section_title("AI 进展自查")
 
     # 事件触发：里程碑刚完成 / 连续学习恢复 / 错题全清
     event_msg = _detect_pulse_event(dao, days_monthly)
@@ -238,7 +235,7 @@ def _render_ai_pulse(dao):
 | **[Hacker News](https://news.ycombinator.com)** | 业界正在讨论的工具（看 AI 标签） | 季看 |
 | **[Hugging Face Daily Papers](https://huggingface.co/papers)** | 学术前沿 | 季看 |
 
-⚠️ **避坑**：营销号、震惊体测评、夸张演示——80% 的"新东西" 3 个月就死。
+⚠️ **避坑**：营销号、震惊体测评、夸张演示——80% 的「新东西」3 个月就死。
 **判断真东西**：3 个月后 Simon Willison 还在写它 / Hacker News 还有讨论 / Anthropic 或 OpenAI 抄了 = 真值得学。
 """)
 
@@ -248,8 +245,8 @@ def _render_next_action(dao, grand_solved: int):
     if grand_solved == 0:
         with st.container(border=True):
             st.markdown(
-                "### 🚀 开始学习\n"
-                "第一次来？推荐先做 **学习诊断**（6 道快速题，1 分钟），帮你找到最适合的起点。"
+                "### 开始学习\n"
+                "第一次来？推荐先做 **学习诊断**（6 道快速题，约 2 分钟），帮你找到最适合的起点。"
             )
             c1, c2, _ = st.columns([1, 1, 2])
             with c1:
@@ -258,11 +255,7 @@ def _render_next_action(dao, grand_solved: int):
                     st.rerun()
             with c2:
                 if st.button("直接开始 Python", key="home_py", use_container_width=True):
-                    st.session_state.route = "language"
-                    st.session_state.selected_lang = "python"
-                    st.session_state.selected_topic_idx = 0
-                    st.session_state.selected_problem_idx = 0
-                    st.rerun()
+                    navigate_to_problem("python")
         return
 
     col_a, col_b, col_c = st.columns(3)
@@ -276,14 +269,14 @@ def _render_next_action(dao, grand_solved: int):
                 meta = LANG_META.get(it["lang"], {"icon": "·", "name": it["lang"]})
                 reason = it.get("reason", "推荐")
                 st.markdown(
-                    f"### ▶️ 继续学习\n"
+                    f"### 继续学习\n"
                     f"**{meta['icon']} {it['title']}**\n\n"
                     f"难度 {it['difficulty']} · {reason}"
                 )
                 if st.button("立即开始 →", key="home_next_action", type="primary", use_container_width=True):
                     navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
             else:
-                st.markdown("### ▶️ 继续学习\n全部完成！🎉")
+                st.markdown("### 继续学习\n当前课程已全部完成。")
 
     # Zone 2: Today's review
     due_reviews = dao.get_due_reviews(limit=5)
@@ -291,7 +284,7 @@ def _render_next_action(dao, grand_solved: int):
     with col_b:
         with st.container(border=True):
             review_count = len(due_reviews) + len(mistakes)
-            st.markdown(f"### 📝 今日复习\n**{review_count}** 题待复习")
+            st.markdown(f"### 今日复习\n**{review_count}** 题待复习")
             if mistakes:
                 st.caption(f"错题 {len(mistakes)} · 到期 {len(due_reviews)}")
             if review_count > 0:
@@ -307,11 +300,11 @@ def _render_next_action(dao, grand_solved: int):
     streak = dao.daily_streak()
     with col_c:
         with st.container(border=True):
-            flame = "🔥" if streak >= 3 else "⭐"
+            flame = "连续" if streak >= 3 else "已学习"
             st.markdown(
-                f"### 📊 能力进展\n"
-                f"{flame} 连续 **{streak}** 天 · "
-                f"🏅 {ach_progress['earned']}/{ach_progress['total']} 成就"
+                f"### 学习进展\n"
+                f"{flame} **{streak}** 天 · "
+                f"{ach_progress['earned']}/{ach_progress['total']} 项成就"
             )
             if st.button("看面板 →", key="home_dashboard", use_container_width=True):
                 st.session_state.route = "dashboard"
@@ -328,9 +321,10 @@ def _render_path_cards():
     cols = st.columns(len(paths))
     for i, p in enumerate(paths):
         with cols[i]:
-            st.markdown(f"**{p.icon} {p.title}**")
-            st.caption(f"{p.subtitle} · ~{p.estimated_hours}h")
-            if st.button("进入路径", key=f"home_path_{p.id}", use_container_width=True):
-                st.session_state.route = "path_detail"
-                st.session_state.selected_path_id = p.id
-                st.rerun()
+            with st.container(border=True):
+                st.markdown(f"**{p.icon} {p.title}**")
+                st.caption(f"{p.subtitle} · 约 {p.estimated_hours} 小时")
+                if st.button("进入路径", key=f"home_path_{p.id}", use_container_width=True):
+                    st.session_state.route = "path_detail"
+                    st.session_state.selected_path_id = p.id
+                    st.rerun()

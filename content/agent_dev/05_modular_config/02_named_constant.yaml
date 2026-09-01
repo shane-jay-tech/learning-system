@@ -8,11 +8,11 @@ statement: |
 
   输入 `7`，输出 `604800`。
 starter_code: |
-  # 抽常量
-  ... = ...
+  # 抽常量：把 86400 填到下面
+  SECONDS_PER_DAY = ...
 
   days = int(input())
-  total = days * 86400  # 改成用常量
+  total = days * SECONDS_PER_DAY
   print(total)
 expected_output: |
   604800

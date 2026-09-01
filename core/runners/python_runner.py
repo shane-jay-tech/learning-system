@@ -24,9 +24,19 @@ _ENV_ALLOWLIST = (
 )
 
 
+def _system_path_dirs() -> list:
+    root = os.environ.get("SYSTEMROOT", "C:\\Windows")
+    return [root + "\\System32", root]
+
+
 def _safe_env(extra: Optional[dict] = None) -> dict:
     env = {k: os.environ[k] for k in _ENV_ALLOWLIST if k in os.environ}
     env["PYTHONIOENCODING"] = "utf-8"
+    # PATH 收窄：解释器目录 + System32（与 C++ runner 一致）。
+    # 此前完整继承父进程 PATH，学生代码可经 PATH 调用任意已装程序；
+    # 收窄后只保留运行必需项（本机单人边界仍以 README 的信任模型为准）。
+    if os.name == "nt" and "PATH" in env:
+        env["PATH"] = os.pathsep.join([os.path.dirname(sys.executable)] + _system_path_dirs())
     if extra:
         env.update(extra)
     return env
@@ -35,7 +45,42 @@ def _safe_env(extra: Optional[dict] = None) -> dict:
 def _truncate(data: bytes, limit: int) -> bytes:
     if len(data) <= limit:
         return data
-    return data[:limit] + f"\n[... 输出过长，已截断（>{limit} 字节）]".encode("utf-8")
+    # 截断点可能落在多字节 UTF-8 字符中间：先丢弃半个字符再截断，避免出现 �
+    cut = data[:limit].decode("utf-8", errors="ignore").encode("utf-8")
+    return cut + f"\n[... 输出过长，已截断（>{limit} 字节）]".encode("utf-8")
+
+
+def _kill_tree(proc: subprocess.Popen) -> None:
+    """杀掉整棵进程树（含孙进程）。
+
+    学生代码可能 subprocess.Popen 派生子进程：只 kill 直接子进程时，
+    孙进程会继续持有 stdout 管道与临时目录，导致 communicate 阻塞、
+    TemporaryDirectory 清理失败。
+    """
+    try:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                capture_output=True, timeout=10,
+            )
+        else:
+            proc.kill()
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+
+_MAX_STDIN_BYTES = 1_000_000  # 1 MB
+
+
+def _safe_stdin(stdin: str) -> bytes:
+    """stdin 编码 + 上限，避免超大输入占满内存 / 孤立代理对抛 UnicodeEncodeError。"""
+    data = stdin.encode("utf-8", errors="replace")
+    if len(data) > _MAX_STDIN_BYTES:
+        data = data[:_MAX_STDIN_BYTES]
+    return data
 
 
 class PythonRunner(BaseRunner):
@@ -45,7 +90,7 @@ class PythonRunner(BaseRunner):
         blocked = self.check_security()
         if blocked:
             return blocked
-        with tempfile.TemporaryDirectory(prefix="ls_py_") as tmpdir:
+        with tempfile.TemporaryDirectory(prefix="ls_py_", ignore_cleanup_errors=True) as tmpdir:
             src = os.path.join(tmpdir, "main.py")
             preamble = (
                 "import sys\n"
@@ -69,11 +114,11 @@ class PythonRunner(BaseRunner):
             )
             try:
                 out_b, err_b = proc.communicate(
-                    input=stdin.encode("utf-8"),
+                    input=_safe_stdin(stdin),
                     timeout=self.timeout_sec,
                 )
             except subprocess.TimeoutExpired:
-                proc.kill()
+                _kill_tree(proc)
                 try:
                     out_b, err_b = proc.communicate(timeout=2)
                 except subprocess.TimeoutExpired:

@@ -111,7 +111,8 @@ def count_tests(strict=False):
     count = 0
     for f in (ROOT / "tests").glob("test_*.py"):
         text = f.read_text(encoding="utf-8", errors="replace")
-        count += len(re.findall(r"^def test_", text, re.MULTILINE))
+        # 允许行首缩进：类内的 def test_ 也要计入
+        count += len(re.findall(r"^\s*def test_", text, re.MULTILINE))
     return count
 
 
@@ -158,20 +159,23 @@ def print_metrics(metrics):
         print(f"  {lang}: {data['topics']} topics, {data['problems']} problems")
 
 
+def _contains_number(text: str, value: int) -> bool:
+    """整词匹配：避免 total=5 时 "15"/"50" 之类的裸子串假 PASS。"""
+    return re.search(rf"(?<!\d){re.escape(str(value))}(?!\d)", text) is not None
+
+
 def check_report(filepath, metrics):
     text = Path(filepath).read_text(encoding="utf-8")
     errors = []
 
-    expected_total = str(metrics["total_problems"])
-    if expected_total not in text:
-        errors.append(f"题目总数 {expected_total} 未在报告中找到")
+    if not _contains_number(text, metrics["total_problems"]):
+        errors.append(f"题目总数 {metrics['total_problems']} 未在报告中找到")
 
-    expected_topics = str(metrics["total_topics"])
-    if expected_topics not in text:
-        errors.append(f"知识点数 {expected_topics} 未在报告中找到")
+    if not _contains_number(text, metrics["total_topics"]):
+        errors.append(f"知识点数 {metrics['total_topics']} 未在报告中找到")
 
     for lang, data in metrics["by_lang"].items():
-        if str(data["problems"]) not in text:
+        if not _contains_number(text, data["problems"]):
             errors.append(f"{lang} 题目数 {data['problems']} 未在报告中找到")
 
     for slug, pdata in metrics.get("paths_detail", {}).items():
@@ -180,7 +184,7 @@ def check_report(filepath, metrics):
         title_key = title.replace("主线", "").replace("线", "").strip()
         found = False
         for line in text.splitlines():
-            if title_key in line and ms in line:
+            if title_key in line and _contains_number(line, pdata["milestones"]):
                 found = True
                 break
         if not found:
@@ -206,10 +210,10 @@ def check_readme(readme_path, metrics):
     if version not in first_line:
         errors.append(f"README 标题版本不含 {version}（当前：{first_line.strip()}）")
 
-    if str(metrics["total_problems"]) not in text:
+    if not _contains_number(text, metrics["total_problems"]):
         errors.append(f"README 未包含题目数 {metrics['total_problems']}")
 
-    if str(metrics["total_topics"]) not in text:
+    if not _contains_number(text, metrics["total_topics"]):
         errors.append(f"README 未包含知识点数 {metrics['total_topics']}")
 
     if f"v{version}" not in text:

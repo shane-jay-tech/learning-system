@@ -17,7 +17,8 @@ try:
 except Exception:  # pragma: no cover
     _fe = None
 
-TIMEOUT_SEC = 60
+TIMEOUT_SEC = 30  # 单模型调用超时；整条链的预算见 _CHAIN_BUDGET_SEC
+_CHAIN_BUDGET_SEC = 45.0  # 多模型级联的总预算（此前 3×60s 最坏 3 分钟）
 _MAX_FIELD = 4000  # 单字段最多 4000 字符，避免 Windows cmdline 32KB 限制
 
 PROMPT_VERSIONS = {
@@ -39,6 +40,48 @@ _FAST_CHAIN = (("deepseek", _FLASH_MODEL), ("kimi", None), ("gpt", None))
 _QUALITY_CHAIN = (("deepseek", None), ("gpt", None), ("kimi", None))
 
 logger = logging.getLogger(__name__)
+
+# 反馈缓存：同一道题 + 相同代码重复提交时直接复用上次点评，
+# 避免学生「改一个字再跑一次」反复触发 LLM 调用（每次几秒到几十秒）。
+# 以 (lang, pid, code_hash) 为键，LRU 上限 64 条。
+from collections import OrderedDict as _OrderedDict  # noqa: E402
+import hashlib as _hashlib  # noqa: E402
+_feedback_cache: "_OrderedDict" = _OrderedDict()
+_FEEDBACK_CACHE_MAX = 64
+
+
+def _cache_feedback(lang: str, pid: str, code: str, text: str) -> str:
+    if not text or "暂时不可用" in text or not pid:
+        return text  # 失败/无 pid 不入缓存，让学生稍后重试仍会真正调用
+    key = (lang, pid, _hashlib.sha1(code.encode("utf-8", errors="replace")).hexdigest())
+    _feedback_cache[key] = text
+    while len(_feedback_cache) > _FEEDBACK_CACHE_MAX:
+        _feedback_cache.popitem(last=False)
+    return text
+
+
+def _cached_feedback(lang: str, pid: str, code: str):
+    key = (lang, pid, _hashlib.sha1(code.encode("utf-8", errors="replace")).hexdigest())
+    return _feedback_cache.get(key)
+
+
+def _open_key(lang: str, pid: str, answer: str) -> tuple:
+    return ("open", lang, pid, _hashlib.sha1(answer.encode("utf-8", errors="replace")).hexdigest())
+
+
+def _cache_open_result(lang: str, pid: str, answer: str, result: dict) -> dict:
+    if not result.get("llm_ok"):
+        return result  # 基础设施失败不入缓存
+    key = _open_key(lang, pid, answer)
+    _feedback_cache[key] = dict(result)
+    while len(_feedback_cache) > _FEEDBACK_CACHE_MAX:
+        _feedback_cache.popitem(last=False)
+    return result
+
+
+def _cached_open_result(lang: str, pid: str, answer: str):
+    return _feedback_cache.get(_open_key(lang, pid, answer))
+
 
 from core.utils import trim_text as _trim_impl
 
@@ -134,6 +177,8 @@ AI_OPEN_SYSTEM = (
     '"feedback": "中文总评，200-300字，具体指出做得好和欠缺的地方，语气鼓励"}\n\n'
     "passed=true 表示学生达到了 rubric 的主要要点；passed=false 表示未达到。\n"
     "dimensions 数组：把 rubric 里的每个评分要点拆成一个维度，分别打分和点评。\n"
+    "维度名尽量用规范词：正确性 / 完整性 / 清晰度 / 边界处理 / 代码风格 /"
+    " 效率 / 安全性 / 分析深度 / 论证充分 / 格式规范。\n"
     "feedback 要具体——指出回答里命中/遗漏了 rubric 的哪些要点，而不是泛泛而谈。"
 )
 
@@ -149,13 +194,24 @@ LESSON_QA_SYSTEM = (
 )
 
 
-def _call_chain(prompt: str, system: str, chain) -> str:
-    """按 chain（(role, model_id) 元组序列）依次尝试，返回第一个非空结果；全失败返回空串。"""
+def _call_chain(prompt: str, system: str, chain):
+    """按 chain（(role, model_id) 元组序列）依次尝试，返回第一个非空结果；全失败返回 ("", None)。
+
+    总预算 _CHAIN_BUDGET_SEC：多个模型级联最坏情况不再叠加成 3×超时
+    （此前 3 模型 × 60s = 最长 3 分钟，用户看着 spinner 干等，体验反人类）。
+    现在整条链最坏 ~45s，且每个模型只拿到剩余预算里的一块。
+    """
+    import time as _time
+    deadline = _time.monotonic() + _CHAIN_BUDGET_SEC
     for model, model_id in chain:
-        text = _call(model, prompt, system=system, model_id=model_id)
+        remaining = deadline - _time.monotonic()
+        if remaining <= 0:
+            break
+        text = _call(model, prompt, system=system, model_id=model_id,
+                     timeout=min(TIMEOUT_SEC, remaining))
         if text:
-            return text
-    return ""
+            return text, (model_id or model)
+    return "", None
 
 
 def review(lang: str, problem: dict, code: str, run_result: Any, passed: bool) -> str:
@@ -179,10 +235,15 @@ def review(lang: str, problem: dict, code: str, run_result: Any, passed: bool) -
         "请按系统提示给出反馈。"
     )
 
+    pid = problem.get("id") or ""
+    cached = _cached_feedback(lang, pid, code) if pid else None
+    if cached:
+        return cached
+
     system = _build_review_system_prompt(difficulty, passed, lang)
-    text = _call_chain(prompt, system, _FAST_CHAIN)
+    text, _model = _call_chain(prompt, system, _FAST_CHAIN)
     if text:
-        return _post_check(text, difficulty, passed)
+        return _cache_feedback(lang, pid, code, _post_check(text, difficulty, passed))
     return _offline_fallback(passed, stderr)
 
 
@@ -227,25 +288,33 @@ def follow_up(
     stderr = (getattr(run_result, "stderr", "") or "").strip()
     verdict = "已通过" if passed else "未通过"
 
-    # 优先保留：当前代码+错误信息完整，历史对话按轮次保留最近5轮
-    recent_history = history[-10:]  # 最近5轮（每轮2条）
+    # 最近 5 轮历史（每轮 2 条）；最近 3 轮完整保留，更早的压缩
+    recent_history = history[-10:]
     chat_log_lines = []
     for msg in recent_history:
         role = "学生" if msg["role"] == "user" else "老师"
-        # 最近3轮完整保留，更早的压缩
         if msg in history[-6:]:
             chat_log_lines.append(f"{role}：{_trim(msg['text'], 800)}")
         else:
             chat_log_lines.append(f"{role}：{_trim(msg['text'], 200)}")
     chat_log = "\n".join(chat_log_lines) if chat_log_lines else "(无前序对话)"
 
+    # 增量上下文：代码/题面/运行输出只在首轮全量发送（AI 每次调用无状态，
+    # 但历史对话里已含这些信息），把多轮追问的 prompt 体积砍掉约一半
+    if not history:
+        detail_block = (
+            f"题面：{_trim(statement, 1000)}\n"
+            f"学生代码：\n```\n{_trim(code, 3000)}\n```\n"
+            f"运行输出：{_trim(stdout, 800) or '(空)'}\n"
+            f"错误信息：{_trim(stderr, 800) or '(无)'}\n"
+        )
+    else:
+        detail_block = "（学生在同一道题上继续追问；代码与运行结果的完整信息见对话历史）\n"
+
     prompt = (
         f"语言：{lang}\n"
         f"题目：{_trim(title, 200)}\n"
-        f"题面：{_trim(statement, 1000)}\n"
-        f"学生代码：\n```\n{_trim(code, 3000)}\n```\n"
-        f"运行输出：{_trim(stdout, 800) or '(空)'}\n"
-        f"错误信息：{_trim(stderr, 800) or '(无)'}\n"
+        f"{detail_block}"
         f"是否通过：{verdict}\n\n"
         f"你之前给的点评：\n{_trim(initial_review, 1200)}\n\n"
         f"对话历史：\n{chat_log}\n\n"
@@ -253,7 +322,8 @@ def follow_up(
         "请基于以上上下文回答（200-250 字，中文）。"
     )
 
-    return _call_chain(prompt, FOLLOW_UP_SYSTEM, _FAST_CHAIN) or "AI 暂时连不上，请稍后再问。"
+    text, _model = _call_chain(prompt, FOLLOW_UP_SYSTEM, _FAST_CHAIN)
+    return text or "AI 暂时连不上，请稍后再问。"
 
 
 def ask_lesson(lang: str, topic_title: str, lesson_md: str,
@@ -265,17 +335,25 @@ def ask_lesson(lang: str, topic_title: str, lesson_md: str,
         chat_log_lines.append(f"{role}：{_trim(msg['text'], 400)}")
     chat_log = "\n".join(chat_log_lines) if chat_log_lines else "(无前序对话)"
 
+    # 增量上下文：讲解全文只在首个问题发送；后续问题复用历史对话（AI 无状态，
+    # 但历史里已含相关讲解内容），把多轮问答的 prompt 体积砍掉约一半
+    if history:
+        lesson_block = f"这节讲解的内容（节选）：\n{_trim(lesson_md, 1200)}\n\n"
+    else:
+        lesson_block = f"这节讲解的内容：\n{_trim(lesson_md, 2500)}\n\n"
+
     prompt = (
         f"语言：{lang}\n"
         f"知识点主题：{_trim(topic_title, 200)}\n"
-        f"这节讲解的内容：\n{_trim(lesson_md, 2500)}\n\n"
+        f"{lesson_block}"
         f"对话历史：\n{chat_log}\n\n"
         f"学生的疑问：{_trim(user_question, 500)}\n\n"
         "请基于这节讲解的内容回答（中文，200-300 字）。"
     )
 
     # 知识点问答 = 快档（flash 优先）
-    return _call_chain(prompt, LESSON_QA_SYSTEM, _FAST_CHAIN) or "AI 老师暂时连不上，请稍后再问。"
+    text, _model = _call_chain(prompt, LESSON_QA_SYSTEM, _FAST_CHAIN)
+    return text or "AI 老师暂时连不上，请稍后再问。"
 
 
 _FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE)
@@ -291,19 +369,46 @@ def _extract_json(text: str) -> Optional[dict]:
         return obj if isinstance(obj, dict) else None
     except json.JSONDecodeError:
         pass
-    m = re.search(r"\{.*\}", raw, re.DOTALL)
-    if m:
-        try:
-            obj = json.loads(m.group())
-            return obj if isinstance(obj, dict) else None
-        except json.JSONDecodeError:
-            return None
+    # 从第一个 { 开始做括号配对（容忍嵌套对象与字符串里的花括号），
+    # 取代贪婪正则 r"\{.*\}"——后者会吞掉尾随内容导致解析失败
+    start = raw.find("{")
+    if start < 0:
+        return None
+    depth = 0
+    in_str = False
+    escape = False
+    for i in range(start, len(raw)):
+        ch = raw[i]
+        if in_str:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_str = False
+        elif ch == '"':
+            in_str = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    obj = json.loads(raw[start:i + 1])
+                    return obj if isinstance(obj, dict) else None
+                except json.JSONDecodeError:
+                    return None
     return None
 
 
 def grade_open_answer(lang: str, problem: dict, answer: str) -> dict:
     """开放题 AI 评分。返回 {passed, score, feedback, llm_ok}。绝不抛异常。"""
     try:
+        pid = problem.get("id") or ""
+        # 开放题缓存完整结果字典（passed/score/dimensions 都要一致）
+        cached = _cached_open_result(lang, pid, answer) if pid else None
+        if cached is not None:
+            return dict(cached)
         parts = []
         stmt = problem.get("statement")
         if stmt:
@@ -318,13 +423,7 @@ def grade_open_answer(lang: str, problem: dict, answer: str) -> dict:
         prompt = "\n\n".join(parts)
 
         # 开放题评分 = 质量档（deepseek-v4-pro 优先，保证判定质量）
-        text = None
-        responding_model = None
-        for model, model_id in _QUALITY_CHAIN:
-            text = _call(model, prompt, system=AI_OPEN_SYSTEM, model_id=model_id)
-            if text:
-                responding_model = model_id or model
-                break
+        text, responding_model = _call_chain(prompt, AI_OPEN_SYSTEM, _QUALITY_CHAIN)
         if not text:
             return {
                 "passed": False, "score": None,
@@ -349,22 +448,32 @@ def grade_open_answer(lang: str, problem: dict, answer: str) -> dict:
             feedback = str(parsed.get("feedback", "")).strip() or "（AI 未给出点评文本）"
             dimensions = parsed.get("dimensions") or []
             if isinstance(dimensions, list):
-                dimensions = [
-                    {"name": str(d.get("name", "")),
-                     "score": max(0, min(100, int(float(d.get("score", 0))))),
-                     "comment": str(d.get("comment", ""))}
-                    for d in dimensions if isinstance(d, dict) and d.get("name")
-                ]
+                from core.rubric_dims import canonical_dimension
+                out_dims = []
+                for d in dimensions:
+                    if not isinstance(d, dict) or not d.get("name"):
+                        continue
+                    name = str(d.get("name", ""))
+                    dim_id, _canon = canonical_dimension(name)
+                    out_dims.append({
+                        "name": name,
+                        "dimension_id": dim_id,
+                        "score": max(0, min(100, int(float(d.get("score", 0))))),
+                        "comment": str(d.get("comment", "")),
+                    })
+                dimensions = out_dims
             else:
                 dimensions = []
             if score is not None and passed and score < 40:
                 passed = False
             if score is not None and not passed and score >= 80:
                 passed = True
-            return {"passed": passed, "score": score, "feedback": feedback,
-                    "dimensions": dimensions, "llm_ok": True,
-                    "prompt_version": PROMPT_VERSIONS.get("open_scoring"),
-                    "model": responding_model}
+            return _cache_open_result(lang, pid, answer, {
+                "passed": passed, "score": score, "feedback": feedback,
+                "dimensions": dimensions, "llm_ok": True,
+                "prompt_version": PROMPT_VERSIONS.get("open_scoring"),
+                "model": responding_model,
+            })
 
         # 解析失败兜底：把整段当 feedback，passed 用保守启发式
         # （含「通过」但同时含任一否定词时判失败——如「没有通过测试」「不合格」）
@@ -382,7 +491,7 @@ def grade_open_answer(lang: str, problem: dict, answer: str) -> dict:
 
 
 def _call(model: str, prompt: str, system: str = SYSTEM_PROMPT,
-          model_id: Optional[str] = None) -> str:
+          model_id: Optional[str] = None, timeout: Optional[float] = None) -> str:
     # model_id：单次调用覆盖该 relay 的模型 id（通过 {ROLE}_MODEL 环境变量）。
     # llm_call.py 用 setdefault 读 .env.local，所以这里传的会胜出，且只作用于本次子进程。
     call_env = None
@@ -393,7 +502,7 @@ def _call(model: str, prompt: str, system: str = SYSTEM_PROMPT,
             [sys.executable, get_llm_script_path(), "--model", model,
              "--system", system, "--prompt", prompt],
             capture_output=True,
-            timeout=TIMEOUT_SEC,
+            timeout=timeout if timeout is not None else TIMEOUT_SEC,
             env=call_env,
         )
     except subprocess.TimeoutExpired:

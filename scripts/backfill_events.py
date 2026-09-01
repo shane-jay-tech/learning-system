@@ -13,6 +13,20 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 
+def _utc_to_local_date(ts: str):
+    """attempts.ts 是 UTC，事件表的 local_date 是本地日期——直接取前 10 位会把
+    本地凌晨的提交永久归到前一天（时区错位）。"""
+    if not ts:
+        return None
+    try:
+        from datetime import datetime, timezone
+        dt = datetime.strptime(ts.split('.')[0], "%Y-%m-%d %H:%M:%S")
+        dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone().date().isoformat()
+    except (ValueError, TypeError):
+        return None
+
+
 def backfill(apply: bool = False, json_output: bool = False):
     import json as _json
     from core.progress import ProgressDAO
@@ -25,30 +39,44 @@ def backfill(apply: bool = False, json_output: bool = False):
             "SELECT id, lang, problem_id, passed, ts FROM attempts ORDER BY id"
         ).fetchall()
 
+        # 按 attempt_id 去重：payload 里带 attempt_id，重跑不会重复插入，
+        # 也不会把同题同天的多次提交误判成重复（此前按日期去重会丢记录）
         already_backfilled = set()
         if existing > 0:
             bf = dao.conn.execute(
-                "SELECT event_type, lang, problem_id, local_date FROM learning_events "
+                "SELECT event_type, lang, problem_id, payload_json FROM learning_events "
                 "WHERE event_type IN ('attempt_submitted', 'problem_passed', 'problem_failed')"
             ).fetchall()
-            already_backfilled = {(r[0], r[1], r[2], r[3]) for r in bf}
+            for event_type, lang, pid, payload in bf:
+                aid = None
+                if payload:
+                    try:
+                        aid = _json.loads(payload).get("attempt_id")
+                    except (ValueError, TypeError):
+                        aid = None
+                if aid is not None:
+                    already_backfilled.add((event_type, lang, pid, aid))
 
         to_insert = []
         for row in rows:
             _id, lang, pid, passed, ts = row
-            local_date = ts[:10] if ts else None
+            local_date = _utc_to_local_date(ts)
             if not local_date:
                 continue
 
-            key_submit = ("attempt_submitted", lang, pid, local_date)
+            key_submit = ("attempt_submitted", lang, pid, _id)
             if key_submit not in already_backfilled:
                 to_insert.append(("attempt_submitted", lang, None, pid, None, None,
-                                  f'{{"passed": {"true" if passed else "false"}}}', local_date))
+                                  _json.dumps({"passed": bool(passed), "attempt_id": _id},
+                                              ensure_ascii=False),
+                                  local_date))
 
             event_type = "problem_passed" if passed else "problem_failed"
-            key_result = (event_type, lang, pid, local_date)
+            key_result = (event_type, lang, pid, _id)
             if key_result not in already_backfilled:
-                to_insert.append((event_type, lang, None, pid, None, None, None, local_date))
+                to_insert.append((event_type, lang, None, pid, None, None,
+                                  _json.dumps({"attempt_id": _id}, ensure_ascii=False),
+                                  local_date))
 
         created = 0
         if apply and to_insert:

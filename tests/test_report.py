@@ -40,6 +40,26 @@ def test_report_markdown_format():
     dao.close()
 
 
+def test_report_html_is_self_contained_and_escaped():
+    from core.report import report_to_html
+    dao = _dao_with_data()
+    report = generate_report(dao, days=7)
+    report["weak_topics"] = [["python/01_<script>alert(1)</script>", 2.5]]
+    html = report_to_html(report)
+    assert html.strip().startswith("<!DOCTYPE html>")
+    assert "<style>" in html and "@media print" in html
+    assert "编程学习报告" in html
+    assert "Python" in html
+    # 动态内容必须转义：恶意字符串不得原样进入 HTML
+    assert "<script>alert(1)</script>" not in html
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+    # 打印提示
+    assert "Ctrl+P" in html
+    # 单大括号 CSS 合法（不是 {{ }}）
+    assert "{{" not in html
+    dao.close()
+
+
 def test_report_monthly():
     dao = _dao_with_data()
     report = generate_report(dao, days=30)

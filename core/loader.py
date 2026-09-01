@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import re
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import List, Optional
@@ -62,9 +63,20 @@ def _topic_title(slug: str, lesson_md: str) -> str:
 
 _SIG_EXTENSIONS = {".yaml", ".yml", ".md"}
 
+# 性能关键：_signature 的 os.walk 一次约 10-20ms，而单次页面渲染会通过
+# load_language 触发上百次（推荐/成就/路径扫描各自循环调用）。
+# 加一个 2 秒 TTL 的 memo：同一次渲染内所有调用共享一次扫描结果，
+# 页面渲染时间因此从 1.2s+ 降到 ~100ms。2 秒的陈旧窗口对「改题后刷新」无感。
+_SIG_TTL_SEC = 2.0
+_sig_cache: dict = {}  # lang_dir -> (sig, monotonic_ts)
+
 
 def _signature(lang_dir: str) -> tuple:
     """内容文件 mtime 元组——仅统计 .yaml/.md，避免无关文件触发缓存失效。"""
+    now = time.monotonic()
+    hit = _sig_cache.get(lang_dir)
+    if hit is not None and now - hit[1] < _SIG_TTL_SEC:
+        return hit[0]
     sig = []
     for base, _, files in os.walk(lang_dir):
         for f in sorted(files):
@@ -76,7 +88,16 @@ def _signature(lang_dir: str) -> tuple:
                 sig.append((os.path.relpath(fp, lang_dir).replace("\\", "/"), os.path.getmtime(fp)))
             except OSError:
                 pass
-    return tuple(sig)
+    sig = tuple(sig)
+    _sig_cache[lang_dir] = (sig, now)
+    return sig
+
+
+def invalidate_cache() -> None:
+    """清空题库缓存（含签名 memo）。测试与性能基线使用；正常运行时无需调用。"""
+    _cache.clear()
+    _cache_key.clear()
+    _sig_cache.clear()
 
 
 def load_language(lang: str, content_dir: Optional[str] = None) -> List[Topic]:

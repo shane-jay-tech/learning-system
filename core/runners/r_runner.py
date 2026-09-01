@@ -6,7 +6,8 @@ import time
 from typing import Optional
 
 from core.runners.base import BaseRunner, RunResult
-from core.runners.python_runner import _safe_env, _truncate, MAX_STDOUT_BYTES, MAX_STDERR_BYTES
+from core.runners.python_runner import (_safe_env, _truncate, _kill_tree, _safe_stdin,
+                                        MAX_STDOUT_BYTES, MAX_STDERR_BYTES)
 
 
 class RRunner(BaseRunner):
@@ -19,16 +20,29 @@ class RRunner(BaseRunner):
         r"D:\tools\R\R-*\bin\Rscript.exe",
     ]
 
+    @staticmethod
+    def _version_key(path: str) -> tuple:
+        """从路径中提取 (major, minor, patch...) 数字元组，用于数值排序
+        （字典序会把 4.9 排在 4.10 之后）。"""
+        import re as _re
+        # 版本号在完整路径里（如 C:\Program Files\R\R-4.10\bin\Rscript.exe）
+        nums = _re.findall(r"\d+", path)
+        return tuple(int(n) for n in nums) or (0,)
+
     def _resolve_rscript(self) -> Optional[str]:
         which = shutil.which("Rscript")
         if which:
             return which
         import glob
+        best = None
+        best_key = None
         for pat in self.fallback_glob:
-            matches = sorted(glob.glob(pat), reverse=True)
-            if matches:
-                return matches[0]
-        return None
+            for p in glob.glob(pat):
+                key = self._version_key(p)
+                if best_key is None or key > best_key:
+                    best_key = key
+                    best = p
+        return best
 
     def run(self, code: str, stdin: str = "", expected: Optional[dict] = None) -> RunResult:
         blocked = self.check_security()
@@ -45,7 +59,7 @@ class RRunner(BaseRunner):
                 error_kind="sandbox",
             )
 
-        with tempfile.TemporaryDirectory(prefix="ls_r_") as tmpdir:
+        with tempfile.TemporaryDirectory(prefix="ls_r_", ignore_cleanup_errors=True) as tmpdir:
             src = os.path.join(tmpdir, "main.R")
             with open(src, "w", encoding="utf-8", newline="\n") as f:
                 f.write(code)
@@ -53,6 +67,13 @@ class RRunner(BaseRunner):
             # R 用户库：动态查找 win-library 下任意 R-x.y 版本
             # 不覆盖用户已有的 R_LIBS_USER（renv 等场景）
             extra = {}
+            if os.name == "nt":
+                # PATH 收窄：Rscript 自身目录 + R 安装根目录 + System32
+                # （与 C++/Python runner 一致，不再完整继承父进程 PATH）
+                from core.runners.python_runner import _system_path_dirs
+                r_home = os.path.dirname(os.path.dirname(rscript))
+                extra["PATH"] = os.pathsep.join(
+                    [os.path.dirname(rscript), r_home] + _system_path_dirs())
             if not os.environ.get("R_LIBS_USER"):
                 import glob as _g
                 import re as _re
@@ -80,9 +101,9 @@ class RRunner(BaseRunner):
                     cwd=tmpdir,
                     env=_safe_env(extra),
                 )
-                out_b, err_b = proc.communicate(input=stdin.encode("utf-8"), timeout=self.timeout_sec)
+                out_b, err_b = proc.communicate(input=_safe_stdin(stdin), timeout=self.timeout_sec)
             except subprocess.TimeoutExpired:
-                proc.kill()
+                _kill_tree(proc)
                 try:
                     out_b, err_b = proc.communicate(timeout=2)
                 except subprocess.TimeoutExpired:

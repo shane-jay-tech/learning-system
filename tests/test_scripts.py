@@ -1,5 +1,6 @@
 import json
 import subprocess
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -47,6 +48,23 @@ def test_content_audit_reports_problem_and_path_failures(monkeypatch):
     assert any("Topic has no problems" in w for w in warnings)
     assert any("Lesson too short" in w for w in warnings)
     assert any("same difficulty" in w for w in warnings)
+
+
+def test_content_audit_rejects_topic_ref_without_language_prefix(monkeypatch):
+    """路径里程碑的 topic 引用缺语言前缀（如 "01_demo"）必须报错——此前是死代码漏检。"""
+    milestone = SimpleNamespace(id="m1", topics=["no_prefix_topic"])
+    path = SimpleNamespace(id="agent_mastery", milestones=[milestone])
+    monkeypatch.setattr("core.loader.load_language", lambda lang, content_dir: [])
+    monkeypatch.setattr("core.paths.load_all_paths", lambda: [path])
+    errors, _ = audit_content.audit()
+    assert any("缺语言前缀" in e for e in errors)
+
+    # 未知语言前缀也要报错
+    milestone2 = SimpleNamespace(id="m2", topics=["brainfuck/01_x"])
+    path2 = SimpleNamespace(id="agent_mastery", milestones=[milestone2])
+    monkeypatch.setattr("core.paths.load_all_paths", lambda: [path2])
+    errors, _ = audit_content.audit()
+    assert any("未知语言" in e for e in errors)
 
 
 def test_content_audit_open_question_requires_rubric(monkeypatch):
@@ -112,6 +130,179 @@ def test_backfill_skips_attempt_without_timestamp(tmp_path, monkeypatch):
     assert backfill_events.backfill()["events_to_create"] == 0
 
 
+def test_checkpoint_wal_truncates(tmp_path):
+    from core.progress import ProgressDAO
+    db_path = tmp_path / "wal.db"
+    dao = ProgressDAO(str(db_path))
+    try:
+        for i in range(200):
+            dao.record_attempt_and_status("python", f"p{i}", "x", True, "")
+        # WAL 模式下未 checkpoint 前，wal 文件非空
+        wal = tmp_path / "wal.db-wal"
+        assert wal.exists()
+        size_before = wal.stat().st_size
+        busy = dao.checkpoint_wal()
+        assert busy == 0
+        assert wal.stat().st_size <= size_before
+    finally:
+        dao.close()
+
+
+def test_backup_script_roundtrip(tmp_path, monkeypatch):
+    from scripts import backup_data
+    from core.progress import ProgressDAO
+    # 把备份目录与数据库都指向 tmp，避免污染真实 data/
+    db = tmp_path / "progress.db"
+    backup_dir = tmp_path / "backups"
+    dao = ProgressDAO(str(db))
+    try:
+        dao.record_attempt_and_status("python", "p1", "print(1)", True, "")
+    finally:
+        dao.close()
+    monkeypatch.setattr(backup_data, "DB", db)
+    monkeypatch.setattr(backup_data, "BACKUP_DIR", backup_dir)
+
+    out = backup_data.create_backup()
+    assert Path(out).exists()
+
+    # 破坏库后恢复
+    import sqlite3
+    conn = sqlite3.connect(str(db))
+    conn.execute("DROP TABLE attempts")
+    conn.commit()
+    conn.close()
+
+    backup_data.restore_backup(out)
+    dao2 = ProgressDAO(str(db))
+    try:
+        assert dao2.total_attempts() == 1
+    finally:
+        dao2.close()
+    # 旧库保留 .bak
+    assert Path(str(db) + ".bak").exists()
+
+
+def test_prune_old_data_dry_run_and_apply(tmp_path, monkeypatch):
+    from scripts import prune_old_data
+    db_path = tmp_path / "prune.db"
+    dao = ProgressDAO(str(db_path))
+    with dao.conn:
+        # p1：5 次旧作答（400 天前）→ 保留每题最近 3 次，删 2 次
+        for i in range(5):
+            dao.conn.execute(
+                "INSERT INTO attempts(lang, problem_id, code, passed, ai_feedback, ts) "
+                "VALUES(?,?,?,?,?, datetime('now','-400 days'))",
+                ("python", "p1", "x", 1, ""),
+            )
+        # p2：1 次旧作答 → 每题保留策略下不删
+        dao.conn.execute(
+            "INSERT INTO attempts(lang, problem_id, code, passed, ai_feedback, ts) "
+            "VALUES(?,?,?,?,?, datetime('now','-400 days'))",
+            ("sql", "p2", "x", 1, ""),
+        )
+        # p3：今天的作答 → 时间策略下不删
+        dao.conn.execute(
+            "INSERT INTO attempts(lang, problem_id, code, passed, ai_feedback, ts) "
+            "VALUES(?,?,?,?,?, datetime('now'))",
+            ("cpp", "p3", "x", 1, ""),
+        )
+        # events：2 旧 + 1 新
+        for _ in range(2):
+            dao.conn.execute(
+                "INSERT INTO learning_events(event_type, created_at, local_date) "
+                "VALUES(?, datetime('now','-400 days'), 'x')",
+                ("attempt_submitted",),
+            )
+        dao.conn.execute(
+            "INSERT INTO learning_events(event_type, created_at, local_date) "
+            "VALUES('attempt_submitted', datetime('now'), 'y')",
+        )
+    dao.close()
+    real_cls = ProgressDAO
+    monkeypatch.setattr("core.progress.ProgressDAO", lambda: real_cls(str(db_path)))
+
+    dry = prune_old_data.prune(days=365, keep_per_problem=3, apply=False)
+    assert dry["learning_events_to_delete"] == 2
+    assert dry["attempts_to_delete"] == 2  # p1 的 rn 4,5
+
+    applied = prune_old_data.prune(days=365, keep_per_problem=3, apply=True)
+    assert applied["attempts_to_delete"] == 2
+    check = ProgressDAO(str(db_path))
+    try:
+        n_attempts = check.conn.execute("SELECT COUNT(*) FROM attempts").fetchone()[0]
+        n_events = check.conn.execute("SELECT COUNT(*) FROM learning_events").fetchone()[0]
+        assert n_attempts == 5  # 3(p1 保留) + 1(p2) + 1(p3)
+        assert n_events == 1
+        # p1 的最新一次（id 最大）必须还在（错题本依赖最近一次作答）
+        latest = check.conn.execute(
+            "SELECT COUNT(*) FROM attempts WHERE lang='python' AND problem_id='p1'"
+        ).fetchone()[0]
+        assert latest == 3
+    finally:
+        check.close()
+
+
+def test_deep_content_audit_real_repository_clean():
+    from scripts import audit_content_deep
+    errors, _warnings = audit_content_deep.deep_audit()
+    assert errors == []
+
+
+def test_deep_content_audit_flags_syntax_setup_and_stdin_gaps(monkeypatch):
+    from scripts import audit_content_deep
+    bad_py = SimpleNamespace(
+        id="python/deep/bad_syntax", title="bad", topic="deep", difficulty=1,
+        statement="输出 1", starter_code="def broken(:\n    pass",
+        expected_output="1", expected_rows=None, setup_sql=None, tests=None,
+        hints=[], judge_mode="run", rubric=None, reference_answer=None,
+    )
+    bad_sql = SimpleNamespace(
+        id="sql/deep/bad_setup", title="bad", topic="deep", difficulty=1,
+        statement="查表", starter_code="", expected_output=None,
+        expected_rows=[[1]], setup_sql="CREATE TABLE t(x INTEGER); INVALID SYNTAX;",
+        tests=None, hints=[], judge_mode="run", rubric=None, reference_answer=None,
+    )
+    stdin_gap = SimpleNamespace(
+        id="python/deep/stdin_gap", title="gap", topic="deep", difficulty=1,
+        statement="输出结果", starter_code="print(1)", expected_output="1",
+        expected_rows=None, setup_sql=None,
+        tests=[{"stdin": "5\n", "expected_output": "1\n"}],
+        hints=[], judge_mode="run", rubric=None, reference_answer=None,
+    )
+    topics = {
+        "python": [SimpleNamespace(slug="deep", lesson_md="# 标题\n内容",
+                                   problems=[bad_py, stdin_gap])],
+        "sql": [SimpleNamespace(slug="deep", lesson_md="# 标题\n内容",
+                                problems=[bad_sql])],
+        "cpp": [], "r": [], "agent_dev": [],
+    }
+    monkeypatch.setattr(
+        "core.loader.load_language",
+        lambda lang, content_dir=None: topics.get(lang, []),
+    )
+    monkeypatch.setattr("core.paths.load_all_paths", lambda: [])
+    errors, warnings = audit_content_deep.deep_audit()
+    assert any("starter_code 语法错误" in e for e in errors)
+    assert any("setup_sql" in e for e in errors)
+    assert any("未提及输入方式" in w for w in warnings)
+
+
+def test_deep_audit_brace_balance_ignores_comments_and_strings(monkeypatch):
+    from scripts import audit_content_deep
+    # 注释/字符串里的括号不算数：cpp file_io 的 "(1)" 注释、R 的 "{r setup}" 字符串
+    cpp_starter = "int main() {\n  // 1) ofstream 写到 note.txt\n  string s = \"a)b\";\n  return 0;\n}\n"
+    assert audit_content_deep._brace_balance_error(cpp_starter, "cpp") is None
+    r_starter = 'rmd <- "```{r setup}"\ncat(mean(1:3))\n'
+    assert audit_content_deep._brace_balance_error(r_starter, "r") is None
+
+    # 真实不平衡 → 报错
+    bad = "int main() {\n  return 0;\n"
+    err = audit_content_deep._brace_balance_error(bad, "cpp")
+    assert err and "大括号" in err
+    bad2 = "cat(mean(1:3)\n"
+    assert audit_content_deep._brace_balance_error(bad2, "r")
+
+
 def test_system_metrics_cover_repository_shape():
     metrics = generate_system_report.generate_metrics()
     assert metrics["total_problems"] >= 400
@@ -173,11 +364,22 @@ def test_health_check_output_and_public_mode(monkeypatch, capsys):
     monkeypatch.setattr("core.runners.r_runner.RRunner._resolve_rscript", lambda self: None)
     monkeypatch.setattr("core.config.get_runner_security_mode", lambda: "public")
     monkeypatch.setattr("core.config.is_public_deploy", lambda: True)
+    # llm_call 缺失只是降级（判题不受影响），不是致命失败
     assert health_check.main() == 0
     output = capsys.readouterr().out
     assert "learning-system health check" in output
     assert "missing: Z:/missing/llm_call.py" in output
     assert "PUBLIC - code execution DISABLED" in output
+
+
+def test_health_check_fails_on_core_dependency_missing(monkeypatch, capsys):
+    """核心依赖（python/sqlite3/streamlit/pyyaml）缺失时退出码应为 1，可作门禁。"""
+    monkeypatch.setattr(health_check, "LLM_SCRIPT", "Z:/missing/llm_call.py")
+    monkeypatch.setattr(health_check.sys, "version_info", (3, 8))
+    monkeypatch.setattr("core.runners.cpp_runner.CppRunner._resolve_compiler", lambda self: None)
+    monkeypatch.setattr("core.runners.r_runner.RRunner._resolve_rscript", lambda self: None)
+    assert health_check.main() == 1
+    assert "FAILED" in capsys.readouterr().out
 
 
 def test_health_check_marker(capsys):

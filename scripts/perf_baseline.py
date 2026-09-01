@@ -82,15 +82,13 @@ def main():
             rec["p95_ms"] = round(p95, 1)
         json_records.append(rec)
 
-    # Cold load — clear cache before each sample
+    # Cold load — clear cache before each sample（走公开 API，勿动私有字典）
     def cold_load():
-        loader._cache.clear()
-        loader._cache_key.clear()
+        loader.invalidate_cache()
         loader.load_language("python")
 
     if quick:
-        loader._cache.clear()
-        loader._cache_key.clear()
+        loader.invalidate_cache()
         record("load_language cold", 800, measure_once("load_language('python') cold", lambda: loader.load_language("python"), 800))
     else:
         record("load_language cold", 800, measure_multi("load_language('python') cold", cold_load, 800, samples))

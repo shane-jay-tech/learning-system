@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import logging
+import logging.handlers
 import os
 import socket
 import subprocess
@@ -26,7 +27,10 @@ import traceback
 import urllib.request
 from pathlib import Path
 
-import webview
+try:
+    import webview
+except ImportError:
+    webview = None  # 缺 pywebview 时在 main() 里给友好提示，而不是模块级崩溃
 
 
 HERE = Path(__file__).resolve().parent
@@ -37,15 +41,22 @@ SINGLETON_LOCK_PORT = 49281
 STARTUP_TIMEOUT_SEC = 60
 
 
-# ---------- 日志 ----------
-LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-logging.basicConfig(
-    filename=str(LOG_FILE),
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    encoding="utf-8",
-)
+# ---------- 日志（滚动 3×1MB，避免无限增长）----------
 logger = logging.getLogger("launcher")
+
+
+def _setup_logging() -> None:
+    """在 main() 里调用：import 本模块不产生建目录/写日志副作用（测试友好）。"""
+    if getattr(_setup_logging, "_done", False):
+        return
+    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _handler = logging.handlers.RotatingFileHandler(
+        str(LOG_FILE), maxBytes=1_000_000, backupCount=3, encoding="utf-8"
+    )
+    _handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+    logger.setLevel(logging.INFO)
+    logger.addHandler(_handler)
+    _setup_logging._done = True
 
 
 # ---------- 单例 ----------
@@ -79,6 +90,20 @@ def find_free_port(preferred: int = 8501, max_tries: int = 20) -> int:
     raise RuntimeError(f"找不到空闲端口（{preferred}-{preferred + max_tries}）")
 
 
+def terminate_backend(proc) -> None:
+    """优雅终止 streamlit：terminate → 等 4s → kill。幂等，任何异常都不外抛。"""
+    if proc is None:
+        return
+    try:
+        proc.terminate()
+        try:
+            proc.wait(timeout=4)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+    except Exception:
+        logger.exception("Failed to terminate streamlit cleanly")
+
+
 # ---------- Streamlit 子进程 ----------
 def start_streamlit_backend(port: int) -> subprocess.Popen:
     cmd = [
@@ -92,13 +117,16 @@ def start_streamlit_backend(port: int) -> subprocess.Popen:
     creationflags = 0
     if os.name == "nt":
         creationflags = subprocess.CREATE_NO_WINDOW
-    return subprocess.Popen(
+    log_handle = open(str(LOG_FILE.parent / "streamlit.log"), "ab")
+    proc = subprocess.Popen(
         cmd,
         cwd=str(HERE),
-        stdout=open(str(LOG_FILE.parent / "streamlit.log"), "ab"),
+        stdout=log_handle,
         stderr=subprocess.STDOUT,
         creationflags=creationflags,
     )
+    log_handle.close()  # 子进程持有自己的句柄，父进程立即关闭避免泄漏
+    return proc
 
 
 # ---------- 健康检查（Python 端 - 不受浏览器跨域限制）----------
@@ -107,7 +135,7 @@ def is_health_ready(port: int, timeout: float = 1.5) -> bool:
         with urllib.request.urlopen(
             f"http://127.0.0.1:{port}/_stcore/health", timeout=timeout
         ) as r:
-            return 200 <= r.status < 500
+            return r.status == 200  # 4xx 不是就绪（此前 <500 会把 404 当成功）
     except Exception:
         return False
 
@@ -175,7 +203,12 @@ def show_error_box(title: str, message: str) -> None:
             return
         except Exception:
             pass
-    print(f"[{title}] {message}", file=sys.stderr)
+    # pythonw 下 sys.stderr 可能为 None，直接 print 会 AttributeError
+    if sys.stderr is not None:
+        try:
+            print(f"[{title}] {message}", file=sys.stderr)
+        except Exception:
+            pass
 
 
 def _set_splash_status(window, text: str) -> None:
@@ -222,9 +255,19 @@ def _enable_dpi_awareness() -> None:
 
 # ---------- 主流程 ----------
 def main() -> int:
+    _setup_logging()
     _enable_dpi_awareness()  # 必须最先调用，且在任何窗口创建之前
+    if webview is None:
+        logger.error("pywebview is not installed")
+        show_error_box("缺少依赖", "未安装 pywebview，桌面模式无法启动。\n\n"
+                                    "请在本项目目录执行：\n  pip install pywebview\n\n"
+                                    "或改用开发模式：start.bat")
+        return 1
     if not acquire_singleton_lock():
         logger.info("Another instance is running; exit.")
+        show_error_box("已在运行", "编程学习平台已经在运行中。\n\n"
+                                   "如果看不到窗口，请在任务管理器结束\n"
+                                   "pythonw.exe 后重试。")
         return 0
 
     # 用 8511 起步,跟心理系统(8501)完全错开
@@ -257,18 +300,20 @@ def main() -> int:
         background_color="#6366F1",
         easy_drag=False,
         confirm_close=False,
+        # 独立持久 profile：既不串心理系统缓存，又能跨启动缓存 Streamlit
+        # 前端静态资源（~10MB），后续启动明显更快。private_mode 每次全新
+        # profile 会丢掉缓存，冷启动每次都重新下载全部资源。
+        storage_path=str(HERE / "data" / "webview_profile"),
     )
 
     def on_closed():
         logger.info("Window closed; terminating streamlit.")
-        try:
-            proc.terminate()
-            try:
-                proc.wait(timeout=4)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-        except Exception:
-            logger.exception("Failed to terminate streamlit cleanly")
+        terminate_backend(proc)
+
+    # 兜底：launcher 被强杀/崩溃时也尽量带走 streamlit，避免僵尸进程
+    # 累积占端口、持有 progress.db
+    import atexit
+    atexit.register(lambda: terminate_backend(proc))
 
     window.events.closed += on_closed
 
@@ -287,7 +332,7 @@ def main() -> int:
                 show_error_box("启动失败",
                                f"Streamlit 进程意外退出(exit code {proc.returncode})。\n"
                                f"详细日志:{LOG_FILE.parent / 'streamlit.log'}")
-                window.destroy()
+                _safe_destroy()
                 return
             if is_health_ready(port):
                 elapsed = time.perf_counter() - t0
@@ -307,7 +352,14 @@ def main() -> int:
 
         logger.error("Startup timeout")
         show_error_box("启动超时", f"Streamlit 后端启动超过 {STARTUP_TIMEOUT_SEC} 秒。\n日志:{LOG_FILE}")
-        window.destroy()
+        _safe_destroy()
+
+    def _safe_destroy():
+        # 后台线程直接操作 UI 窗口可能抛异常（窗口已关/事件循环退出），吞掉即可
+        try:
+            window.destroy()
+        except Exception:
+            logger.debug("window.destroy failed (already closed?)")
 
     def on_window_ready():
         # webview.start 在事件循环准备好后调用此函数，启动后台线程才安全
@@ -317,7 +369,6 @@ def main() -> int:
         webview.start(
             on_window_ready,
             icon=ICON if os.path.exists(ICON) else None,
-            private_mode=True,  # 每次新 profile,不串心理系统的缓存
         )
     except Exception:
         logger.exception("webview.start failed")

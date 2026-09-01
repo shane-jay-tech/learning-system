@@ -10,7 +10,13 @@ import subprocess
 from pathlib import Path
 
 
-LLM_SCRIPT = os.environ.get("LLM_SCRIPT", "D:/code/scripts/llm_call.py")
+# 单一来源：复用 core.config 的路径解析（支持 LLM_SCRIPT 环境变量覆盖）
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from core.config import get_llm_script_path
+    LLM_SCRIPT = get_llm_script_path()
+except Exception:  # pragma: no cover
+    LLM_SCRIPT = os.environ.get("LLM_SCRIPT", "D:/code/scripts/llm_call.py")
 
 
 def _check(name: str, ok: bool, detail: str = "") -> bool:
@@ -25,18 +31,22 @@ def _check(name: str, ok: bool, detail: str = "") -> bool:
 def main() -> int:
     print("learning-system health check")
     print("-" * 40)
+    failed = []
 
     py_ok = sys.version_info >= (3, 10)
-    _check("python >= 3.10", py_ok, f"got {sys.version.split()[0]}")
+    if not _check("python >= 3.10", py_ok, f"got {sys.version.split()[0]}"):
+        failed.append("python")
 
     try:
         import sqlite3  # noqa: F401
         _check("sqlite3 module", True)
     except ImportError:
+        failed.append("sqlite3")
         _check("sqlite3 module", False, "stdlib import failed")
 
+    # llm_call 缺失只影响 AI 点评（判题不受影响），不算致命失败
     llm_ok = Path(LLM_SCRIPT).exists()
-    _check("llm_call.py", llm_ok, LLM_SCRIPT if llm_ok else f"missing: {LLM_SCRIPT}")
+    _check("llm_call.py", llm_ok, LLM_SCRIPT if llm_ok else f"missing: {LLM_SCRIPT} (AI feedback only)")
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     try:
@@ -54,13 +64,21 @@ def main() -> int:
         import streamlit  # noqa: F401
         _check("streamlit", True, getattr(streamlit, "__version__", ""))
     except ImportError:
+        failed.append("streamlit")
         _check("streamlit", False, "run: pip install -r requirements.txt")
 
     try:
         import yaml  # noqa: F401
         _check("pyyaml", True)
     except ImportError:
+        failed.append("pyyaml")
         _check("pyyaml", False, "run: pip install -r requirements.txt")
+
+    try:
+        import webview  # noqa: F401
+        _check("pywebview (desktop)", True)
+    except ImportError:
+        _check("pywebview (desktop)", False, "pip install pywebview (desktop mode only; web mode unaffected)")
 
     # Security mode display
     from core.config import get_runner_security_mode, is_public_deploy
@@ -73,6 +91,9 @@ def main() -> int:
     if not public:
         print("Security: running in LOCAL mode. DO NOT expose to public network.")
         print("          Set RUNNER_SECURITY_MODE=public to disable code execution.")
+    if failed:
+        print(f"FAILED: {len(failed)} problem(s): {', '.join(failed)}")
+        return 1
     return 0
 
 
