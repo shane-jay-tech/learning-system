@@ -14,8 +14,10 @@ from core.config import get_llm_script_path
 try:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))  # D:\code
     from scripts.common import friendly_errors as _fe  # type: ignore
-except Exception:  # pragma: no cover
+except Exception as _e:  # pragma: no cover
     _fe = None
+    logging.getLogger(__name__).warning(
+        "friendly_errors hub unavailable, offline error guidance degraded: %s", _e)
 
 TIMEOUT_SEC = 30  # 单模型调用超时；整条链的预算见 _CHAIN_BUDGET_SEC
 _CHAIN_BUDGET_SEC = 45.0  # 多模型级联的总预算（此前 3×60s 最坏 3 分钟）

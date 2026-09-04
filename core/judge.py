@@ -142,7 +142,9 @@ def _check_recommendation_completed(d: ProgressDAO, lang: str, pid: str) -> None
                              "rank": payload.get("rank", 0),
                          })
     except Exception:
-        pass
+        # keep the control-flow semantics (best-effort telemetry) but make
+        # the failure visible instead of silently swallowing it
+        logger.warning("judge telemetry post failed", exc_info=True)
 
 
 def _record_attempt(lang: str, pid: str, code: str, passed: bool,

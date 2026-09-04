@@ -28,6 +28,8 @@ python scripts/health_check.py
 
 ## 启动
 
+> 安全说明：服务默认仅监听 127.0.0.1（回环），不暴露局域网。
+
 ### 方式 A — 桌面 app（推荐日常使用）
 
 ```powershell
