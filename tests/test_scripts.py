@@ -305,7 +305,9 @@ def test_deep_audit_brace_balance_ignores_comments_and_strings(monkeypatch):
 
 def test_system_metrics_cover_repository_shape():
     metrics = generate_system_report.generate_metrics()
-    assert metrics["total_problems"] >= 400
+    # 2026-09-05 夜间授权去重（05_fit_indices.yaml 与 14_sem_basics 内其他题重复）
+    # 同步下调护栏：题库总数 400 -> 399。
+    assert metrics["total_problems"] >= 399
     assert metrics["total_topics"] > 50
     assert metrics["paths"] >= 3
     assert metrics["lessons"] > 50

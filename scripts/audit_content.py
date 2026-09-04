@@ -12,7 +12,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-ACCEPTED_TOPICS = {"cpp/12_file_io", "r/11_survival", "agent_dev/04_review_agent"}
+# r/14_sem_basics 于 2026-09-05 授权去重（删除重复的 fit_indices 题）后，
+# 该专题难度分布变为 >70% 同难度，属去重的预期结果而非质量问题。
+ACCEPTED_TOPICS = {"cpp/12_file_io", "r/11_survival", "agent_dev/04_review_agent", "r/14_sem_basics"}
 
 
 def audit():
