@@ -8,6 +8,8 @@ showErrorDetails = false
 showSidebarNavigation = true
 
 [server]
+# Bind to loopback only: judge service must not be exposed on LAN.
+address = "127.0.0.1"
 # headless 默认 false（浏览器模式自动开浏览器）。桌面 launcher 显式传
 # --server.headless true 覆盖它，因此这里放开不会影响桌面模式。
 fileWatcherType = "none"

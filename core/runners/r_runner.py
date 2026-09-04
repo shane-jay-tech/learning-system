@@ -53,7 +53,7 @@ class RRunner(BaseRunner):
             return RunResult(
                 ok=False,
                 stdout="",
-                stderr="未检测到 Rscript，请先双击 D:\\tools\\install_R.bat 安装 R。",
+                stderr="未检测到 Rscript，请安装 R 并将其加入 PATH（或配置 R_HOME）后重试。",
                 timed_out=False,
                 exit_code=None,
                 error_kind="sandbox",

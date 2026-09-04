@@ -109,6 +109,7 @@ def start_streamlit_backend(port: int) -> subprocess.Popen:
     cmd = [
         sys.executable, "-m", "streamlit", "run", str(HERE / "app.py"),
         "--server.port", str(port),
+        "--server.address", "127.0.0.1",
         "--server.headless", "true",
         "--browser.gatherUsageStats", "false",
         "--server.fileWatcherType", "none",
@@ -335,6 +336,18 @@ def main() -> int:
                 _safe_destroy()
                 return
             if is_health_ready(port):
+                # auto backup once the app is healthy (best effort, never blocks startup)
+                try:
+                    import subprocess as _sp
+                    _bk = _sp.run([sys.executable, str(HERE / 'scripts' / 'backup_data.py')],
+                                  cwd=str(HERE), capture_output=True, timeout=120)
+                    if _bk.returncode != 0:
+                        logger.warning('auto backup failed rc=%s: %s', _bk.returncode, (_bk.stderr or b'')[-500:])
+                    else:
+                        logger.info('auto backup ok: %s', (_bk.stdout or b'')[-200:])
+                except Exception:
+                    logger.exception('auto backup error (ignored)')
+
                 elapsed = time.perf_counter() - t0
                 logger.info("Streamlit ready in %.2fs; switching to %s", elapsed, target_url)
                 _set_splash_status(window, "就绪,正在打开…")

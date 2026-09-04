@@ -24,5 +24,5 @@ echo  Close this window to stop the server.
 echo.
 REM 自动找空闲端口（8511 起，与心理系统 8501 错开）；headless false 确保自动打开浏览器
 for /f %%p in ('"%PYTHON%" scripts\find_port.py') do set "PORT=%%p"
-"%PYTHON%" -m streamlit run app.py --server.port %PORT% --server.headless false --server.fileWatcherType none --browser.gatherUsageStats false
+"%PYTHON%" -m streamlit run app.py --server.port %PORT% --server.headless false --server.fileWatcherType none --browser.gatherUsageStats false --server.address 127.0.0.1
 pause
