@@ -44,8 +44,31 @@ class Topic:
     problems: List[Problem]
 
 
+@dataclass
+class LoadDiag:
+    """单条坏文件诊断：路径 + 错误类型 + 消息摘要（隔离，不中断整批）。"""
+    path: str
+    error_type: str
+    message: str
+
+
 _cache: dict = {}
 _cache_key: dict = {}
+_last_load_errors: List[LoadDiag] = []
+
+
+def get_load_diagnostics() -> List[LoadDiag]:
+    """最近一次 load_language 实际加载（缓存未命中）收集到的坏文件诊断。"""
+    return list(_last_load_errors)
+
+
+def _record_load_error(yaml_path: str, exc: BaseException) -> None:
+    _last_load_errors.append(
+        LoadDiag(path=str(yaml_path), error_type=type(exc).__name__,
+                 message=str(exc)[:200])
+    )
+    logger.warning("Isolate broken content file %s: %s: %s",
+                   yaml_path, type(exc).__name__, str(exc)[:200])
 
 
 _H1_RE = re.compile(r"^\s*#\s+(.+?)\s*$", re.MULTILINE)
@@ -103,6 +126,7 @@ def invalidate_cache() -> None:
 def load_language(lang: str, content_dir: Optional[str] = None) -> List[Topic]:
     base = content_dir or _DEFAULT_CONTENT
     lang_dir = os.path.join(base, lang)
+    _last_load_errors.clear()
     if not os.path.isdir(lang_dir):
         return []
 
@@ -128,48 +152,20 @@ def load_language(lang: str, content_dir: Optional[str] = None) -> List[Topic]:
             try:
                 with open(yaml_path, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f) or {}
-            except (yaml.YAMLError, OSError) as e:
-                logger.warning("Skip broken yaml %s: %s", yaml_path, e)
+            except (yaml.YAMLError, OSError, UnicodeDecodeError) as e:
+                _record_load_error(yaml_path, e)
                 continue
-            problem_slug = os.path.splitext(os.path.basename(yaml_path))[0]
-            pid = f"{lang}/{slug}/{problem_slug}"
-            # 防御：tags / hints 是字符串时不要当 iterable 拆字符
-            raw_tags = data.get("tags") or []
-            tags = list(raw_tags) if isinstance(raw_tags, list) else [str(raw_tags)]
-            raw_hints = data.get("hints") or []
-            hints = list(raw_hints) if isinstance(raw_hints, list) else [str(raw_hints)]
-            # difficulty=0 应保留 0（之前 `or 1` 把 0 强转 1）
-            raw_diff = data.get("difficulty")
-            difficulty = int(raw_diff) if raw_diff is not None else 1
-
-            # rubric：list 转「- 」要点字符串；空 list -> None；字符串原样
-            rubric_raw = data.get("rubric")
-            if isinstance(rubric_raw, list):
-                rubric = "\n".join("- " + str(item) for item in rubric_raw) or None
-            elif rubric_raw is not None:
-                rubric = str(rubric_raw)
-            else:
-                rubric = None
-
-            reference_answer = data.get("reference_answer")
-
-            problems.append(Problem(
-                id=pid,
-                title=str(data.get("title") or problem_slug),
-                topic=str(data.get("topic") or slug),
-                difficulty=difficulty,
-                tags=tags,
-                statement=str(data.get("statement") or ""),
-                starter_code=str(data.get("starter_code") or ""),
-                expected_output=data.get("expected_output"),
-                expected_rows=data.get("expected_rows"),
-                setup_sql=data.get("setup_sql"),
-                tests=data.get("tests"),
-                hints=hints,
-                judge_mode=str(data.get("judge_mode") or "run"),
-                rubric=rubric,
-                reference_answer=reference_answer,
-            ))
+            if not isinstance(data, dict):
+                _record_load_error(
+                    yaml_path,
+                    TypeError(f"yaml root is {type(data).__name__}, expected mapping"))
+                continue
+            try:
+                problem = _build_problem(lang, slug, yaml_path, data)
+            except (TypeError, ValueError, AttributeError) as e:
+                _record_load_error(yaml_path, e)
+                continue
+            problems.append(problem)
         topics.append(Topic(
             slug=slug,
             title=_topic_title(slug, lesson_md),
@@ -180,6 +176,47 @@ def load_language(lang: str, content_dir: Optional[str] = None) -> List[Topic]:
     _cache[key] = topics
     _cache_key[key] = sig
     return topics
+
+
+def _build_problem(lang: str, slug: str, yaml_path: str, data: dict) -> Problem:
+    """data → Problem 的字段转换；转换异常由调用方隔离为诊断记录。"""
+    problem_slug = os.path.splitext(os.path.basename(yaml_path))[0]
+    pid = f"{lang}/{slug}/{problem_slug}"
+    # 防御：tags / hints 是字符串时不要当 iterable 拆字符
+    raw_tags = data.get("tags") or []
+    tags = list(raw_tags) if isinstance(raw_tags, list) else [str(raw_tags)]
+    raw_hints = data.get("hints") or []
+    hints = list(raw_hints) if isinstance(raw_hints, list) else [str(raw_hints)]
+    # difficulty=0 应保留 0（之前 `or 1` 把 0 强转 1）
+    raw_diff = data.get("difficulty")
+    difficulty = int(raw_diff) if raw_diff is not None else 1
+
+    # rubric：list 转「- 」要点字符串；空 list -> None；字符串原样
+    rubric_raw = data.get("rubric")
+    if isinstance(rubric_raw, list):
+        rubric = "\n".join("- " + str(item) for item in rubric_raw) or None
+    elif rubric_raw is not None:
+        rubric = str(rubric_raw)
+    else:
+        rubric = None
+
+    return Problem(
+        id=pid,
+        title=str(data.get("title") or problem_slug),
+        topic=str(data.get("topic") or slug),
+        difficulty=difficulty,
+        tags=tags,
+        statement=str(data.get("statement") or ""),
+        starter_code=str(data.get("starter_code") or ""),
+        expected_output=data.get("expected_output"),
+        expected_rows=data.get("expected_rows"),
+        setup_sql=data.get("setup_sql"),
+        tests=data.get("tests"),
+        hints=hints,
+        judge_mode=str(data.get("judge_mode") or "run"),
+        rubric=rubric,
+        reference_answer=data.get("reference_answer"),
+    )
 
 
 def find_problem(lang: str, problem_id: str, content_dir: Optional[str] = None):

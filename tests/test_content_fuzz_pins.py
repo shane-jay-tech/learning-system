@@ -112,33 +112,50 @@ class TestLoaderGraceful:
 
 
 class TestLoaderHoles:
-    """发现的洞：当前会 crash 的畸形输入——钉住现状，修复时有意翻转。"""
+    """原「发现的洞」四用例：2026-09-06 loader 隔离修复后已翻转为新行为断言——
+    坏文件进诊断记录（loader.get_load_diagnostics），专题框照常加载，不 crash。"""
 
-    def test_hole1_yaml_root_is_list_crashes(self, tmp_path):
-        # 发现的洞 #1：yaml 根为 list 时 data.get → AttributeError
+    def test_hole1_yaml_root_is_list_isolated(self, tmp_path):
+        # 原洞 #1：yaml 根为 list 时 data.get → AttributeError；现在整文件隔离。
         _write(tmp_path, f"content/{LANG}/01_demo/01_root.yaml", "- a\n- b\n")
-        with pytest.raises(AttributeError):
-            _load(tmp_path)
+        topics = _load(tmp_path)
+        assert len(topics) == 1 and topics[0].problems == []
+        diags = loader.get_load_diagnostics()
+        assert len(diags) == 1
+        assert diags[0].path.endswith("01_root.yaml")
+        assert diags[0].error_type == "TypeError"  # root 非 mapping
 
-    def test_hole2_yaml_root_is_scalar_crashes(self, tmp_path):
-        # 发现的洞 #1 同源：根为标量
+    def test_hole2_yaml_root_is_scalar_isolated(self, tmp_path):
+        # 原洞 #1 同源：根为标量 → 同样隔离为 TypeError。
         _write(tmp_path, f"content/{LANG}/01_demo/01_root.yaml", "just_a_string\n")
-        with pytest.raises(AttributeError):
-            _load(tmp_path)
+        topics = _load(tmp_path)
+        assert len(topics) == 1 and topics[0].problems == []
+        diags = loader.get_load_diagnostics()
+        assert len(diags) == 1
+        assert diags[0].path.endswith("01_root.yaml")
+        assert diags[0].error_type == "TypeError"
 
-    def test_hole3_difficulty_non_numeric_crashes(self, tmp_path):
-        # 发现的洞 #2：difficulty: "hard" → int() ValueError
+    def test_hole3_difficulty_non_numeric_isolated(self, tmp_path):
+        # 原洞 #2：difficulty: "hard" → int() ValueError；现在该文件进诊断，不炸整批。
         _write(tmp_path, f"content/{LANG}/01_demo/01_diff.yaml",
                GOOD.replace("difficulty: 2", 'difficulty: "hard"'))
-        with pytest.raises(ValueError):
-            _load(tmp_path)
+        topics = _load(tmp_path)
+        assert len(topics) == 1 and topics[0].problems == []
+        diags = loader.get_load_diagnostics()
+        assert len(diags) == 1
+        assert diags[0].path.endswith("01_diff.yaml")
+        assert diags[0].error_type == "ValueError"
 
-    def test_hole4_non_utf8_file_crashes(self, tmp_path):
-        # 发现的洞 #3：非 UTF-8 字节 → UnicodeDecodeError（未在 except 清单内）
+    def test_hole4_non_utf8_file_isolated(self, tmp_path):
+        # 原洞 #3：非 UTF-8 字节 → UnicodeDecodeError；现在进诊断记录。
         _write(tmp_path, f"content/{LANG}/01_demo/01_bin.yaml",
                b"\xff\xfe\x00bad\x00", binary=True)
-        with pytest.raises(UnicodeDecodeError):
-            _load(tmp_path)
+        topics = _load(tmp_path)
+        assert len(topics) == 1 and topics[0].problems == []
+        diags = loader.get_load_diagnostics()
+        assert len(diags) == 1
+        assert diags[0].path.endswith("01_bin.yaml")
+        assert diags[0].error_type == "UnicodeDecodeError"
 
 
 class TestDeepAuditErrors:
