@@ -1,6 +1,10 @@
 from datetime import datetime, timezone
 
+import logging
+
 import streamlit as st
+
+logger = logging.getLogger(__name__)
 
 from core.loader import load_language
 from core.paths import load_all_paths
@@ -161,6 +165,7 @@ def _render_ai_pulse(dao):
             delta_days = (datetime.now(timezone.utc) - ts).days
             return max(0, delta_days)
         except Exception:
+            logger.debug("home: ai_pulse 时间戳解析失败，按 9999（未知的遥远日期）处理", exc_info=True)
             return 9999
 
     days_monthly = _days_since(dao.get_meta_ts("ai_pulse_monthly"))
