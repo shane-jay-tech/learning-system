@@ -272,6 +272,11 @@ header[data-testid="stHeader"], footer { background: transparent !important; }
 ::-webkit-scrollbar-thumb:hover { background-color: #A8B1C1; }
 ::-webkit-scrollbar-track { background: transparent; }
 
+@media (max-width: 1280px) {
+  /* h912-13：1024–1280 中间断点——侧栏展开时 4 列卡片允许换行，避免挤压 */
+  [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+}
+
 @media (max-width: 900px) {
   [data-testid="stMainBlockContainer"] { padding: 1.2rem 1rem 3rem; }
   [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }

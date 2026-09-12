@@ -60,9 +60,7 @@ def _render_home_body(dao):
     grand_wrong = sum(summary.get(l, {}).get("wrong", 0) for l in ALL_LANGS)
     grand_attempted = sum(summary.get(l, {}).get("total", 0) for l in ALL_LANGS)
 
-    _render_next_action(dao, grand_solved)
-    _render_path_cards()
-
+    # h912-13：总览提到 hero/路径卡之前——1366×768 首屏先露数据，再行动区
     section_title("总览")
     m1, m2, m3, m4 = st.columns(4)
     with m1:
@@ -73,6 +71,9 @@ def _render_home_body(dao):
         st.markdown(metric_tile(grand_wrong, "错题待改"), unsafe_allow_html=True)
     with m4:
         st.markdown(metric_tile(grand_attempted, "已尝试"), unsafe_allow_html=True)
+
+    _render_next_action(dao, grand_solved)
+    _render_path_cards()
 
     section_title("按语言练习")
     for i in range(0, len(ALL_LANGS), 2):

@@ -1,8 +1,11 @@
 import html
+import logging
 from datetime import date, timedelta
 
 import pandas as pd
 import streamlit as st
+
+logger = logging.getLogger(__name__)
 
 from core.achievements import check_achievements, get_all_earned, get_all_with_state, get_progress_summary, get_achievement
 from core.loader import find_problem
@@ -82,7 +85,7 @@ def _render_dashboard_body(dao):
 
     section_title("各语言通过情况")
     n = len(ALL_LANGS)
-    cols = st.columns(min(n, 5))
+    cols = st.columns(min(n, 4))
     for i, lang in enumerate(ALL_LANGS):
         meta = LANG_META[lang]
         s = summary.get(lang, {"solved": 0, "wrong": 0, "total": 0})
@@ -122,7 +125,7 @@ def _render_dashboard_body(dao):
                                    payload={"reason_code": rc, "surface": "dashboard",
                                             "rank": rank, "recommendation_id": rec_id})
         except Exception:
-            pass
+            logger.debug("dashboard: 推荐展示数据异常", exc_info=True)
         for it in plan:
             meta = LANG_META[it["lang"]]
             with st.container(border=True):
@@ -147,7 +150,7 @@ def _render_dashboard_body(dao):
                                                "rank": imp.get("rank", 0),
                                            })
                         except Exception:
-                            pass
+                            logger.debug("dashboard: 推荐事件上报异常", exc_info=True)
                         navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
 
     _render_cross_recommend(dao)
@@ -309,7 +312,7 @@ def _render_cross_recommend(dao):
                                        "rank": imp.get("rank", 0),
                                    })
                 except Exception:
-                    pass
+                    logger.debug("dashboard: 跨路径推荐展示异常", exc_info=True)
                 navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
 
 
