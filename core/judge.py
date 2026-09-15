@@ -54,6 +54,14 @@ def _format_rows(rows) -> str:
 
 
 def _normalize(s: str, lang: str = "") -> str:
+    """输出归一化契约（q914-33 同类显式化；现状描述，零行为改动）。
+
+    - 仅做：``\\r\\n → \\n``、去掉尾部换行；None → ``""``；
+    - **反直觉点：不做空白去除/折叠**——中间空格、行首缩进原样保留
+      （实证见 tests/test_judge_pure.py「_normalize 不做去除」用例）；
+    - 仅 ``lang == "r"`` 时额外处理：去除 R ``print()`` 的 ``[1]`` 行前缀、
+      行内空白折叠为单空格并去首尾（兼容 ``cat()`` 输出）。
+    """
     if s is None:
         return ""
     s = s.replace("\r\n", "\n").rstrip("\n")
@@ -70,7 +78,12 @@ def _normalize(s: str, lang: str = "") -> str:
 
 
 def _cell_eq(a, b) -> bool:
-    """宽松单元格比较：数值 1 与 1.0 视为相等；None 只与 None 相等；其余按字符串。"""
+    """宽松单元格比较：数值 1 与 1.0 视为相等；None 只与 None 相等；其余按字符串。
+
+    反直觉点（q914-33 显式化）：bool 优先于数值判定（True 不等于 1）；
+    字符串路径**严格相等、含空白差异**——"1 " 与 "1" 不等，交给上游 _normalize
+    的责任（而 _normalize 本身不做空白去除，见其 docstring）。
+    """
     if isinstance(a, bool) or isinstance(b, bool):
         return bool(a) == bool(b)
     if isinstance(a, (int, float)) and isinstance(b, (int, float)):
@@ -106,6 +119,10 @@ def _error_summary(stderr: str) -> str:
 
     Python 的 traceback 第一行恒为 "Traceback (most recent call last):"，
     真正错误在最后一行；g++ 的编译错误含 "error:" 关键字。逐个过滤。
+
+    反直觉点（q914-33 显式化）：**空 stderr（或全空行）返回字面量「运行失败」**，
+    不是空串——进程失败但无 stderr 时 diff 提示仍非空；命中含 "error:" 的行
+    优先返回（截 120 字符），否则取过滤 Traceback/File 行后的最后一行（截 120）。
     """
     if not stderr:
         return "运行失败"
