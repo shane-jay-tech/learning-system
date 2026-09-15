@@ -80,9 +80,9 @@ def _normalize(s: str, lang: str = "") -> str:
 def _cell_eq(a, b) -> bool:
     """宽松单元格比较：数值 1 与 1.0 视为相等；None 只与 None 相等；其余按字符串。
 
-    反直觉点（q914-33 显式化）：bool 优先于数值判定（True 不等于 1）；
-    字符串路径**严格相等、含空白差异**——"1 " 与 "1" 不等，交给上游 _normalize
-    的责任（而 _normalize 本身不做空白去除，见其 docstring）。
+    反直觉点（实测校正 916-02）：bool 分支按真值比较——True 与 1 相等
+    （bool(1)==bool(True)）；字符串路径**严格相等、含空白差异**——"1 " 与 "1"
+    不等，交给上游 _normalize 的责任（而 _normalize 本身不做空白去除）。
     """
     if isinstance(a, bool) or isinstance(b, bool):
         return bool(a) == bool(b)
