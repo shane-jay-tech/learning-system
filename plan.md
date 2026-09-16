@@ -30,4 +30,4 @@
 
 - 已完成全局设计系统、侧栏、首页、刷题、路径、诊断、面板与错题本改造。
 - 已验证 900×768、1366×768、1920×1080，均无横向溢出或页面异常。
-- 全量测试结果：304 passed，7 skipped（本机未安装 g++ / Rscript）。
+- 全量测试结果：376 passed，7 skipped（本机未安装 g++ / Rscript）。实测命令：python -m pytest tests -q；口径：pytest（非 unittest discover），2026-09-17 复核。
