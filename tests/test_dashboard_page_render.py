@@ -143,3 +143,79 @@ def test_render_rubric_trends(fake_st):
     """覆盖 :514-536 rubric 趋势渲染。"""
     dashboard_page._render_rubric_trends(_dao())
     assert fake_st.calls
+
+
+# ---------------------------------------------------------------------------
+# k918-04：:109-155 推荐计划渲染体补测（impression 记账/事件上报/空计划 info/按钮导航）
+# ---------------------------------------------------------------------------
+
+def _plan():
+    return [
+        {"lang": "python", "problem_id": "p1", "title": "两数之和", "difficulty": 2,
+         "topic_title": "循环", "topic_slug": "loops", "reason_code": "weak_topic"},
+        {"lang": "sql", "problem_id": "p9", "title": "联接入门", "difficulty": 3,
+         "topic_title": "联接", "topic_slug": "joins", "reason_code": "due_review"},
+    ]
+
+
+def _wire_full_render(monkeypatch, dao, plan):
+    monkeypatch.setattr(dashboard_page, "ProgressDAO", lambda: dao)
+    monkeypatch.setattr(dashboard_page, "check_achievements", lambda dao: [])
+    monkeypatch.setattr(dashboard_page, "get_progress_summary", lambda dao: {"earned": 2, "total": 22})
+    monkeypatch.setattr(dashboard_page, "recommend", lambda n=5, dao=None: plan)
+    monkeypatch.setattr(dashboard_page, "cross_recommend", lambda n=3, dao=None: [])
+
+
+def test_render_dashboard_recommend_plan_impressions_and_events(fake_st, monkeypatch):
+    """:109-155 正常态：展示去重记账＋recommendation_shown 事件＋卡片渲染。"""
+    dao = _dao()
+    _wire_full_render(monkeypatch, dao, _plan())
+    dashboard_page.render_dashboard()
+    imps = fake_st.session_state["_rec_impressions"]
+    assert len(imps) == 2, "两个推荐项都应写入 impression 记账"
+    assert imps[("python", "p1", "dashboard")]["rank"] == 1
+    assert imps[("sql", "p9", "dashboard")]["rank"] == 2
+    assert imps[("python", "p1", "dashboard")]["recommendation_id"] == "20260919_dashboard_weak_topic_python_p1_1"
+    shown = [c for c in dao.emit_event.call_args_list if c.args and c.args[0] == "recommendation_shown"]
+    assert len(shown) == 2, "每个新展示项各上报一次 recommendation_shown"
+    assert shown[0].kwargs["payload"]["surface"] == "dashboard"
+    assert shown[0].kwargs["payload"]["reason_code"] == "weak_topic"
+
+
+def test_render_dashboard_recommend_empty_plan_shows_info(fake_st, monkeypatch):
+    """:110-111 空计划分支：st.info 提示且不写 impression。"""
+    dao = _dao()
+    _wire_full_render(monkeypatch, dao, [])
+    dashboard_page.render_dashboard()
+    assert fake_st.session_state.get("_rec_impressions", {}) == {} or "_rec_impressions" not in fake_st.session_state
+    labels = [c[0] for c in fake_st.calls]
+    assert "info" in labels, "空计划应 st.info 引导文案"
+
+
+def test_render_dashboard_recommend_button_click_emits_clicked_and_navigates(monkeypatch):
+    """:147-155 按钮分支：clicked 事件携带 impression 字段＋navigate_to_problem 调用。"""
+    dao = _dao()
+    fake = DashboardFakeStreamlit(buttons={"去做 →": True})
+    monkeypatch.setattr(dashboard_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)
+    _wire_full_render(monkeypatch, dao, _plan())
+    navigated = []
+    monkeypatch.setattr(dashboard_page, "navigate_to_problem",
+                        lambda lang, slug, pid: navigated.append((lang, slug, pid)))
+    dashboard_page.render_dashboard()
+    clicked = [c for c in dao.emit_event.call_args_list if c.args and c.args[0] == "recommendation_clicked"]
+    assert len(clicked) == 2, "两个推荐卡按钮都被按下，各上报一次 clicked"
+    payload = clicked[0].kwargs["payload"]
+    assert payload["reason_code"] == "weak_topic" and payload["rank"] == 1
+    assert navigated[0] == ("python", "loops", "p1")
+
+
+def test_render_dashboard_recommend_second_run_no_duplicate_shown(fake_st, monkeypatch):
+    """:117-120 展示去重：第二次渲染同一 plan 不再重复上报 shown。"""
+    dao = _dao()
+    _wire_full_render(monkeypatch, dao, _plan())
+    dashboard_page.render_dashboard()
+    first = len([c for c in dao.emit_event.call_args_list if c.args and c.args[0] == "recommendation_shown"])
+    dashboard_page.render_dashboard()
+    second = len([c for c in dao.emit_event.call_args_list if c.args and c.args[0] == "recommendation_shown"])
+    assert first == 2 and second == first, "session_state 去重后第二次渲染不再新增 shown 事件"
