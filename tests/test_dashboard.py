@@ -200,3 +200,125 @@ def test_review_health_stats_overdue_bucketing(dao):
     risk_pids = {hr["problem_id"] for hr in stats["high_risk"]}
     assert "p2" in risk_pids
     assert "p3" in risk_pids
+
+
+# ---------------------------------------------------------------------------
+# l918-05：异常分支补测（坏数据 fixture 打 39-40 / 78 / 230->250 分支）
+# 复用 tests/test_dashboard_page_render.py 的 FakeStreamlit 桩；不改 ui/pages/dashboard.py。
+# ---------------------------------------------------------------------------
+from tests.test_ui_behavior import FakeStreamlit
+import ui.components as components
+import ui.pages.dashboard as dashboard_page
+from unittest.mock import MagicMock
+
+
+class _DashFake(FakeStreamlit):
+    EXTRA = {"bar_chart", "plotly_chart", "altair_chart", "table", "image", "text_input",
+             "number_input", "selectbox", "multiselect", "checkbox", "slider",
+             "text_area", "date_input", "toast", "balloons", "file_uploader",
+             "download_button", "page_link"}
+
+    def __getattr__(self, name):
+        if name in self.EXTRA:
+            def call(*a, **kw):
+                self.calls.append((name, a, kw))
+                return self
+            return call
+        return super().__getattr__(name)
+
+
+def _wire_page(monkeypatch, fake, dao):
+    monkeypatch.setattr(dashboard_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)
+    monkeypatch.setattr(dashboard_page, "ProgressDAO", lambda: dao)
+    monkeypatch.setattr(dashboard_page, "check_achievements", lambda dao: [])
+    monkeypatch.setattr(dashboard_page, "get_progress_summary", lambda dao: {"earned": 0, "total": 22})
+    monkeypatch.setattr(dashboard_page, "recommend", lambda n=5, dao=None: [])
+    monkeypatch.setattr(dashboard_page, "cross_recommend", lambda n=3, dao=None: [])
+
+
+def test_build_chart_data_坏行缺passed键_锁定现行为(monkeypatch):
+    """:39-40 分支——daily 行缺 passed 键时现行实现直接 KeyError（无 try/except）。
+    用例锁定该现行为：坏数据会在此暴露而非静默吞掉（若日间改成容错，此用例即红=提醒更新）。"""
+    import pytest as _pytest
+    today = date.today().isoformat()
+    with _pytest.raises(KeyError, match="passed"):
+        dashboard_page._build_chart_data([{"date": today, "attempts": 3}])
+    # 正常行仍走赋值分支
+    series, pass_series = dashboard_page._build_chart_data(
+        [{"date": today, "attempts": 3, "passed": 2}])
+    assert series[today] == 3 and pass_series[today] == 2
+
+
+def test_build_chart_data_未知日期行_被忽略(monkeypatch):
+    """:38 if row["date"] in series 分支——窗口外日期不污染 zero-fill 字典。"""
+    series, pass_series = dashboard_page._build_chart_data(
+        [{"date": "2001-01-01", "attempts": 9, "passed": 9}])
+    assert "2001-01-01" not in series
+    assert all(v == 0 for v in series.values())
+
+
+def test_render_dashboard_total_attempts_zero_走空状态(monkeypatch):
+    """:78 分支——total_attempts=0 → render_empty_state 引导文案，不画趋势图。"""
+    dao = MagicMock()
+    dao.daily_streak.return_value = 0
+    dao.total_attempts.return_value = 0
+    dao.attempts_by_day.return_value = []
+    dao.summary_by_lang.return_value = {}
+    dao.lang_attempt_counts.return_value = {}
+    dao.all_problems_status.return_value = []
+    dao.get_due_reviews.return_value = []
+    dao.recent_attempts.return_value = []
+    dao.recommendation_funnel.return_value = {"shown": 0, "clicked": 0, "completed": 0}
+    dao.recommendation_funnel_by_reason.return_value = {}
+    dao.review_health_stats.return_value = {"total_pool": 0, "total_due": 0, "high_risk": [], "buckets": {}}
+    dao.dimension_trends.return_value = []
+    dao.milestone_progress.return_value = []
+    fake = _DashFake()
+    _wire_page(monkeypatch, fake, dao)
+    empty_calls = []
+    monkeypatch.setattr(dashboard_page, "render_empty_state",
+                        lambda title, sub, **kw: empty_calls.append((title, sub)))
+    dashboard_page.render_dashboard()
+    assert any("还没有任何提交记录" in t for t, _ in empty_calls), "total=0 应走空状态引导"
+    assert not any(c[0] == "bar_chart" for c in fake.calls), "空数据不得渲染趋势图"
+
+
+def test_render_dashboard_import_坏json_走错误提示不清库(monkeypatch):
+    """:230->250 分支——导入坏 JSON → import_json 抛错 → render_error_notice，DAO 未清。"""
+    dao = MagicMock()
+    dao.total_attempts.return_value = 1
+    dao.daily_streak.return_value = 1
+    dao.summary_by_lang.return_value = {"python": {"attempts": 1, "solved": 1}}
+    dao.lang_attempt_counts.return_value = {}
+    dao.attempts_by_day.return_value = []
+    dao.all_problems_status.return_value = []
+    dao.get_due_reviews.return_value = []
+    dao.recent_attempts.return_value = []
+    dao.recommendation_funnel.return_value = {"shown": 0, "clicked": 0, "completed": 0}
+    dao.recommendation_funnel_by_reason.return_value = {}
+    dao.review_health_stats.return_value = {"total_pool": 0, "total_due": 0, "high_risk": [], "buckets": {}}
+    dao.dimension_trends.return_value = []
+    dao.milestone_progress.return_value = []
+    fake = _DashFake()
+    _wire_page(monkeypatch, fake, dao)
+
+    class _BadUpload:
+        @staticmethod
+        def getvalue():
+            return b"not-json"
+
+    uploads = iter([_BadUpload()])
+    monkeypatch.setattr(fake, "file_uploader",
+                        lambda *a, **kw: next(uploads, None), raising=False)
+    monkeypatch.setattr(fake, "button", lambda label, *a, **kw: label == "确认导入")
+    notices = []
+    monkeypatch.setattr(dashboard_page, "render_error_notice",
+                        lambda title, **kw: notices.append((title, kw)))
+    import core.data_portability as _dp
+    monkeypatch.setattr(_dp, "import_json",
+                        lambda dao_, raw: (_ for _ in ()).throw(ValueError("坏 JSON：缺少 attempts 键")))
+    dashboard_page.render_dashboard()
+    assert notices and "导入失败" in notices[0][0], "坏 JSON 应触发导入失败提示"
+    assert "坏 JSON" in notices[0][1]["reason"], "提示应携带异常原因"
+    dao._clear_memo.assert_not_called(), "失败导入不得清缓存"
