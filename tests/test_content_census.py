@@ -46,11 +46,11 @@ def test_hints缺失数_精确钉4():
     for lang, slug, problems in _all_problems():
         for p in problems:
             if not getattr(p, "hints", None):
-                missing.append(f"{lang}/{p.id}")
-    expected = sorted([
-        "agent_dev/07_write_spec/agent_dev/07_write_spec/05_spec_for_bugfix",
-        "agent_dev/09_decompose/agent_dev/09_decompose/05_decompose_simple",
-        "r/06_mixed_apa/r/06_mixed_apa/06_interpret_output",
-        "r/16_mediation/r/16_mediation/05_explain_mediation",
-    ])
+                missing.append(p.id)
+    expected = [
+        "agent_dev/07_write_spec/05_spec_for_bugfix",
+        "agent_dev/09_decompose/05_decompose_simple",
+        "r/06_mixed_apa/06_interpret_output",
+        "r/16_mediation/05_explain_mediation",
+    ]
     assert sorted(missing) == expected, f"缺 hints 名单漂移：{sorted(missing)}"
