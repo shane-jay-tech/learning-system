@@ -66,9 +66,10 @@ def _parse_json(text: str) -> Optional[Dict]:
     return None
 
 
-def generate_variant(lang: str, original: dict, model: str = "deepseek") -> Optional[Dict]:
-    """出题=质量档：默认 deepseek-v4-pro（要保证生成的题面/expected_output 正确，
-    且比 gpt 更稳）。单模型不做 fallback——出题本就较慢，避免最坏叠加超时。"""
+def generate_variant(lang: str, original: dict, model: str = "gpt") -> Optional[Dict]:
+    """出题=质量档：默认 gpt（2026-09-13 起 deepseek-v4-pro 已退役，gpt-5.6 是现役最强档，
+    用来保证生成的题面/expected_output 正确）。单模型不做 fallback——出题本就较慢，
+    避免最坏叠加超时。"""
     prompt = _build_user_prompt(lang, original)
     try:
         proc = subprocess.run(

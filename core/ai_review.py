@@ -33,13 +33,12 @@ PROMPT_VERSIONS = {
 }
 
 # 模型分档（用户哲学：简单/交互的活让 flash 干，质量关键时才上高性能模型）。
-# model_id 通过 env 覆盖 {ROLE}_MODEL 只作用于本次调用，不改 .env.local，
-# 多模型协作的 deepseek-v4-pro 评审不受影响。
-_FLASH_MODEL = "deepseek-v4-flash"
-# 快档（代码点评 / 追问 / 知识点问答等交互）：flash 优先，失败退 kimi / gpt
-_FAST_CHAIN = (("deepseek", _FLASH_MODEL), ("kimi", None), ("gpt", None))
-# 质量档（开放题评分等"判定"类，需保证质量）：deepseek-v4-pro 优先，再 gpt / kimi
-_QUALITY_CHAIN = (("deepseek", None), ("gpt", None), ("kimi", None))
+# ⚠️ 2026-09-13：llm_call.py 精简后只剩两个角色（flash / gpt）——deepseek、kimi、claude
+# 已退役。链里若再写它们，只会白白多等一次失败的子进程，最后照样落到 gpt（还多花钱）。
+# 快档（代码点评 / 追问 / 知识点问答等交互）：flash 优先，失败退 gpt
+_FAST_CHAIN = (("flash", None), ("gpt", None))
+# 质量档（开放题评分等"判定"类，需保证质量）：gpt 优先（现役最强档），失败退 flash
+_QUALITY_CHAIN = (("gpt", None), ("flash", None))
 
 logger = logging.getLogger(__name__)
 
@@ -269,7 +268,7 @@ def _offline_fallback(passed: bool, stderr: str) -> str:
                 msg += (f"\n\n先给你一个离线提示——**{fr.title}**：{fr.explanation} "
                         f"👉 {fr.suggested_action}")
         except Exception:
-            pass
+            logger.debug("ai_review: 离线提示补充失败（保持主返回）", exc_info=True)
     return msg
 
 

@@ -112,7 +112,11 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   .card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #EEF2FF; }
-  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  th { color: var(--muted); font-weight: 700; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .05em; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  /* d913c-11：首列（语言名）超长折叠＋悬浮全名 */
+  td:first-child { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bar { height: 8px; border-radius: 4px; background: #E2E8F0; min-width: 120px; }
   .bar > div { height: 8px; border-radius: 4px; background: var(--primary); }
   ol li { margin: 6px 0; line-height: 1.6; }
@@ -158,9 +162,9 @@ def report_to_html(report: Dict) -> str:
     for lang, info in report["lang_progress"].items():
         pct = info["pct"]
         lang_rows.append(f'''
-        <tr><td>{e(info["icon"])} {e(info["name"])}</td>
-            <td>{e(str(info["solved"]))} / {e(str(info["total"]))}</td>
-            <td>{e(f"{pct}%")}</td>
+        <tr><td title="{e(info['name'])}">{e(info["icon"])} {e(info["name"])}</td>
+            <td class="num">{e(str(info["solved"]))} / {e(str(info["total"]))}</td>
+            <td class="num">{e(f"{pct}%")}</td>
             <td><div class="bar"><div style="width:{min(pct, 100):.1f}%"></div></div></td></tr>''')
 
     if report["weak_topics"]:
@@ -183,7 +187,7 @@ def report_to_html(report: Dict) -> str:
 <div class="grid">{cards}</div>
 
 <h2>各语言进度</h2>
-<table><thead><tr><th>语言</th><th>已通过</th><th>完成率</th><th style="width:30%">进度</th></tr></thead>
+<table><thead><tr><th>语言</th><th class="num">已通过</th><th class="num">完成率</th><th style="width:30%">进度</th></tr></thead>
 <tbody>{"".join(lang_rows)}</tbody></table>
 
 <h2>薄弱知识点（需重点练习）</h2>

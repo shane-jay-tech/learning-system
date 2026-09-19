@@ -1,8 +1,11 @@
 """Achievement system: badges, streaks, milestones."""
+import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 from core.progress import ProgressDAO
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -142,7 +145,7 @@ def check_achievements(dao: ProgressDAO) -> List[str]:
         try:
             dao.emit_event("achievement_unlocked", payload={"achievement_id": aid})
         except Exception:
-            pass
+            logger.debug("achievements: 解锁事件上报失败（不影响成就发放）", exc_info=True)
 
     return newly
 
