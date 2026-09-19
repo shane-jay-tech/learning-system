@@ -175,7 +175,11 @@ def test_render_dashboard_recommend_plan_impressions_and_events(fake_st, monkeyp
     assert len(imps) == 2, "两个推荐项都应写入 impression 记账"
     assert imps[("python", "p1", "dashboard")]["rank"] == 1
     assert imps[("sql", "p9", "dashboard")]["rank"] == 2
-    assert imps[("python", "p1", "dashboard")]["recommendation_id"] == "20260919_dashboard_weak_topic_python_p1_1"
+    # l919-03 收口注记：recommendation_id 内嵌业务日期（渲染时取当天），钉死日期会在跨午夜后假红——
+    # 改为按当天动态推导，只断言结构（date_weak_topic_python_p1_1）。
+    from datetime import datetime as _dt
+    _today = _dt.now().strftime("%Y%m%d")
+    assert imps[("python", "p1", "dashboard")]["recommendation_id"] == f"{_today}_dashboard_weak_topic_python_p1_1"
     shown = [c for c in dao.emit_event.call_args_list if c.args and c.args[0] == "recommendation_shown"]
     assert len(shown) == 2, "每个新展示项各上报一次 recommendation_shown"
     assert shown[0].kwargs["payload"]["surface"] == "dashboard"

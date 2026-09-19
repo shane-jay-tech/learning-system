@@ -344,7 +344,8 @@ def _render_body(lang, topics, topic, dao):
                     section_title("错误信息")
                     stderr_block(r.run_result.stderr)
                 if "暂时不可用" in (r.ai_feedback or ""):
-                    st.info("💡 AI 点评暂时不可用（不影响判题结果）。稍后重新提交可获得点评。")
+                    # l919-03：notice 档位统一——st.info 改走 render_notice 统一形态（降级说明+下一步）。
+                    render_notice("AI 点评暂时不可用（不影响判题结果）。下一步：稍后重新提交即可获得点评。")
                 else:
                     ai_feedback_block(r.ai_feedback)
                 _render_chat(lang, active, active_id)

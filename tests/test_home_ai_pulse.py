@@ -2,7 +2,7 @@
 """home _render_ai_pulse 30/90 天档位补测（l918-19）。
 
 钉时间兜底三档（:184-199）与「已完成浅扫/深查」按钮的 set_meta 行为（:214-232）：
-  ①quarterly ≥90 天 → st.error「该做季度深查了」；
+  ①quarterly ≥90 天 → st.warning「该做季度深查了」（l919-03 降档翻桩）；
   ②monthly ≥30 天（quarterly <90）→ st.warning「该做月度浅扫了」；
   ③两档未到 → st.success 倒计时文案；
   ④按钮：完成月度浅扫 → set_meta('ai_pulse_monthly')；完成季度深查 → set_meta 双键。
@@ -63,11 +63,12 @@ def _texts(fake, kind):
     return [str(c[1][0]) for c in fake.calls if c[0] == kind]
 
 
-def test_quarterly超90天_error深查档(monkeypatch):
+def test_quarterly超90天_warning深查档(monkeypatch):
     fake = _patch_st(monkeypatch, PulseFake())
     home_page._render_ai_pulse(_dao(_ts(5), _ts(95)))
-    errors = _texts(fake, "error")
-    assert any("该做季度深查了" in e and "距上次 95 天" in e for e in errors), errors
+    warnings = _texts(fake, "warning")
+    assert any("该做季度深查了" in w and "距上次 95 天" in w for w in warnings), warnings
+    assert not any("该做季度深查了" in e for e in _texts(fake, "error")), "降档后不得再走 error"
 
 
 def test_monthly超30天_warning浅扫档(monkeypatch):
@@ -85,11 +86,12 @@ def test_正常档_success倒计时(monkeypatch):
                for s in success), success
 
 
-def test_从未做过_9999兜底走error(monkeypatch):
+def test_从未做过_9999兜底走warning(monkeypatch):
+    """l919-03 翻桩：提醒类降档 error→warning，9999 兜底文案随之走 warning。"""
     fake = _patch_st(monkeypatch, PulseFake())
     home_page._render_ai_pulse(_dao(None, None))
-    errors = _texts(fake, "error")
-    assert any("从未做过" in e for e in errors), errors
+    warnings = _texts(fake, "warning")
+    assert any("从未做过" in w for w in warnings), warnings
 
 
 def test_完成按钮写meta(monkeypatch):

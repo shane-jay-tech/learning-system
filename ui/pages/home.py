@@ -182,7 +182,8 @@ def _render_ai_pulse(dao):
         return "从未做过" if days >= 9999 else f"距上次 {days} 天"
 
     if days_quarterly >= 90:
-        st.error(
+        # l919-03：notice 档位统一——提醒类降档 error→warning（与月度浅扫同形态）。
+        st.warning(
             f"⏰ **该做季度深查了**（{_label(days_quarterly)}）"
             "——4 问自检 + 5 个信息源全过一遍，约 30 分钟"
         )
