@@ -4,8 +4,7 @@
 全量加载 5 语言题库（core.loader.load_language，399 题），断言：
   ① statement/答案字段（expected_output|expected_rows|tests|rubric 按键集）非空；
   ② difficulty 落在 1-5；
-  ③ 缺 hints 的题数 == 4（精确钉 2026-09-19 现状——翻桩须有意：任何第 5 题丢 hints
-     或现状 4 题被补齐都会让本用例红，强制内容审计知悉）。
+  ③ 缺 hints 的题数 == 0（l919-01 翻桩：原 4 题已补齐——任何题再丢 hints 都会让本用例红，强制内容审计知悉）。
 只读题库文件，零写库零源码改动。
 """
 import pytest
@@ -41,16 +40,12 @@ def test_difficulty_落1到5():
             d = getattr(p, "difficulty", None)
             assert d is not None and 1 <= d <= 5, f"{lang}/{slug}/{p.id} difficulty={d!r} 越界"
 
-def test_hints缺失数_精确钉4():
+def test_hints缺失数_精确钉0():
+    """l919-01 翻桩：4 题已补 hints（agent_dev/07、agent_dev/09、r/06_mixed_apa、r/16_mediation），
+    断言翻转——任何题缺失 hints 即红（缺 hints 名单必须持续为空）。"""
     missing = []
     for lang, slug, problems in _all_problems():
         for p in problems:
             if not getattr(p, "hints", None):
-                missing.append(p.id)
-    expected = [
-        "agent_dev/07_write_spec/05_spec_for_bugfix",
-        "agent_dev/09_decompose/05_decompose_simple",
-        "r/06_mixed_apa/06_interpret_output",
-        "r/16_mediation/05_explain_mediation",
-    ]
-    assert sorted(missing) == expected, f"缺 hints 名单漂移：{sorted(missing)}"
+                missing.append(f"{lang}/{slug}/{p.id}")
+    assert missing == [], f"缺 hints 名单漂移：{sorted(missing)}"

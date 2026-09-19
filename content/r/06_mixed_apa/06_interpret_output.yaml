@@ -26,6 +26,10 @@ rubric: |
 
   通过标准：三个问题都有实质回答，核心含义正确
 
+hints:
+  - "先看 treatment 行的 Estimate 与 Std. Error：t value = Estimate / Std. Error，可自行验算 1.032/0.318"
+  - "t value 约 3.24，远大于 2，通常意味着该固定效应显著"
+  - "结论要说方向（treatment 使响应平均提高约 1.03）而不只说「显著」"
 reference_answer: |
   1. 截距 3.245 表示当 treatment=0（即参照组/控制组）时，因变量的预测均值为 3.245。
   2. treatment 系数 1.032 表示相比控制组，实验组的因变量平均高 1.032 个单位。
