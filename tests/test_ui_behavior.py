@@ -292,6 +292,7 @@ def test_language_state_and_active_variant(monkeypatch):
 def test_mistakes_empty_and_ungroupable_states(monkeypatch):
     fake = FakeStreamlit()
     monkeypatch.setattr(mistakes_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # d913c-06：空态走统一组件
     dao = SimpleNamespace(list_mistakes=lambda: [], get_due_reviews=lambda limit: [])
     mistakes_page._render_mistakes_body(dao)
     assert any(call[0] == "success" for call in fake.calls)
@@ -329,6 +330,7 @@ def test_app_routes_to_expected_page(monkeypatch, route, module_name, function_n
 def test_app_initial_state_sidebar_and_unknown_route(monkeypatch):
     fake = FakeStreamlit(buttons={"📊 学习面板": True})
     monkeypatch.setattr(app, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # d913c-07：错误提示走统一 formatter
     monkeypatch.setattr(app, "navigate_to_problem", lambda lang: None)
     app._init_state()
     assert fake.session_state.route == "home"
@@ -339,6 +341,7 @@ def test_app_initial_state_sidebar_and_unknown_route(monkeypatch):
     fake = FakeStreamlit()
     fake.session_state.route = "unknown"
     monkeypatch.setattr(app, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # d913c-07：formatter 同一假件
     monkeypatch.setattr(app, "inject_css", lambda: None)
     app.main()
     assert any(call[0] == "error" and "未知路由" in call[1][0] for call in fake.calls)
@@ -384,6 +387,7 @@ def test_diagnostic_wrapper_and_result_render(monkeypatch):
 def test_home_wrapper_security_notice_and_body(monkeypatch):
     fake = FakeStreamlit(buttons={"我知道了，不再提示": True})
     monkeypatch.setattr(home_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # d914-21：通知走统一 helper
     monkeypatch.setattr(home_page, "hero", lambda *a, **kw: None)
     monkeypatch.setattr(home_page, "section_title", lambda *a, **kw: None)
     monkeypatch.setattr(home_page, "metric_tile", lambda n, label: f"{label}:{n}")
@@ -435,6 +439,7 @@ def test_home_wrapper_security_notice_and_body(monkeypatch):
 def test_language_render_guardrails_and_selection(monkeypatch):
     fake = FakeStreamlit()
     monkeypatch.setattr(language_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # d913c-07：错误提示走统一 formatter
     language_page.render_language()
     assert any(call[0] == "warning" for call in fake.calls)
 
@@ -466,16 +471,18 @@ def test_language_render_guardrails_and_selection(monkeypatch):
     monkeypatch.setattr(language_page, "load_language", lambda lang: empty_topic)
     fake.session_state.selected_topic_idx = 0
     language_page.render_language()
-    assert any(call[0] == "warning" and "暂无题目" in call[1][0] for call in fake.calls)
+    assert any(call[0] == "info" and "暂无题目" in call[1][0] for call in fake.calls)  # d913c-06：空态统一 info 档
 
 
 def test_path_page_rendering_branches(monkeypatch):
     fake = FakeStreamlit()
     monkeypatch.setattr(path_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # d913c-06：空态走统一组件
+    monkeypatch.setattr(components, "st", fake)  # d913c-07：错误提示走统一 formatter
     monkeypatch.setattr(path_page, "hero", lambda *a, **kw: None)
     monkeypatch.setattr(path_page, "load_all_paths", lambda: [])
     path_page.render_path_list()
-    assert any(call[0] == "warning" and "暂无学习路径" in call[1][0] for call in fake.calls)
+    assert any(call[0] == "info" and "暂无学习路径" in call[1][0] for call in fake.calls)  # d913c-06：空态统一 info 档
 
     milestone = _milestone("m1", ["python/loops"])
     learning_path = _path([milestone])

@@ -24,8 +24,11 @@ def test_dashboard_column_cap_and_1280_breakpoint():
     assert "st.columns(min(n, 4))" in src
     assert "min(n, 5)" not in src
     styles = STYLES.read_text(encoding="utf-8")
-    assert "@media (max-width: 1280px)" in styles
-    assert styles.index("@media (max-width: 1280px)") < styles.index("@media (max-width: 900px)")
+    # d913c-10：断点数值收敛为常量单源（_BP_MID/_BP_NARROW），占位符经 inject() 注入；
+    # 断言常量定义与相对次序（保护意图不变：中间断点先于窄窗断点）。
+    assert "_BP_MID = 1280" in styles
+    assert "_BP_NARROW = 900" in styles
+    assert styles.index("_BP_MID = 1280") < styles.index("_BP_NARROW = 900")
 
 
 def test_dashboard_no_silent_except():
