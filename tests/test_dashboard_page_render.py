@@ -219,3 +219,64 @@ def test_render_dashboard_recommend_second_run_no_duplicate_shown(fake_st, monke
     dashboard_page.render_dashboard()
     second = len([c for c in dao.emit_event.call_args_list if c.args and c.args[0] == "recommendation_shown"])
     assert first == 2 and second == first, "session_state 去重后第二次渲染不再新增 shown 事件"
+
+
+# ---------------------------------------------------------------------------
+# l918-06：_render_review_health 501-511 汇总分支直测（逾期分桶行/到期 emoji/高风险 expander）
+# ---------------------------------------------------------------------------
+
+def _wire_health(monkeypatch, fake, dao):
+    monkeypatch.setattr(dashboard_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)
+    monkeypatch.setattr(dashboard_page, "render_empty_state", lambda *a, **kw: None)
+    conn = MagicMock()
+    conn.execute.return_value.fetchone.return_value = (6.5,)
+    dao.conn = conn
+    dao.get_meta.return_value = None
+
+
+def test_render_review_health_due_buckets_and_caption(fake_st, monkeypatch):
+    """501-508：total_due>0 → 分桶 markdown＋caption，emoji 按量级 🟢/🟡/🔴。"""
+    dao = _dao()
+    dao.review_health_stats.return_value = {
+        "total_pool": 12, "total_due": 3, "high_risk": [],
+        "buckets": {"1_3": 2, "4_7": 1, "7_plus": 0},
+    }
+    _wire_health(monkeypatch, fake_st, dao)
+    dashboard_page._render_review_health(dao)
+    md = [str(c[1][0]) for c in fake_st.calls if c[0] == "markdown"]
+    assert any("逾期分桶" in m and "**1-3天** 2" in m for m in md), "分桶行应渲染 1_3/4_7/7_plus 计数"
+    captions = [str(c[1][0]) for c in fake_st.calls if c[0] == "caption"]
+    assert any("已到期待复习" in c for c in captions), "到期引导走 caption"
+    metrics = [str(c[1][0]) for c in fake_st.calls if c[0] == "metric"]
+    assert any("🟡" in m for m in metrics), "due=3（<5）应为 🟡"
+
+
+def test_render_review_health_zero_due_green_and_no_bucket(fake_st, monkeypatch):
+    """边界：total_due=0 → 🟢 且无分桶行。"""
+    dao = _dao()
+    dao.review_health_stats.return_value = {
+        "total_pool": 12, "total_due": 0, "high_risk": [],
+        "buckets": {"1_3": 0, "4_7": 0, "7_plus": 0},
+    }
+    _wire_health(monkeypatch, fake_st, dao)
+    dashboard_page._render_review_health(dao)
+    metrics = [str(c[1][0]) for c in fake_st.calls if c[0] == "metric"]
+    assert any("🟢" in m for m in metrics)
+    md = [str(c[1][0]) for c in fake_st.calls if c[0] == "markdown"]
+    assert not any("逾期分桶" in m for m in md), "due=0 不渲染分桶行"
+
+
+def test_render_review_health_high_risk_expander_lines(fake_st, monkeypatch):
+    """509-511：high_risk 非空 → expander 列出 problem_id 与逾期天数。"""
+    dao = _dao()
+    dao.review_health_stats.return_value = {
+        "total_pool": 12, "total_due": 2,
+        "high_risk": [{"problem_id": "p1", "overdue_days": 5}],
+        "buckets": {"1_3": 1, "4_7": 1, "7_plus": 0},
+    }
+    _wire_health(monkeypatch, fake_st, dao)
+    dashboard_page._render_review_health(dao)
+    md = [str(c[1][0]) for c in fake_st.calls if c[0] == "markdown"]
+    assert any("`p1`" in m and "逾期 5 天" in m for m in md), "高风险行应含 problem_id 与逾期天数"
+    # expander 标题由基类桩以 context manager 处理不落 calls，行级断言已覆盖 509-511 主体
