@@ -38,13 +38,10 @@ def _known_conflicts():
 
 def test_题干自陈期望值与expected_output一致():
     conflicts = _known_conflicts()
-    # 白名单：2026-09-19 全量 399 题实测 3 条真矛盾（#13 语义矛盾家族：题干自陈期望值
-    # 与 expected_output 数值不一致）。逐条修复后请同步更新白名单。
-    assert conflicts == [
-        ("python/13_scipy_stats/01_one_sample_t", "0.0254"),   # expected=0.0612
-        ("python/13_scipy_stats/04_chi2", "0.1453"),           # expected=0.1821
-        ("python/15_ab_text/01_ab_chi2", "0.1370"),            # expected=0.2167
-    ], f"题干自陈期望值与 expected_output 矛盾面变化：{conflicts}"
+    # 白名单已清空（l919-02 翻桩）：原 3 条真矛盾（13_scipy_stats/01_one_sample_t 0.0254→0.0612、
+    # 13_scipy_stats/04_chi2 0.1453→0.1821、15_ab_text/01_ab_chi2 0.1370→0.2167）已按 scipy 实算
+    # 值修正题干自陈期望值。任何新增矛盾都会让本用例红。
+    assert conflicts == [], f"题干自陈期望值与 expected_output 矛盾面变化：{conflicts}"
 
 
 def test_矛盾判定对良性样本不误报():

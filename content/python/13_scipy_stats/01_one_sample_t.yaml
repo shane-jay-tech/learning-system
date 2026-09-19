@@ -6,7 +6,7 @@ statement: |
   班级 5 个学生分数 [85,92,78,88,95]。请用 `ttest_1samp` 检验"均值是否显著不等于 80"。
   输出 p 值（保留 4 位小数）。
 
-  期望约 0.0254（取决于 scipy 版本，<0.05 显著）。
+  期望 0.0612（>0.05，不显著）。
 starter_code: |
   from scipy import stats
 

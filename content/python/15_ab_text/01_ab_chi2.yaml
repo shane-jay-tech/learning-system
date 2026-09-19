@@ -6,7 +6,7 @@ statement: |
   A 组（旧）100 人转化 6 个；B 组（新）100 人转化 12 个。
   用 `chi2_contingency` 算 p 值，输出 4 位小数。
 
-  应该约 0.1370（不显著）。
+  应该 0.2167（不显著）。
 starter_code: |
   from scipy.stats import chi2_contingency
   import numpy as np

@@ -11,7 +11,7 @@ statement: |
   ```
   用 `chi2_contingency` 检验性别和离职是否独立，输出 p 值（4 位小数）。
 
-  应该约 0.1453（不显著，无法拒绝独立）。
+  应该 0.1821（不显著，无法拒绝独立）。
 starter_code: |
   from scipy import stats
   import numpy as np
