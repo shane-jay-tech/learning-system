@@ -5,8 +5,9 @@
 
 启发式分两级（控制误报）：
   强模式（本用例钉桩）——题干自陈期望值（「应该约 X」「期望：X」）而 expected_output
-  数值不含 X → 语义矛盾，逐条列名。2026-09-19 全量 399 题实测恰 1 条：
-    python/15_ab_text/01_ab_chi2（题干「应该约 0.1370（不显著）」vs expected「0.2167」）
+  数值不含 X → 语义矛盾，逐条列名。2026-09-19 全量 399 题实测 3 条（python 统计题族）：
+    13_scipy_stats/01_one_sample_t（0.0254 vs 0.0612）／13_scipy_stats/04_chi2（0.1453 vs 0.1821）
+    ／15_ab_text/01_ab_chi2（0.1370 vs 0.2167）
   宽模式（计数量词，误报高）——仅作清单输出不判定，见报告段。
 修复该题（改 expected 或改题干）会让钉桩红＝有意翻桩，提醒同步更新本用例白名单。
 """
@@ -37,10 +38,13 @@ def _known_conflicts():
 
 def test_题干自陈期望值与expected_output一致():
     conflicts = _known_conflicts()
-    # 白名单：2026-09-19 全量实测唯一矛盾（#13 语义矛盾家族）。修复后请更新白名单。
-    assert conflicts == [("python/15_ab_text/01_ab_chi2", "0.1370")], (
-        f"题干自陈期望值与 expected_output 矛盾面变化：{conflicts}"
-    )
+    # 白名单：2026-09-19 全量 399 题实测 3 条真矛盾（#13 语义矛盾家族：题干自陈期望值
+    # 与 expected_output 数值不一致）。逐条修复后请同步更新白名单。
+    assert conflicts == [
+        ("python/13_scipy_stats/01_one_sample_t", "0.0254"),   # expected=0.0612
+        ("python/13_scipy_stats/04_chi2", "0.1453"),           # expected=0.1821
+        ("python/15_ab_text/01_ab_chi2", "0.1370"),            # expected=0.2167
+    ], f"题干自陈期望值与 expected_output 矛盾面变化：{conflicts}"
 
 
 def test_矛盾判定对良性样本不误报():
