@@ -5,6 +5,8 @@ import streamlit as st
 from core.loader import load_language
 from core.paths import LearningPath, Milestone, get_milestone_topics_flat, load_all_paths, load_path
 from core.progress import ProgressDAO
+from ui.components import render_empty_state, render_error_notice
+from ui.components import render_error_notice
 from ui.components import hero, navigate_to_problem
 
 
@@ -19,7 +21,7 @@ def render_path_list():
 
     paths = load_all_paths()
     if not paths:
-        st.warning("暂无学习路径定义。")
+        render_empty_state("暂无学习路径定义", "做完题目或导入内容后，路径会自动出现在这里")
         return
 
     dao = ProgressDAO()
@@ -82,7 +84,11 @@ def render_path_detail():
 
     path = load_path(path_id)
     if not path:
-        st.error(f"路径 {path_id} 不存在。")
+        render_error_notice(
+            "路径不存在",
+            reason=f"path_id={path_id} 不在路径表中",
+            next_action="回到主页重新进入，或重新生成学习路径",
+        )
         return
 
     if st.button("← 返回路径列表", use_container_width=False):

@@ -10,7 +10,7 @@ from core.loader import load_language
 from core.paths import load_all_paths
 from core.progress import ProgressDAO
 from core.recommend import recommend
-from ui.components import ALL_LANGS, LANG_META, hero, lang_card_html, metric_tile, navigate_to_problem, section_title
+from ui.components import render_empty_state,  ALL_LANGS, LANG_META, hero, lang_card_html, metric_tile, navigate_to_problem, section_title, render_notice
 
 
 @st.cache_data(ttl=300)  # 题库 5 分钟缓存——首次扫 5 个 lang 后续秒响应
@@ -95,7 +95,7 @@ def _render_home_body(dao):
                     pct = solved / total
                     st.progress(pct, text=f"进度 {solved}/{total}")
                 else:
-                    st.caption("(暂无题目)")
+                    render_empty_state("该专题还没有题目", "换个专题，或用 AI 出题生成一组", compact=True)
                 if st.button(f"进入 {LANG_META[lang]['name']}", key=f"enter_{lang}", use_container_width=True):
                     # 统一走 navigate_to_problem：同时重置 topic/problem 索引
                     # 并清掉专题选择状态（否则旧值会把索引反压回旧专题）
@@ -104,9 +104,9 @@ def _render_home_body(dao):
     section_title("错题与复习")
     mistakes = dao.list_mistakes()
     if mistakes:
-        st.warning(f"你还有 {len(mistakes)} 道错题等着复习。")
+        render_notice(f"你还有 {len(mistakes)} 道错题等着复习。")
     else:
-        st.info("暂无错题。")
+        render_empty_state("还没有错题记录", "做题之后错题会自动收进错题本")
     if st.button("打开错题本 →", use_container_width=False):
         st.session_state.route = "mistakes"
         st.rerun()

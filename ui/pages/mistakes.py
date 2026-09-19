@@ -2,6 +2,7 @@ import streamlit as st
 
 from core.loader import find_problem, load_language
 from core.progress import ProgressDAO, format_local_ts
+from ui.components import render_empty_state
 from ui.components import ALL_LANGS, LANG_META, ai_feedback_block, code_highlight_lang, hero, navigate_to_problem, section_title
 
 # find_problem 每次全量线性扫描该语言题库；错题本里每道错题都会调一次。
@@ -131,7 +132,7 @@ def _render_weak_topics(dao, mistakes):
             topic_stats[key]["count"] += 1
 
     if not topic_stats:
-        st.info("没有可分组的弱项。")
+        render_empty_state("暂无可分组的弱项", "再多积累几道错题，智能分组会自动出现")
         return
 
     sorted_topics = sorted(topic_stats.values(), key=lambda x: -x["count"])

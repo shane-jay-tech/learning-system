@@ -1,7 +1,7 @@
 import streamlit as st
 
 from ui.styles import inject as inject_css
-from ui.components import LANG_META, navigate_to_problem
+from ui.components import LANG_META, nav_button, nav_is_active, navigate_to_problem, render_error_notice
 
 from core.version import VERSION as APP_VERSION
 
@@ -30,37 +30,26 @@ def _sidebar():
         )
         st.markdown("---")
         st.markdown('<div class="sidebar-label">学习导航</div>', unsafe_allow_html=True)
-        if st.button("🏠 主页", use_container_width=True,
-                     type="primary" if route == "home" else "secondary"):
-            st.session_state.route = "home"
-            st.rerun()
-        if st.button("🛤️ 学习路径", use_container_width=True,
-                     type="primary" if route in {"paths", "path_detail"} else "secondary"):
-            st.session_state.route = "paths"
-            st.rerun()
-        if st.button("🧪 学习诊断", use_container_width=True,
-                     type="primary" if route == "diagnostic" else "secondary"):
-            st.session_state.route = "diagnostic"
-            st.rerun()
+        nav_button("🏠 主页", active=nav_is_active(route, "home"),
+                   on_activate=lambda: (setattr(st.session_state, "route", "home"), st.rerun()))
+        nav_button("🛤️ 学习路径", active=nav_is_active(route, {"paths", "path_detail"}),
+                   on_activate=lambda: (setattr(st.session_state, "route", "paths"), st.rerun()))
+        nav_button("🧪 学习诊断", active=nav_is_active(route, "diagnostic"),
+                   on_activate=lambda: (setattr(st.session_state, "route", "diagnostic"), st.rerun()))
         st.markdown('<div class="sidebar-label">按语言练习</div>', unsafe_allow_html=True)
         selected_lang = st.session_state.get("selected_lang")
         for lang, meta in LANG_META.items():
-            is_active = route == "language" and selected_lang == lang
-            if st.button(
+            nav_button(
                 f"{meta['icon']}  {meta['name']}", key=f"side_{lang}",
-                use_container_width=True, type="primary" if is_active else "secondary",
-            ):
-                navigate_to_problem(lang)
+                active=nav_is_active(route, "language", extra_condition=selected_lang == lang),
+                on_activate=lambda lang=lang: navigate_to_problem(lang),
+            )
         st.markdown("---")
         st.markdown('<div class="sidebar-label">复盘与巩固</div>', unsafe_allow_html=True)
-        if st.button("📊 学习面板", use_container_width=True,
-                     type="primary" if route == "dashboard" else "secondary"):
-            st.session_state.route = "dashboard"
-            st.rerun()
-        if st.button("📒 错题本", use_container_width=True,
-                     type="primary" if route == "mistakes" else "secondary"):
-            st.session_state.route = "mistakes"
-            st.rerun()
+        nav_button("📊 学习面板", active=nav_is_active(route, "dashboard"),
+                   on_activate=lambda: (setattr(st.session_state, "route", "dashboard"), st.rerun()))
+        nav_button("📒 错题本", active=nav_is_active(route, "mistakes"),
+                   on_activate=lambda: (setattr(st.session_state, "route", "mistakes"), st.rerun()))
         st.markdown("---")
         st.markdown(
             '<div class="sidebar-foot">本地单人学习模式<br>进度会自动保存在当前设备</div>',
@@ -102,7 +91,11 @@ def main():
         from ui.pages.dashboard import render_dashboard
         render_dashboard()
     else:
-        st.error(f"未知路由：{route}")
+        render_error_notice(
+            "未知路由",
+            reason=f"route={route} 没有对应的页面渲染器",
+            next_action="从侧边栏导航重新选择页面",
+        )
 
 
 if __name__ == "__main__":

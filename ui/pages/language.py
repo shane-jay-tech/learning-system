@@ -1,5 +1,6 @@
 import html
 
+import logging
 import streamlit as st
 
 from core.ai_generate import generate_variant
@@ -9,8 +10,11 @@ from core.loader import load_language
 from core.progress import ProgressDAO
 from ui.components import (
     LANG_META, ai_feedback_block, code_editor, hero, io_block,
-    lesson_box, navigate_to_problem, section_title, stderr_block, verdict_banner,
+    lesson_box, navigate_to_problem, render_empty_state, render_error_notice, render_notice, section_title, stderr_block, verdict_banner,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 def _ensure_state():
@@ -83,17 +87,25 @@ def render_language():
     _ensure_state()
     lang = st.session_state.get("selected_lang")
     if not lang:
-        st.warning("请先在主页选择一门语言。")
+        render_notice("请先在主页选择一门语言。")
         return
 
     if lang not in LANG_META:
-        st.error(f"未知语言：{lang}")
+        render_error_notice(
+            "未知语言",
+            reason=f"语言标识 {lang} 不在语言表（LANG_META）中",
+            next_action="返回主页重新选择一门已支持的语言",
+        )
         return
 
     meta = LANG_META[lang]
     topics = load_language(lang)
     if not topics:
-        st.error(f"未找到 {meta['name']} 的题库内容。")
+        render_error_notice(
+            "题库内容未找到",
+            reason=f"{meta['name']} 尚无可用的题库内容",
+            next_action="先在内容目录生成该语言题库，或另选一门语言",
+        )
         return
 
     # Resolve selection state from unified selection dict
@@ -123,7 +135,7 @@ def render_language():
         st.session_state.selected_topic_idx = 0
     topic = topics[st.session_state.selected_topic_idx]
     if not topic.problems:
-        st.warning("该专题暂无题目。")
+        render_empty_state("该专题暂无题目", "换个专题，或用 AI 出题生成一组")
         return
     if st.session_state.selected_problem_idx >= len(topic.problems):
         st.session_state.selected_problem_idx = 0
@@ -196,7 +208,7 @@ def _render_body(lang, topics, topic, dao):
         try:
             dao.emit_event("lesson_viewed", lang=lang, topic_id=topic.slug)
         except Exception:
-            pass
+            logger.debug("language: lesson_viewed 事件上报失败", exc_info=True)
 
     # 双栏布局：左侧题面/讲解，右侧编辑器/结果
     left_col, right_col = st.columns([38, 62], gap="medium")
@@ -237,7 +249,11 @@ def _render_body(lang, topics, topic, dao):
                     st.session_state.pop("last_judge_result", None)
                     st.rerun()
                 else:
-                    st.error("AI 出题失败，请稍后再试。")
+                    render_error_notice(
+                        "AI 出题失败",
+                        reason="模型调用暂不可用或超时",
+                        next_action="请稍后再试；可先用原题继续练习",
+                    )
         with back_col:
             if is_variant:
                 if st.button("↩ 回到原题", key=f"back_{base_problem.id}", use_container_width=True):
@@ -308,7 +324,7 @@ def _render_body(lang, topics, topic, dao):
                     with st.expander("📖 参考答案（写完再看）", expanded=False):
                         st.markdown(r.expected_display)
                 if "暂时不可用" in (r.ai_feedback or ""):
-                    st.warning("⚠️ AI 评判服务暂时不可用。判题结果未记录，请稍后重试。")
+                    render_notice("⚠️ AI 评判服务暂时不可用。判题结果未记录，请稍后重试。")
                 else:
                     ai_feedback_block(r.ai_feedback)
                 _render_chat(lang, active, active_id)

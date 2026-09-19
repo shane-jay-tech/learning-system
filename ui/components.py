@@ -172,3 +172,55 @@ def ai_feedback_block(text: str):
 def stderr_block(text: str):
     safe = html.escape(text)
     st.markdown(f'<div class="io-box" style="background:#7F1D1D;">{safe}</div>', unsafe_allow_html=True)
+
+
+def render_error_notice(title: str, reason: str = "", next_action: str = ""):
+    """统一错误提示（plan.md 固化目标第 3 条）：标题＋原因＋下一步动作三要素。
+
+    所有页面级 st.error 收口到此；触发条件与事实内容由调用方保留，
+    本函数只负责三要素的排版结构。
+    """
+    parts = [f"**{title}**"]
+    if reason:
+        parts.append(f"原因：{reason}")
+    if next_action:
+        parts.append(f"下一步：{next_action}")
+    st.error("\n\n".join(parts))
+
+
+def render_empty_state(message: str, next_action: str = "", compact: bool = False):
+    """统一空态（plan.md 固化目标）：一句话说明＋下一步动作。
+
+    compact=False 用 st.info 档（页面级空态），True 用 st.caption 档（卡片内微空态）；
+    色号与间距沿用设计系统对 st.info/st.caption 的既有主题，不引入新常量。
+    """
+    text = f"{message} 下一步：{next_action}" if next_action else message
+    if compact:
+        st.caption(text)
+    else:
+        st.info(text)
+
+
+def nav_is_active(current_route: str, routes: "str | set[str] | list[str]", extra_condition: bool = True) -> bool:
+    """导航当前项高亮判定单源（d913c-09）：routes 支持单路由或别名集合，
+    extra_condition 承载语言项等附加条件（route 命中 + 语言匹配）。"""
+    if isinstance(routes, str):
+        routes = {routes}
+    return bool(extra_condition) and current_route in set(routes)
+
+
+def nav_button(label: str, *, key: str | None = None, active: bool, on_activate) -> None:
+    """侧栏导航项渲染：active 决定 primary/secondary，点击触发 on_activate。
+    高亮判定一律先经 nav_is_active，勿在本函数外再写 type 三元式。"""
+    if st.button(label, key=key, use_container_width=True,
+                 type="primary" if active else "secondary"):
+        on_activate()
+
+
+def render_notice(message: str):
+    """统一通知条（d914-21，循 c-07 render_error_notice 范式）：st.warning 单形态收口。
+
+    通知类（提醒/等待/复核类提示）用本函数；强调性决策提示（需用户当场取舍、
+    带动态枚举清单）仍留页面内联，见各调用点注释。文案语义由调用方保留。
+    """
+    st.warning(message)

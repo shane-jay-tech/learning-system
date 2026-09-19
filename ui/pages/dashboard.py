@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 from core.achievements import check_achievements, get_all_earned, get_all_with_state, get_progress_summary, get_achievement
 from core.loader import find_problem
 from core.progress import ProgressDAO, format_local_ts
+from ui.components import render_empty_state, render_error_notice
 from core.recommend import cross_recommend, recommend
 from core.report import generate_report, report_to_html, report_to_markdown
 from ui.components import ALL_LANGS, LANG_META, hero, metric_tile, navigate_to_problem, section_title
@@ -74,7 +75,7 @@ def _render_dashboard_body(dao):
 
     section_title("最近 14 天提交趋势")
     if total_attempts == 0:
-        st.info("还没有任何提交记录。先去做几道题，回来看看图～")
+        render_empty_state("还没有任何提交记录", "先去做几道题，回来看看学习图")
     else:
         attempts_map, passed_map = _build_chart_data(daily, days=14)
         df = pd.DataFrame({
@@ -158,6 +159,8 @@ def _render_dashboard_body(dao):
     _render_heatmap(dao)
 
     section_title("📄 学习报告导出")
+    # a-47/c-04：周报卡常驻口径提示（纯文案；p912-40 遗留——任务条数口径随阅读合并规则变更，跨期直比会失真）
+    st.caption("口径提示：任务条数口径随阅读合并规则变更，不同期的周报/月报条数不可直接纵向比较。")
     rpt_col1, rpt_col2, _ = st.columns([1, 1, 3])
     with rpt_col1:
         if st.button("生成周报", use_container_width=True, key="gen_weekly"):
@@ -238,11 +241,15 @@ def _render_dashboard_body(dao):
                         dao._clear_memo()
                         st.rerun()
                     except Exception as exc:
-                        st.error(f"导入失败：{exc}（当前数据未受影响）")
+                        render_error_notice(
+                            "导入失败",
+                            reason=f"{exc}",
+                            next_action="当前数据未受影响，可修正文件后重试导入",
+                        )
 
     section_title("最近活动")
     if not recent:
-        st.caption("还没有提交记录。")
+        render_empty_state("还没有提交记录", "做完第一道题后这里开始统计", compact=True)
     else:
         # 一次性建 (lang, pid) -> title 字典，避免每行都跑 find_problem 全表扫描
         from core.loader import load_language
@@ -331,7 +338,7 @@ def _render_achievements(dao):
                 st.success(f"🎉 解锁新成就：**{a.icon} {a.title}** — {a.description}")
 
     if progress["earned"] == 0:
-        st.info("还没有解锁任何成就。开始做题就能获得第一枚徽章！")
+        render_empty_state("还没有解锁任何成就", "开始做题即可获得第一枚徽章")
 
     cols_per_row = 4
     for i in range(0, len(all_states), cols_per_row):
@@ -377,7 +384,7 @@ def _render_heatmap(dao):
         "GROUP BY d ORDER BY d"
     ).fetchall()
     if not rows:
-        st.info("还没有提交记录，热力图将在你开始做题后展示。")
+        render_empty_state("还没有提交记录", "开始做题后这里会展示热力图")
         return
 
     activity = {r[0]: {"attempts": r[1], "passed": r[2] or 0} for r in rows}
@@ -439,7 +446,7 @@ def _render_recommendation_funnel(dao):
     shown, clicked, completed = funnel["shown"], funnel["clicked"], funnel["completed"]
 
     if shown == 0:
-        st.caption("还没有推荐数据，做几天题后这里会展示推荐效果漏斗。")
+        render_empty_state("还没有推荐数据", "做几天题后这里会展示推荐效果漏斗", compact=True)
         return
 
     ctr = (clicked / shown * 100) if shown else 0
@@ -473,7 +480,7 @@ def _render_review_health(dao):
     section_title("💊 复习健康度")
     stats = dao.review_health_stats()
     if stats["total_pool"] == 0:
-        st.caption("还没有进入复习循环的题目。做对题后会自动加入间隔复习。")
+        render_empty_state("还没有进入复习循环的题目", "做对题后会自动加入间隔复习", compact=True)
         return
 
     avg_interval = dao.conn.execute(
@@ -509,7 +516,7 @@ def _render_rubric_trends(dao):
     section_title("🎯 能力维度趋势（近 30 天）")
     rows = dao.dimension_trends(days=30)
     if not rows:
-        st.caption("还没有开放题维度评分数据。做几道开放题后这里会展示能力趋势。")
+        render_empty_state("还没有开放题维度评分数据", "做几道开放题后这里会展示能力趋势", compact=True)
         return
 
     for item in rows:

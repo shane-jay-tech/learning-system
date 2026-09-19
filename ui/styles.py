@@ -1,5 +1,11 @@
 import streamlit as st
 
+# 断点常量（d913c-10）：断点数值的唯一事实源；CSS 内以 __BP_MID__ 占位、
+# inject() 注入真值（CSS 媒体查询不能引用 Python 常量，也不能用 CSS var，故走占位替换）。
+_BP_MID = 1280   # 中间断点：1024–1280 侧栏展开时卡片换行（h912-13）
+_BP_NARROW = 900  # 窄窗断点：主区列堆叠
+_BP_TARGET_WIDE = 1366  # 目标分辨率参考（文档口径，未用于媒体查询）
+
 
 _CSS = """
 <style>
@@ -19,6 +25,7 @@ _CSS = """
   --border-strong: #C8CFDB;
   --shadow-sm: 0 1px 2px rgba(23, 32, 51, .05);
   --shadow-md: 0 8px 24px rgba(23, 32, 51, .08);
+  --measure: 80ch;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -177,7 +184,6 @@ section[data-testid="stSidebar"] .section-title::before { height: 13px; width: 3
 }
 .problem-card.solved { border-left-color: var(--accent); background: #F2FAF7; }
 .problem-card.wrong { border-left-color: var(--danger); background: #FFF5F5; }
-.problem-card.active { border-left-color: var(--primary); background: var(--primary-soft); }
 .problem-card .pt { font-weight: 700; font-size: .9rem; }
 .problem-card .ps { color: var(--muted); font-size: .77rem; margin-top: 3px; }
 
@@ -202,6 +208,14 @@ button:focus-visible, [role="radio"]:focus-visible, input:focus-visible,
 textarea:focus-visible, [data-baseweb="select"]:focus-within {
   outline: 3px solid rgba(91, 91, 214, .28) !important; outline-offset: 2px;
 }
+/* d913c-02 键盘焦点可见性：导航项（侧边栏链接/锚点/标签页）纳入同一 focus ring。
+   取色来源＝品牌主色 var(--primary) #5B5BD6 的 28% 透明描边（与上组按钮/表单规则同源，
+   描边 3px + offset 2px），深浅背景上均满足 WCAG 2.4.7 焦点可见。 */
+a:focus-visible, [data-testid="stSidebar"] a:focus-visible,
+[role="tab"]:focus-visible, [data-testid="stSidebar"] button:focus-visible {
+  outline: 3px solid rgba(91, 91, 214, .28) !important; outline-offset: 2px;
+  border-radius: 6px;
+}
 [data-baseweb="select"] > div, .stTextInput input, .stTextArea textarea {
   min-height: 42px; border-color: var(--border-strong) !important; border-radius: 10px !important;
 }
@@ -225,6 +239,9 @@ textarea:focus-visible, [data-baseweb="select"]:focus-within {
 [data-testid="stDataFrame"] { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
 
 .lesson-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px 24px; }
+/* d913c-08 行宽收敛：纯段落长文本区限阅读测宽 80ch（hero 副标题 72ch 同族取值），
+   代码区 io-box 不设限；不改变字号层级。 */
+.lesson-box, .ai-feedback { max-width: var(--measure); }
 .stMain code {
   background: #EEF1F6; color: #3E4671; padding: 2px 5px; border-radius: 5px;
   font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace; font-size: .88em;
@@ -272,12 +289,12 @@ header[data-testid="stHeader"], footer { background: transparent !important; }
 ::-webkit-scrollbar-thumb:hover { background-color: #A8B1C1; }
 ::-webkit-scrollbar-track { background: transparent; }
 
-@media (max-width: 1280px) {
+@media (max-width: __BP_MID__px) {
   /* h912-13：1024–1280 中间断点——侧栏展开时 4 列卡片允许换行，避免挤压 */
   [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: __BP_NARROW__px) {
   [data-testid="stMainBlockContainer"] { padding: 1.2rem 1rem 3rem; }
   [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
   [data-testid="stMainBlockContainer"] [data-testid="stColumn"] {
@@ -291,6 +308,23 @@ header[data-testid="stHeader"], footer { background: transparent !important; }
   .lang-card { min-height: 0; }
 }
 
+/* d913c-11 面板报告预览表（st.markdown 表格）密度：表头层级＋等宽数字＋紧凑行距 */
+[data-testid="stTable"] th {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); font-weight: 700;
+}
+[data-testid="stTable"] td { padding: 5px 8px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1000px) {
+  /* d913c-12 窄窗侧栏降级：<1000px 收紧侧栏自宽与内距，保住主内容可用宽度；
+     全部导航/当前任务按钮保留（min-height 38px 仍 ≥36px 触达下限），零入口删除。 */
+  section[data-testid="stSidebar"] { width: 218px; min-width: 218px; }
+  section[data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding: .6rem .5rem 2rem; }
+  section[data-testid="stSidebar"] .stButton > button { min-height: 38px; padding: 6px 9px; font-size: .88rem; }
+  .sidebar-brand-name { font-size: .92rem; }
+  .sidebar-label { font-size: .68rem; letter-spacing: .06em; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important; transition: none !important; animation: none !important;
@@ -301,4 +335,7 @@ header[data-testid="stHeader"], footer { background: transparent !important; }
 
 
 def inject():
-    st.markdown(_CSS, unsafe_allow_html=True)
+    css = (_CSS
+           .replace('__BP_MID__', f'{_BP_MID}px')
+           .replace('__BP_NARROW__', f'{_BP_NARROW}px'))
+    st.markdown(css, unsafe_allow_html=True)
