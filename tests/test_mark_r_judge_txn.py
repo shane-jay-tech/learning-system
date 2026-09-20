@@ -674,3 +674,58 @@ def test_make_temp异常路径的清理失败也进报告(tmp_path, monkeypatch)
         mrj.commit_all(tmp_path, mrj.prepare_all(tmp_path, mrj.scan(tmp_path)["todo"]))
     msg = str(e.value)
     assert "临时文件清理失败" in msg and "模拟：删不掉" in msg, msg
+def test_日志把条目错绑到题库内另一个题目_拒绝恢复(tmp_path):
+    """第五轮 NEW-001：只校验「在 content/r 内」还不够——日志被改成 content/r 下
+    **另一个题目**的路径时，恢复会把 A 的旧内容写回 B（恢复错位 = 数据丢失）。
+    必须由脚本自己生成的 rel 反推目标，再与日志里的 path 精确比对。"""
+    base = _corpus(tmp_path)
+    before = _corpus_bytes(base)
+    _crash(tmp_path, "crash_after_replace", 1)
+    d = _pending(tmp_path)[0]
+    other = base / "t1" / "02_b.yaml"
+
+    def forge(recs):
+        for r in recs:
+            if r.get("t") == "begin":
+                r["entries"][0]["path"] = str(other)
+    _rewrite_journal(d, forge)
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 1, rec.stdout
+    assert "对不上" in rec.stdout, rec.stdout
+    assert _pending(tmp_path), "日志不可信时不得清理现场"
+    assert other.read_bytes() == before["t1/02_b.yaml"], "另一个题目被写入了别人的旧内容"
+
+
+def test_事务目录扫描失败_拒绝继续提交而不是当成没有事务(tmp_path, monkeypatch):
+    """第五轮 NEW-002：扫描失败过去被吞成空列表，「扫不动」被读成「没有未完成事务」，
+    于是带着一个可能存在的半写事务继续 --apply——诊断歧义在这里等于数据风险。"""
+    base = _corpus(tmp_path)
+    _crash(tmp_path, "crash_after_replace", 1)
+    frozen = _corpus_bytes(base)
+    assert _pending(tmp_path)
+    real_scandir, real_listdir = os.scandir, os.listdir
+
+    def _blocked(p):
+        return mrj.TXN_DIRNAME in str(p)
+
+    def boom(p):
+        if _blocked(p):
+            raise OSError("模拟：事务目录不可遍历")
+        return real_scandir(p)
+
+    def boom_listdir(p):
+        if _blocked(p):
+            raise OSError("模拟：事务目录不可遍历")
+        return real_listdir(p)
+
+    # Python 3.12 的 Path.iterdir() 走 os.listdir（不是 os.scandir），两边都堵上
+    monkeypatch.setattr(mrj.os, "scandir", boom)
+    monkeypatch.setattr(mrj.os, "listdir", boom_listdir)
+    with pytest.raises(mrj.HardeningError):
+        mrj.find_pending_txns(tmp_path)
+    with pytest.raises(mrj.HardeningError):
+        mrj.find_debris(tmp_path)
+    assert mrj.main(["--root", str(tmp_path), "--apply"]) == 1, "扫描失败必须 fail-closed"
+    assert _corpus_bytes(base) == frozen, "扫描失败时不该继续提交"
+    monkeypatch.undo()
+    assert _pending(tmp_path), "现场必须保留"

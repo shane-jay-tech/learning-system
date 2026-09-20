@@ -625,6 +625,21 @@ def _validate_entry(e, root, txn_dir) -> "str | None":
         p.resolve().relative_to(r_dir(root).resolve())
     except ValueError:
         return "目标路径越界（不在 content/r 内）：%s" % path
+    # 第五轮 NEW-001：只确认「在 content/r 内」还不够——日志若被改成 content/r 下**另一个
+    # 题目**的路径，恢复就会把 A 的旧内容写回 B（恢复错位 = 数据丢失）。rel 是脚本自己
+    # 生成的规范相对路径，必须由它反推出目标，再与日志里的 path 精确比对。
+    rels = str(rel).replace("\\", "/")
+    if rels.startswith("/") or ":" in rels or any(
+            part in ("", "..", ".") for part in rels.split("/")):
+        return "rel 不是规范化的相对路径：%r" % rel
+    expected = (Path(root).resolve() / rels)
+    try:
+        expected.relative_to(r_dir(root).resolve())
+    except ValueError:
+        return "rel 不在 content/r 内：%r" % rel
+    if expected.resolve() != p.resolve():
+        return ("日志中的目标路径与 rel 对不上（rel=%r 反推出 %s，日志写的是 %s）"
+                % (rel, expected, path))
     name = str(backup)
     if name != Path(name).name or "/" in name or "\\" in name or ".." in name:
         return "备份文件名不合法（不得含路径分隔符或 ..）：%r" % backup
@@ -1039,30 +1054,32 @@ def _sweep_staged_temps(entries) -> list:
     return out
 
 
-def find_pending_txns(root) -> list:
-    """未完成事务（有日志的事务目录）。"""
+def _txn_dirs(root) -> list:
+    """事务根目录下的事务目录清单；**扫描失败一律 fail-closed**。
+
+    第五轮 NEW-002：这两个函数过去把 OSError 吞成空列表。后果很严重——
+    「扫不动」会被 _run 读成「没有未完成事务」，于是带着一个可能存在的半写事务
+    继续 --apply。诊断歧义在这里等于数据风险，所以直接转 HardeningError。
+    """
     d = txn_root(root)
-    if not d.is_dir():
-        return []
     try:
+        if not d.is_dir():
+            return []
         return sorted(p for p in d.iterdir()
-                      if p.is_dir() and p.name not in RESERVED_TXN_NAMES
-                      and (p / JOURNAL_NAME).is_file())
-    except OSError:
-        return []
+                      if p.is_dir() and p.name not in RESERVED_TXN_NAMES)
+    except OSError as e:
+        _fail("扫描事务目录失败（%s）：%s——按 fail-closed 处理，不把「扫不动」当成"
+              "「没有未完成事务」" % (d, e))
+
+
+def find_pending_txns(root) -> list:
+    """未完成事务（有日志的事务目录）。扫描失败抛 HardeningError，不返回空列表。"""
+    return [p for p in _txn_dirs(root) if (p / JOURNAL_NAME).is_file()]
 
 
 def find_debris(root) -> list:
     """没有日志的事务目录残留（create 中途失败留下），原文件必然未被改动。"""
-    d = txn_root(root)
-    if not d.is_dir():
-        return []
-    try:
-        return sorted(p for p in d.iterdir()
-                      if p.is_dir() and p.name not in RESERVED_TXN_NAMES
-                      and not (p / JOURNAL_NAME).is_file())
-    except OSError:
-        return []
+    return [p for p in _txn_dirs(root) if not (p / JOURNAL_NAME).is_file()]
 
 
 def _scan_residue(root) -> tuple:
