@@ -7,6 +7,8 @@
 - 性质：**内容数据（paths yaml）改动**——改前已备份、改后有回读断言（见 §四）
 - 复跑命令：`python scripts/audit_paths_prereq.py`（只读对账，口径不另立）
   与 `python -m pytest tests/test_paths_coverage.py tests/test_paths_reconcile.py -q`
+- ⚠️ 后续（2026-09-20）：本单「header 22 有意不动」的 agent_mastery 时数失配被判 CRITICAL 并已修为 29，
+  白名单 `KNOWN_HOURS_MISMATCH` 已删除（任何 path 失配即红）。见 `docs/insights/learn-d5d6-review-fix-20260920.md`。
 
 ## 一、补齐方案（先出方案，再落地）
 

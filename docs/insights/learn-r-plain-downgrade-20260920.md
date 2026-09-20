@@ -9,6 +9,10 @@
 - 日期：2026-09-20 ｜ 仓库：D:\code\learning-system ｜ 起点 HEAD：`283629b`
 - 性质：**内容数据（r 题库 yaml）改动**——改前已备份、改后有字节级与 loader 级双重回读断言
 - 复跑命令：`python scripts/mark_r_judge_plain.py`（dry-run）／`--apply`（写盘，幂等）／`--check`（校验，未完成 exit 1）
+  ＋ `--root <dir>`（临时基线）／`--expect-distribution run=70,ai_open=14`（精确分布门禁）
+- ⚠️ 后续（2026-09-20）：脚本已去掉 assert 安全依赖（改显式校验 + 非零退出 + 原子写），
+  并补 dry-run／apply／重复 apply／check 端到端与字节级单行差分测试；判定模式显式化的等价性证明见
+  `tests/test_judge_mode_equivalence.py`。见 `docs/insights/learn-d5d6-review-fix-20260920.md`。
 
 ## 一、判定口径：r 题库本来就该按普通题走
 
