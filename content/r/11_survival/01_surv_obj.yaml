@@ -2,6 +2,7 @@ title: "构造 Surv 对象"
 topic: "11_survival"
 difficulty: 2
 tags: ["survival", "Surv"]
+judge_mode: run
 statement: |
   数据：time=c(12, 24, 8, 36, 5, 18), event=c(1, 0, 1, 0, 1, 1)。
   请构造 `Surv(time, event)` 对象，输出**事件发生（event=1）的人数**（应为 4）。

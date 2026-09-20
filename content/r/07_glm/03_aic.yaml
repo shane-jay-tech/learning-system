@@ -2,6 +2,7 @@ title: "GLM 的 AIC"
 topic: "07_glm"
 difficulty: 2
 tags: ["aic", "model-comparison"]
+judge_mode: run
 statement: |
   同上数据，输出 `AIC(fit)` 保留 2 位小数。
 

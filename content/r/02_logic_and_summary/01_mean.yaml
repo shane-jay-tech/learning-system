@@ -2,6 +2,7 @@ title: "求向量的平均值"
 topic: "02_logic_and_summary"
 difficulty: 1
 tags: ["mean", "stats"]
+judge_mode: run
 statement: |
   向量 `v <- c(85, 92, 78, 88, 95)` 已经写好。
   请用 `cat` 输出 `v` 的平均值（精确数值是 87.6）。

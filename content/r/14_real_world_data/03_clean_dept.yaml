@@ -2,6 +2,7 @@ title: "统一乱写的部门名"
 topic: "14_real_world_data"
 difficulty: 3
 tags: ["base-r", "cleaning", "real-data"]
+judge_mode: run
 statement: |
   `department` 列写得乱七八糟：`Sales`、`sales `（带空格）、`HR`、`hr`……其实是同一批部门。
 

@@ -1,0 +1,57 @@
+title: "C++ 从入门到现代"
+subtitle: "语法打底 → STL → 指针与类 → 模板与资源管理"
+icon: "⚙️"
+estimated_hours: 21
+
+milestones:
+  - id: c1
+    title: "C++ 起步：输入输出与流程"
+    description: "编译运行、变量类型、条件与循环 —— 先让一门静态类型语言跑起来"
+    topics:
+      - "cpp/01_io_and_vars"
+      - "cpp/02_branch_loop"
+    estimated_hours: 3
+    graduation_project: "写一个小程序：读入三个整数，输出最大值与平均值"
+
+  - id: c2
+    title: "数组、字符串与函数"
+    description: "连续内存、std::string、函数拆分 —— C++ 与脚本语言的第一道分水岭"
+    topics:
+      - "cpp/03_arrays_strings"
+      - "cpp/04_functions"
+    estimated_hours: 3.5
+    prereqs: ["c1"]
+    graduation_project: "用函数拆分实现：统计一段文本里每个字符出现次数，输出前 3 个高频字符"
+
+  - id: c3
+    title: "STL 容器与迭代算法"
+    description: "vector/map、迭代器与 algorithm —— 现代 C++ 的日常工具箱"
+    topics:
+      - "cpp/05_stl_basics"
+      - "cpp/06_iter_algo"
+    estimated_hours: 3.5
+    prereqs: ["c2"]
+    graduation_project: "用 vector + sort + 迭代器统计成绩：输出排名、平均分与及格率"
+
+  - id: c4
+    title: "指针、类与继承"
+    description: "地址与引用、类与继承、运算符重载 —— 理解 C++ 的对象模型"
+    topics:
+      - "cpp/07_pointers_class"
+      - "cpp/08_inheritance"
+      - "cpp/09_operator_overload"
+    estimated_hours: 5
+    prereqs: ["c3"]
+    graduation_project: "设计 Shape 基类与圆形/矩形派生类，用运算符重载实现面积比较与打印"
+
+  - id: c5
+    title: "模板、异常与资源管理"
+    description: "泛型函数、异常处理、文件读写与移动语义 —— 写出不泄漏资源的 C++"
+    topics:
+      - "cpp/10_templates"
+      - "cpp/11_exceptions"
+      - "cpp/12_file_io"
+      - "cpp/13_move_semantics"
+    estimated_hours: 6
+    prereqs: ["c4"]
+    graduation_project: "用模板函数 + 异常处理 + 文件读写实现一个「成绩单读写与排序」小工具"

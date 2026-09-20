@@ -2,6 +2,7 @@ title: "Cox 多变量"
 topic: "11_survival"
 difficulty: 3
 tags: ["coxph", "multivariate"]
+judge_mode: run
 statement: |
   拟合 `coxph(Surv(time, event) ~ years + age)`，输出**系数个数**（应为 2）。
 starter_code: |

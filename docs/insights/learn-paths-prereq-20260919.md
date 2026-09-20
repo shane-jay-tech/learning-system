@@ -5,6 +5,9 @@
 - 仓库：D:\code\learning-system
 - 性质：**只读对账**，正文与 yaml 零改动（本单只新增 1 个只读脚本 + 本报告）
 - 复跑命令：`python scripts/audit_paths_prereq.py`（脚本：`scripts/audit_paths_prereq.py`，零网络零写盘）
+- ⚠️ **本文数字是 2026-09-19 快照**：2026-09-20 D5 补学习路径后（42 个未引用 topic 全部进线、
+  cpp 13/13 不再是孤儿语言），§一/§三 的计数已变化——**当前真值请看**
+  `docs/insights/learn-path-coverage-fill-20260920.md`（同脚本复跑输出）。本文保留为改前基线。
 - 上游：l918-16 已钉 estimated_hours 失配与「同 path 内重复引用」（`tests/test_paths_reconcile.py`）；
   **prereqs/topics 引用 slug 与 content/ 目录的一致性当时未核**——本报告补的正是这一块。
 

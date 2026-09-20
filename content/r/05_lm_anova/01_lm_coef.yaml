@@ -2,6 +2,7 @@ title: "lm 回归系数"
 topic: "05_lm_anova"
 difficulty: 2
 tags: ["lm", "regression"]
+judge_mode: run
 statement: |
   数据：x=c(1,2,3,4,5), y=c(2,4,5,4,6)。请用 `lm` 拟合，输出**斜率系数**（保留 2 位小数）。
 

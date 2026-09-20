@@ -2,6 +2,7 @@ title: "str_detect 过滤含字符"
 topic: "10_stringr_lubridate"
 difficulty: 2
 tags: ["stringr", "str_detect"]
+judge_mode: run
 statement: |
   在 `c("apple","banana","cherry","grape","kiwi")` 中找含字母 `a` 的水果，输出空格分隔。
 

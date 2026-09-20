@@ -2,6 +2,7 @@ title: "broom::tidy 提系数行数"
 topic: "06_mixed_apa"
 difficulty: 2
 tags: ["broom", "tidy"]
+judge_mode: run
 statement: |
   对 `lm(salary ~ years + age + gender, data=df)` 的结果用 `tidy()`，输出**返回的数据框行数**。
 

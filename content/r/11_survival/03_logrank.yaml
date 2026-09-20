@@ -2,6 +2,7 @@ title: "log-rank 检验 p 值"
 topic: "11_survival"
 difficulty: 3
 tags: ["survdiff", "logrank"]
+judge_mode: run
 statement: |
   比较 A 组和 B 组的生存曲线，用 `survdiff` 算 p 值（保留 2 位小数）。
 

@@ -2,6 +2,7 @@ title: "separate 拆分列"
 topic: "08_tidyr"
 difficulty: 2
 tags: ["tidyr", "separate"]
+judge_mode: run
 statement: |
   数据列 `info = c("Alice/HR", "Bob/Eng")`。用 `separate` 拆成 name 和 dept 两列。
   输出第 1 行的 dept（应为 `HR`）。

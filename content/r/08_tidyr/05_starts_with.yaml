@@ -2,6 +2,7 @@ title: "starts_with 选列"
 topic: "08_tidyr"
 difficulty: 3
 tags: ["tidyselect", "starts_with"]
+judge_mode: run
 statement: |
   数据有 score_math, score_english, age 三列。
   用 `pivot_longer(cols = starts_with("score_"))` 只把 score_* 列变长，age 保留。

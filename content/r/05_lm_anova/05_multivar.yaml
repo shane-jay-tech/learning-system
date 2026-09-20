@@ -2,6 +2,7 @@ title: "多元回归"
 topic: "05_lm_anova"
 difficulty: 3
 tags: ["lm", "multivariate"]
+judge_mode: run
 statement: |
   数据：salary ~ years + age。
   用 lm 拟合后输出**调整后 R²**（adjusted R²，保留 3 位小数）。

@@ -2,6 +2,7 @@ title: "按 class 分组建模"
 topic: "09_purrr_map"
 difficulty: 3
 tags: ["purrr", "split", "lm"]
+judge_mode: run
 statement: |
   对每个班拟合 `score ~ years`，输出 R² 个数（应为 2，因为 2 个班）。
 starter_code: |

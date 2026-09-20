@@ -2,6 +2,7 @@ title: "R 的 Hello, World!"
 topic: "01_vectors_and_basics"
 difficulty: 1
 tags: ["io", "starter"]
+judge_mode: run
 statement: |
   请用 `cat` 输出**恰好一行**：
   ```

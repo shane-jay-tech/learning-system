@@ -2,6 +2,7 @@ title: "WSS（簇内方差）"
 topic: "12_clustering"
 difficulty: 3
 tags: ["kmeans", "wss"]
+judge_mode: run
 statement: |
   对 scale 后的数据 kmeans(centers=2, nstart=10, seed 42)，输出 WSS 总和（保留 2 位小数）。
 starter_code: |

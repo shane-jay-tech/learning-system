@@ -2,6 +2,7 @@ title: "ggplot 散点图 + 输出 max"
 topic: "04_ggplot"
 difficulty: 1
 tags: ["ggplot", "scatter"]
+judge_mode: run
 statement: |
   数据 df 已建好（age vs score）。请用 ggplot 画散点图，保存到 `scatter.png`，再 cat 输出 score 的最大值（应为 95）。
 starter_code: |

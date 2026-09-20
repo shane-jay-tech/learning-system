@@ -2,6 +2,7 @@ title: "TukeyHSD 事后检验"
 topic: "05_lm_anova"
 difficulty: 3
 tags: ["tukey", "post-hoc"]
+judge_mode: run
 statement: |
   同上 3 个班。请用 `TukeyHSD` 做事后两两比较，输出**显著差异**（p<0.05）的组对个数。
 

@@ -2,6 +2,7 @@ title: "各部门平均敬业度（清洗后再算）"
 topic: "14_real_world_data"
 difficulty: 4
 tags: ["base-r", "aggregate", "real-data"]
+judge_mode: run
 statement: |
   综合题——把清洗连起来再做真正的分析。按这个顺序：
   1. 去掉完全重复的行（`unique`）

@@ -2,6 +2,7 @@ title: "逻辑回归系数"
 topic: "07_glm"
 difficulty: 2
 tags: ["glm", "logistic"]
+judge_mode: run
 statement: |
   数据：8 个员工，是否离职 leave (0/1) ~ 工龄 years。
   请用 `glm(leave ~ years, family=binomial)` 拟合，输出 years 系数（保留 2 位小数）。

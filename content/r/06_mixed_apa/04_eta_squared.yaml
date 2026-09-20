@@ -2,6 +2,7 @@ title: "ANOVA 的 eta²"
 topic: "06_mixed_apa"
 difficulty: 3
 tags: ["effectsize", "eta-squared"]
+judge_mode: run
 statement: |
   对 3 班数据做 `aov`，请用 `effectsize::eta_squared` 算 **eta²**，输出 class 这一项（保留 2 位小数）。
 

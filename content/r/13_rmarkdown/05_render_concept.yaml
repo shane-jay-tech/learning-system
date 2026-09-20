@@ -2,6 +2,7 @@ title: "Rmd 章节计数"
 topic: "13_rmarkdown"
 difficulty: 2
 tags: ["rmarkdown", "headings"]
+judge_mode: run
 statement: |
   数 Rmd 文档里**一级标题**（`# ...`）的个数。
 

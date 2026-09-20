@@ -2,6 +2,7 @@ title: "最高分在第几位"
 topic: "02_logic_and_summary"
 difficulty: 2
 tags: ["which.max", "index"]
+judge_mode: run
 statement: |
   向量 `scores <- c(72, 88, 91, 65, 79)` 已经写好。
   请用 `cat` 输出**最高分在第几个位置**（注意 R 下标从 1 开始）。

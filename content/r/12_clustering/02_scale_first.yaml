@@ -2,6 +2,7 @@ title: "归一化后聚类"
 topic: "12_clustering"
 difficulty: 2
 tags: ["kmeans", "scale"]
+judge_mode: run
 statement: |
   先 `scale(df)` 再 kmeans（centers=2, nstart=10, set.seed(42)），输出每簇大小（升序）。
 

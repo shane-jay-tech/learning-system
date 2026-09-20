@@ -2,6 +2,7 @@ title: "reduce 求和"
 topic: "09_purrr_map"
 difficulty: 1
 tags: ["purrr", "reduce"]
+judge_mode: run
 statement: |
   用 `reduce(1:10, \`+\`)` 算 1+2+...+10。
 

@@ -100,3 +100,13 @@ milestones:
     estimated_hours: 2
     prereqs: ["a7", "a8"]
     graduation_project: "管理一个三轮迭代项目：v1 上线、处理反馈、增量交付 v2"
+
+  - id: a10
+    title: "Agent 前沿与数据安全"
+    description: "MCP / 工具调用 / 多 Agent / RAG 与数据安全底线——什么能交给 agent、什么绝对不能"
+    topics:
+      - "agent_dev/06_frontier"
+      - "agent_dev/07_data_security"
+    estimated_hours: 3
+    prereqs: ["a7"]
+    graduation_project: "给一次真实 agent 协作列出数据安全边界清单，并判断哪些环节可以用更前沿的自动化"

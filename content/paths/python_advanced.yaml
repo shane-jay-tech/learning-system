@@ -1,0 +1,58 @@
+title: "Python 进阶级"
+subtitle: "文件与文本 → Pythonic 与面向对象 → 数值/时间 → 统计与机器学习 → 真实数据实战"
+icon: "🐍"
+estimated_hours: 21
+
+milestones:
+  - id: p1
+    title: "文件、异常与文本处理"
+    description: "读写文件与 Excel、异常容错、正则清洗 —— 把脚本用到真实数据上"
+    topics:
+      - "python/08_files_exceptions"
+      - "python/12_io_excel"
+      - "python/19_regex"
+    estimated_hours: 4.5
+    graduation_project: "读一份格式不干净的 CSV/Excel：用异常处理容错、用正则清洗字段，写出规范化结果"
+
+  - id: p2
+    title: "Pythonic 与面向对象"
+    description: "类与对象、装饰器与 property、生成器与迭代 —— 写出可维护的 Python"
+    topics:
+      - "python/16_classes_oop"
+      - "python/17_decorators_props"
+      - "python/18_generators_iter"
+    estimated_hours: 4.5
+    prereqs: ["p1"]
+    graduation_project: "把一份过程式脚本重构成「类 + 装饰器 + 生成器流水线」，并说明每一步的可读性收益"
+
+  - id: p3
+    title: "数值与时间基础"
+    description: "numpy 向量化、datetime 与时间序列聚合 —— 处理数值与日期不再靠循环"
+    topics:
+      - "python/20_numpy_basics"
+      - "python/21_datetime_ts"
+    estimated_hours: 3
+    prereqs: ["p2"]
+    graduation_project: "用 numpy 做向量化计算、用 datetime 做按月聚合的时间序列汇总"
+
+  - id: p4
+    title: "统计建模与机器学习"
+    description: "scipy 检验、statsmodels 回归、sklearn 从入门到进阶 —— 从描述到建模"
+    topics:
+      - "python/13_scipy_stats"
+      - "python/22_statsmodels"
+      - "python/14_sklearn_intro"
+      - "python/23_sklearn_advanced"
+    estimated_hours: 6
+    prereqs: ["p3"]
+    graduation_project: "对同一份数据先做统计检验与回归，再用 sklearn 建立并评估预测模型"
+
+  - id: p5
+    title: "真实数据与实验分析"
+    description: "端到端脏数据流程、A/B 与文本分析 —— 把前面所有技能串起来"
+    topics:
+      - "python/24_real_world_data"
+      - "python/15_ab_text"
+    estimated_hours: 3
+    prereqs: ["p4"]
+    graduation_project: "完成一次端到端分析：脏数据清洗 → 特征 → 模型/A-B 结论 → 可复现报告"

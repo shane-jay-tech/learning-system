@@ -2,6 +2,7 @@ title: "Cox 模型 HR"
 topic: "11_survival"
 difficulty: 3
 tags: ["coxph", "hazard-ratio"]
+judge_mode: run
 statement: |
   对数据拟合 `coxph(Surv(time, event) ~ years)`，输出 years 的 **HR**（exp(coef)，保留 2 位小数）。
 starter_code: |

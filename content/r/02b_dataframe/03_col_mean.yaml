@@ -2,6 +2,7 @@ title: "列均值"
 topic: "02b_dataframe"
 difficulty: 1
 tags: ["data.frame", "mean"]
+judge_mode: run
 statement: |
   数据框 `df` 已替你写好。请用 `cat` 输出 `score` 列的平均值（应为 78.75）。
 starter_code: |

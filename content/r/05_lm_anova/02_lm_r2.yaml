@@ -2,6 +2,7 @@ title: "lm 的 R²"
 topic: "05_lm_anova"
 difficulty: 2
 tags: ["lm", "r-squared"]
+judge_mode: run
 statement: |
   同上数据，输出 **R²**（保留 3 位小数）。
 

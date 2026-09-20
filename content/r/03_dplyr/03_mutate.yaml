@@ -2,6 +2,7 @@ title: "mutate 加 grade 列"
 topic: "03_dplyr"
 difficulty: 2
 tags: ["dplyr", "mutate", "ifelse"]
+judge_mode: run
 statement: |
   给 df 加列 `grade`：score ≥ 60 是 "Pass"，否则 "Fail"。
   输出 grade=="Pass" 的人数（应为 3）。

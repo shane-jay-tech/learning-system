@@ -2,6 +2,7 @@ title: "箱线图 + IQR"
 topic: "04_ggplot"
 difficulty: 3
 tags: ["ggplot", "boxplot", "IQR"]
+judge_mode: run
 statement: |
   画各班 score 的箱线图，保存到 `box.png`。再 cat 输出 **A 班分数的 IQR**（四分位距）。
 

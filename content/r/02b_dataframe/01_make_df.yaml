@@ -2,6 +2,7 @@ title: "建一个 data.frame 并查行数"
 topic: "02b_dataframe"
 difficulty: 1
 tags: ["data.frame", "nrow"]
+judge_mode: run
 statement: |
   请用 `data.frame()` 建一个学生表：
   - `name` 列：c("Alice", "Bob", "Cathy", "David")

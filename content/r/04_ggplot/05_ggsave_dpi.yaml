@@ -2,6 +2,7 @@ title: "ggsave 高分辨率"
 topic: "04_ggplot"
 difficulty: 2
 tags: ["ggplot", "ggsave"]
+judge_mode: run
 statement: |
   画一个简单折线图（年份 vs 销量），用 `ggsave` 保存到 `line.png`，**dpi=200, width=5, height=3**。
   再 cat 输出销量总和（应为 100）。

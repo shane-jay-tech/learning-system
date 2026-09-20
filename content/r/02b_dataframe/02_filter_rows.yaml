@@ -2,6 +2,7 @@ title: "筛选高分学生"
 topic: "02b_dataframe"
 difficulty: 2
 tags: ["data.frame", "filter"]
+judge_mode: run
 statement: |
   数据框 `df` 已替你写好（4 个学生）。请筛选出 `score >= 80` 的行，**只输出他们的 name**，每行一个。
 

@@ -2,6 +2,7 @@ title: "长变宽 pivot_wider"
 topic: "08_tidyr"
 difficulty: 2
 tags: ["tidyr", "pivot_wider"]
+judge_mode: run
 statement: |
   从长表 `df_long` 用 `pivot_wider` 还原宽表，输出**列数**。
 

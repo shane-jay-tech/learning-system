@@ -1,0 +1,45 @@
+title: "R 统计进阶线"
+subtitle: "可视化与整形 → 回归与生存分析 → 函数式与文本 → 聚类与报告交付"
+icon: "📐"
+estimated_hours: 14.5
+
+milestones:
+  - id: r1
+    title: "数据整形与可视化"
+    description: "tidyr 长宽转换、ggplot2 图形语法 —— 统计结果的第一层表达"
+    topics:
+      - "r/04_ggplot"
+      - "r/08_tidyr"
+    estimated_hours: 3
+    graduation_project: "把一份宽表整形为长表，再用 ggplot2 画出分组箱线图与趋势线"
+
+  - id: r2
+    title: "回归与生存分析"
+    description: "GLM 家族、生存分析与风险比 —— 从「比较均值」走到「建模结果」"
+    topics:
+      - "r/07_glm"
+      - "r/11_survival"
+    estimated_hours: 4
+    prereqs: ["r1"]
+    graduation_project: "对一份员工数据跑 logistic 回归与生存分析，解释系数、显著性与风险比"
+
+  - id: r3
+    title: "函数式与文本处理"
+    description: "purrr 映射、stringr 与 lubridate —— 批量计算和日期文本不再是体力活"
+    topics:
+      - "r/09_purrr_map"
+      - "r/10_stringr_lubridate"
+    estimated_hours: 3
+    prereqs: ["r2"]
+    graduation_project: "用 purrr 批量跑同一模型并汇总结果，用 stringr/lubridate 清洗一列混乱日期"
+
+  - id: r4
+    title: "聚类、报告与真实数据"
+    description: "无监督分组、R Markdown 可复现报告、端到端实战"
+    topics:
+      - "r/12_clustering"
+      - "r/13_rmarkdown"
+      - "r/14_real_world_data"
+    estimated_hours: 4.5
+    prereqs: ["r3"]
+    graduation_project: "用聚类给样本分组，并用 R Markdown 交付一份可一键复跑的完整分析报告"

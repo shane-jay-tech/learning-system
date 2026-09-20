@@ -2,6 +2,7 @@ title: "长表 + group_by 总分"
 topic: "08_tidyr"
 difficulty: 3
 tags: ["tidyr", "dplyr"]
+judge_mode: run
 statement: |
   把 df_wide 变长后按 name 分组求 score 之和，输出 Alice 的总分（应为 253）。
 

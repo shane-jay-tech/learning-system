@@ -2,6 +2,7 @@ title: "解析多种日期格式"
 topic: "10_stringr_lubridate"
 difficulty: 3
 tags: ["lubridate", "date_parsing", "format"]
+judge_mode: run
 statement: |
   给定三种格式的日期字符串：
   dates <- c("2024-03-15", "15/03/2024", "March 15, 2024")

@@ -2,6 +2,7 @@ title: "向量求和"
 topic: "01_vectors_and_basics"
 difficulty: 2
 tags: ["vector", "sum"]
+judge_mode: run
 statement: |
   向量 `v <- c(3, 5, 7)` 已经替你写好了。
   请用 `cat` 输出 `v` 的总和（也就是 `15`）。

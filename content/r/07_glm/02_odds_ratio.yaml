@@ -2,6 +2,7 @@ title: "OR 几率比"
 topic: "07_glm"
 difficulty: 3
 tags: ["glm", "odds-ratio"]
+judge_mode: run
 statement: |
   同上数据。请输出 years 的 **OR**（exp(coef)，保留 2 位小数）。
 

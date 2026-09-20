@@ -2,6 +2,7 @@ title: "group_by + summarize"
 topic: "03_dplyr"
 difficulty: 2
 tags: ["dplyr", "group_by", "summarize"]
+judge_mode: run
 statement: |
   按 class 分组算 score 均值，输出 `班 平均`，按字母升序。
 

@@ -2,6 +2,7 @@ title: "及格人数"
 topic: "02_logic_and_summary"
 difficulty: 2
 tags: ["logical", "sum"]
+judge_mode: run
 statement: |
   向量 `scores <- c(85, 55, 92, 48, 78, 60, 33, 88, 95, 70)` 是 10 个学生的成绩。
   请输出**及格人数**（成绩 ≥60 的人数）。

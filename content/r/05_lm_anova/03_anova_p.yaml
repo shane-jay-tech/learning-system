@@ -2,6 +2,7 @@ title: "ANOVA p 值"
 topic: "05_lm_anova"
 difficulty: 3
 tags: ["aov", "anova"]
+judge_mode: run
 statement: |
   3 个班 score：A [85,92,78,88,95]、B [70,72,65,60,55]、C [80,82,78,85,90]。
   用 `aov` 检验班级之间是否有显著差异，输出 **p 值**（保留 5 位小数）。

@@ -2,6 +2,7 @@ title: "arrange 降序排"
 topic: "03_dplyr"
 difficulty: 1
 tags: ["dplyr", "arrange"]
+judge_mode: run
 statement: |
   按 score 降序排，输出 name（每行一个）。
 

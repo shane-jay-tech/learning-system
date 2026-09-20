@@ -2,6 +2,7 @@ title: "GLM 预测概率"
 topic: "07_glm"
 difficulty: 3
 tags: ["predict", "probability"]
+judge_mode: run
 statement: |
   对 years=5 的员工，输出离职**概率**（保留 2 位小数）。
 starter_code: |

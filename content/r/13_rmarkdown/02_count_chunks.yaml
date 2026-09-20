@@ -2,6 +2,7 @@ title: "数 .Rmd 里的代码 chunk 数"
 topic: "13_rmarkdown"
 difficulty: 2
 tags: ["rmarkdown", "regex"]
+judge_mode: run
 statement: |
   Rmd 字符串里 chunk 以 ```` ```{r ```` 开头。
   用 `gregexpr` 数 chunk 个数。

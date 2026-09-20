@@ -2,6 +2,7 @@ title: "str_to_upper 转大写"
 topic: "10_stringr_lubridate"
 difficulty: 1
 tags: ["stringr"]
+judge_mode: run
 statement: |
   对向量 `c("alice", "bob", "cathy")` 全转大写，输出空格分隔。
 

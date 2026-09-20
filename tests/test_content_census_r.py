@@ -11,6 +11,13 @@ r 的答案面走 expected_output(70) + rubric(14) + judge_mode=ai_open(14)，�
   题数 84 / topic 18；difficulty 直方图 {1:15, 2:37, 3:31, 4:1}
   expected_output 70、rubric 14、reference_answer 14；judge_mode run 70 / ai_open 14
   expected_rows / tests 两字段 84 题全 None；hints 缺失 0 题
+
+2026-09-20 追加（D6 落地，见 scripts/mark_r_judge_plain.py 与
+docs/insights/learn-r-plain-downgrade-20260920.md）：用户拍板「r 84 题缺
+expected_rows/tests → 降级为普通题（不硬补测试用例）」，故只给原本依赖 loader
+隐式默认的 70 题补了显式 `judge_mode: run`；题干与答案字段零改动。
+本文件末尾新增用例把「84/84 判定模式必须显式 / 源文件不得出现 expected_rows|tests」
+钉死——这两条正是 D6 的处置口径。
 """
 import collections
 
@@ -88,3 +95,41 @@ def test_答案面走expected_output与rubric():
     assert mismatch == [], f"r judge_mode 与 expected_output 不匹配：{mismatch}"
     missing = [p.id for p in problems if not p.hints]
     assert missing == [], f"r 缺 hints 名单漂移：{sorted(missing)}"
+
+
+# ===== 2026-09-20 D6：判定模式显式化（源文件级钉桩） =====
+
+def _r_yaml_files():
+    import glob
+    return sorted(glob.glob("content/r/*/*.yaml"))
+
+
+def test_judge_mode源文件级显式_84之84():
+    """D6：r 题库不存在「多 DataFrame 机判题」形态 → 降级为普通题，只补标记字段。
+
+    源文件级（不经 loader）断言两件事：
+      ① 84 个 yaml **每个都显式写了 judge_mode**（当前 run 70 / ai_open 14）——
+         新题若依赖 loader 的隐式默认（run）即红，逼作者显式声明判定模式；
+      ② 源文件里**不得出现 expected_rows / tests 键**——D6 已拍板不硬补机判用例，
+         将来谁要加，必须先翻本桩（显式决策），不能悄悄改口径。
+    """
+    import os
+
+    import yaml
+
+    files = _r_yaml_files()
+    assert len(files) == EXPECTED_PROBLEMS, (
+        f"r 题目源文件数漂移：{len(files)} != {EXPECTED_PROBLEMS}")
+    no_judge_mode, judge_counts, has_rows_or_tests = [], collections.Counter(), []
+    for f in files:
+        data = yaml.safe_load(open(f, encoding="utf-8")) or {}
+        if "judge_mode" not in data:
+            no_judge_mode.append(os.path.basename(f))
+        judge_counts[data.get("judge_mode")] += 1
+        if "expected_rows" in data or "tests" in data:
+            has_rows_or_tests.append(os.path.relpath(f).replace("\\", "/"))
+    assert no_judge_mode == [], f"缺显式 judge_mode 的 r 题目：{sorted(no_judge_mode)}"
+    assert dict(judge_counts) == {"run": 70, "ai_open": 14}, (
+        f"r 源文件 judge_mode 分布漂移：{dict(judge_counts)}")
+    assert has_rows_or_tests == [], (
+        f"r 源文件出现 expected_rows/tests（D6 已拍板降级为普通题，需显式翻桩）：{has_rows_or_tests}")

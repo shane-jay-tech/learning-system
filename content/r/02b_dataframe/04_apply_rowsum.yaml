@@ -2,6 +2,7 @@ title: "用 apply 求每行总和"
 topic: "02b_dataframe"
 difficulty: 3
 tags: ["apply", "matrix"]
+judge_mode: run
 statement: |
   矩阵 `m` 已写好（3 行 4 列，元素 1-12）：
   ```

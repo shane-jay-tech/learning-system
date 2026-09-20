@@ -2,6 +2,7 @@ title: "str_replace_all 屏蔽数字"
 topic: "10_stringr_lubridate"
 difficulty: 2
 tags: ["stringr", "regex"]
+judge_mode: run
 statement: |
   把 `"Phone: 138-1234-5678"` 中所有数字替换成 `*`，输出结果。
 

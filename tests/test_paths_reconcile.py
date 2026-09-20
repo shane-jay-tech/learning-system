@@ -2,7 +2,8 @@
 """paths 元数据对账钉桩（l918-16）。
 
 钉三条现状（2026-09-19 预扫）：
-  ① header estimated_hours == sum(milestone hours)——agent_mastery 现状失配（22 vs 26）
+  ① header estimated_hours == sum(milestone hours)——agent_mastery 现状失配
+    （2026-09-20 D5 补路径后为 22 vs 29；原 22 vs 26）
     按已知清单钉桩：修复 yaml 或有意翻桩时更新；
   ② 同 path 专题重复引用——quick_stats 的 r/05_lm_anova、r/06_mixed_apa 各被两个里程碑
     引用（_path_overall_progress 会重复计数致进度虚高），按已知清单钉桩；
@@ -13,7 +14,11 @@ import glob
 import yaml
 
 PATHS = sorted(glob.glob("content/paths/*.yaml"))
-KNOWN_HOURS_MISMATCH = {"agent_mastery": (22, 26)}
+# 2026-09-20 有意翻桩（D5 补学习路径，见 zcode-bridge/outbox/l920-09-*.result.md）：
+# agent_mastery 追加 a10「Agent 前沿与数据安全」+3h，里程碑合计 26 → 29；
+# **header 22 不动**——「header 与合计失配」这条既有遗留（22 vs 26）仍待单独拍板修复，
+# 本单只补路径、不夹带修 header，故只把合计值钉到新真值。
+KNOWN_HOURS_MISMATCH = {"agent_mastery": (22, 29)}
 KNOWN_DUP_TOPICS = {
     "quick_stats": {"r/05_lm_anova": 2, "r/06_mixed_apa": 2},
 }

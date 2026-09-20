@@ -1,7 +1,7 @@
 title: "People Analytics 主线"
 subtitle: "从零到能做 HR 数据分析 + 统计建模"
 icon: "📊"
-estimated_hours: 48
+estimated_hours: 53
 
 milestones:
   - id: m1
@@ -68,6 +68,18 @@ milestones:
     estimated_hours: 4
     prereqs: ["m5"]
     graduation_project: "用窗口函数计算员工绩效排名和同比变化"
+
+  - id: m6b
+    title: "SQL 实战补强"
+    description: "字符串函数、日期函数、NULL 处理 —— 把 SQL 用到真实 HR 表上"
+    topics:
+      - "sql/09_string_funcs"
+      - "sql/10_date_funcs"
+      - "sql/11_null_handling"
+      - "sql/12_people_analytics"
+    estimated_hours: 5
+    prereqs: ["m6"]
+    graduation_project: "用字符串/日期函数与 NULL 安全写法，交付一份招募漏斗 + 离职率的 SQL 报告"
 
   - id: m7
     title: "R 入门"

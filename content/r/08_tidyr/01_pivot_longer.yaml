@@ -2,6 +2,7 @@ title: "宽变长 pivot_longer"
 topic: "08_tidyr"
 difficulty: 2
 tags: ["tidyr", "pivot_longer"]
+judge_mode: run
 statement: |
   把 `df_wide`（name, math, english, history）变成长表，输出**总行数**。
 

@@ -2,6 +2,7 @@ title: "McFadden's pseudo-R²"
 topic: "07_glm"
 difficulty: 3
 tags: ["pseudo-r2"]
+judge_mode: run
 statement: |
   GLM 没有标准 R²，用 McFadden 的近似：`1 - deviance / null.deviance`。
   同上数据，输出该值（保留 2 位小数）。

@@ -2,6 +2,7 @@ title: "写一个 .Rmd 文件"
 topic: "13_rmarkdown"
 difficulty: 1
 tags: ["rmarkdown", "file"]
+judge_mode: run
 statement: |
   请用 `writeLines` 把一段简单的 Rmd 内容写到 `report.Rmd`，然后读出来用 `nchar` 输出**字符数**。
 

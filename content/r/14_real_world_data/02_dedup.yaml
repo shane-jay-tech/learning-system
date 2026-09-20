@@ -2,6 +2,7 @@ title: "去掉重复提交的问卷"
 topic: "14_real_world_data"
 difficulty: 2
 tags: ["base-r", "duplicates", "real-data"]
+judge_mode: run
 statement: |
   有人把同一份问卷**提交了两次**（整行完全一样）。
 

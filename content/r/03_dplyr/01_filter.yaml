@@ -2,6 +2,7 @@ title: "dplyr filter 高分学生"
 topic: "03_dplyr"
 difficulty: 1
 tags: ["dplyr", "filter"]
+judge_mode: run
 statement: |
   用 dplyr 筛选 score ≥ 80 的学生，输出他们的 name（每行一个）。
 
