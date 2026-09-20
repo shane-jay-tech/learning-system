@@ -493,9 +493,11 @@ def test_临时文件_提交前被换成链接_拒绝并回滚且外部文件零
     assert corpus == before, "content/r 题目未恢复成原字节 / 有链接残留"
     assert kind["n"] >= 2, "回滚自身也应走 os.replace（攻击只在第一次动手）"
     # 被掉包后写进目标的那份「既非旧也非新」的字节必须留痕，而不是被悄悄丢掉
-    conflicts = [k for k in after if k.startswith(mrj.TXN_DIRNAME + "/" + mrj.CONFLICT_DIRNAME + "/")]
-    assert len(conflicts) == 1, "冲突副本未保存：%s" % sorted(after)
-    assert after[conflicts[0]] == b"OUTSIDE-ORIGINAL", "冲突副本内容不对"
+    # 第四轮 SCRIPT-010 后事务状态在仓库根目录的 .judge_plain_txn/，不在题库目录里
+    conf_dir = Path(tmp_path) / mrj.TXN_DIRNAME / mrj.CONFLICT_DIRNAME
+    conflicts = sorted(conf_dir.iterdir()) if conf_dir.is_dir() else []
+    assert len(conflicts) == 1, "冲突副本未保存：%s" % conflicts
+    assert conflicts[0].read_bytes() == b"OUTSIDE-ORIGINAL", "冲突副本内容不对"
 
 
 def test_临时文件身份校验_非普通文件或换过inode即拒(tmp_path):

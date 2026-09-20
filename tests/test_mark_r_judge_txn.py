@@ -18,6 +18,7 @@ SCRIPT-003 诊断 / SCRIPT-004 门禁）在这里逐条被钉住。核心方法�
 另加 WAL 自身性质：日志尾部残行按 WAL 规则丢弃、committed 状态只清残留不回滚。
 """
 import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -117,6 +118,30 @@ elif mode == "crash_in_staging":
     mrj._make_temp = dying_make
 elif mode == "crash_before_finalize":
     mrj.Txn.finalize = lambda self: os._exit(9)
+elif mode == "crash_after_append":
+    real_ja = mrj._journal_append
+    def dying_ja(journal, record):
+        real_ja(journal, record)
+        cnt["i"] += 1
+        if cnt["i"] >= n:
+            os._exit(9)
+    mrj._journal_append = dying_ja
+elif mode == "crash_in_backup":
+    real_wx = mrj._write_exclusive
+    def dying_wx(p, data):
+        real_wx(p, data)
+        cnt["i"] += 1
+        if cnt["i"] >= n:
+            os._exit(9)
+    mrj._write_exclusive = dying_wx
+elif mode == "crash_during_recover":
+    real_rb = mrj._replace_bytes
+    def dying_rb(*a, **kw):
+        real_rb(*a, **kw)
+        cnt["i"] += 1
+        if cnt["i"] >= n:
+            os._exit(9)
+    mrj._replace_bytes = dying_rb
 elif mode == "replace_lied":
     def lying(src, dst):
         real(src, dst)
@@ -125,7 +150,8 @@ elif mode == "replace_lied":
             raise OSError("模拟：替换实际完成但底层报错（结果不确定）")
     os.replace = lying
 
-rc = mrj.main(["--root", root, "--apply"])
+sub = "--recover" if mode == "crash_during_recover" else "--apply"
+rc = mrj.main(["--root", root, sub])
 print("CHILD_RC", rc)
 sys.exit(rc)
 '''
@@ -179,7 +205,6 @@ def test_提交完成后崩溃在cleanup_只清残留不回滚(tmp_path):
     assert r.returncode == 9, r.stderr
     assert _pending(tmp_path)
     migrated = _corpus_bytes(base)
-    assert migrated != _corpus_bytes(Path(tmp_path) / "content" / "r") or True   # 迁移已生效
     for rel in ("t1/01_a.yaml", "t1/02_b.yaml"):
         assert b"judge_mode: run" in migrated[rel], "%s 应已迁移" % rel
 
@@ -451,6 +476,201 @@ def test_事务目录与备份在成功后被完整清理(tmp_path):
     base = _corpus(tmp_path)
     r = _cli(tmp_path, "--apply")
     assert r.returncode == 0, r.stdout + r.stderr
-    residual = [str(p) for p in base.rglob("*") if mrj.TXN_DIRNAME in p.parts]
+    residual = [str(p) for p in Path(tmp_path).rglob("*") if mrj.TXN_DIRNAME in p.parts]
     assert residual == [], "成功提交后不该留下事务目录/备份：%s" % residual
     assert "PASS" in r.stdout
+
+
+def test_事务目录不在题库目录内(tmp_path):
+    """第四轮 SCRIPT-010：事务状态（崩溃时含**完整旧内容备份**）不得混进 content/r，
+    否则会被题库备份/打包/扫描工具当成内容资产收走。"""
+    base = _corpus(tmp_path)
+    _crash(tmp_path, "crash_after_replace", 1)
+    assert _pending(tmp_path), "该时点应有未完成事务"
+    inside = [p for p in base.rglob("*") if mrj.TXN_DIRNAME in p.parts]
+    assert inside == [], "事务目录落在 content/r 里了：%s" % inside
+    assert (Path(tmp_path) / mrj.TXN_DIRNAME).is_dir(), "事务目录应在仓库根目录下"
+    assert all(mrj.TXN_DIRNAME not in p.parts for p in mrj.r_files(tmp_path))
+# ------------------------------------------- ⑥ 第四轮新增：日志完整性与信任边界
+
+def _rewrite_journal(d, mutate):
+    """把事务日志读成记录列表、交给 mutate 改写后原样写回（用于伪造损坏日志）。"""
+    j = d / mrj.JOURNAL_NAME
+    recs = [json.loads(ln) for ln in j.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    mutate(recs)
+    j.write_text(chr(10).join(json.dumps(r, ensure_ascii=False, sort_keys=True) for r in recs)
+                 + chr(10), encoding="utf-8")
+
+
+def test_日志自称committed但条目不完整_不得按成功清理(tmp_path):
+    """第四轮 SCRIPT-005：committed 分支过去只看最后一条状态记录，就删掉事务目录。
+
+    日志被截断/损坏/人工改过时，「日志说已提交、实际只写了一半」会被当成成功——
+    既漏了迁移又丢了备份。现在必须做完整性校验并阻塞。
+    """
+    base = _corpus(tmp_path)
+    before = _corpus_bytes(base)
+    _crash(tmp_path, "crash_after_replace", 2)
+    assert _pending(tmp_path)
+    d = _pending(tmp_path)[0]
+    _rewrite_journal(d, lambda recs: recs.append({"t": "state", "state": "committed"}))
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 1, "自称已提交但条目不全，不得按成功处理：%s" % rec.stdout
+    assert "完整性校验不通过" in rec.stdout, rec.stdout
+    assert _pending(tmp_path), "校验不通过不得清理事务目录（那是恢复材料）"
+    assert _corpus_bytes(base) != before, "半写状态不该被悄悄改动"
+
+
+def test_日志中间记录损坏_拒绝自动恢复并保留现场(tmp_path):
+    """尾部残行可丢（WAL 规则），但**中间**损坏意味着日志整体不可信——必须阻塞。"""
+    base = _corpus(tmp_path)
+    _crash(tmp_path, "crash_after_replace", 1)
+    d = _pending(tmp_path)[0]
+    j = d / mrj.JOURNAL_NAME
+    lines = j.read_bytes().split(bytes([10]))
+    lines[1] = b"{ this is not json"
+    j.write_bytes(bytes([10]).join(lines))
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 1, rec.stdout
+    assert "阻塞" in rec.stdout and "损坏" in rec.stdout, rec.stdout
+    assert _pending(tmp_path), "损坏日志不得被清理"
+
+
+def test_日志出现两条begin_拒绝恢复并保留现场(tmp_path):
+    """begin 唯一性是「日志可信」的前提：两条 begin 意味着条目集合本身有歧义，
+    按哪一条恢复都可能错——只能阻塞等人工。"""
+    base = _corpus(tmp_path)
+    _crash(tmp_path, "crash_after_replace", 1)
+    d = _pending(tmp_path)[0]
+
+    def dup(recs):
+        begin = next(r for r in recs if r.get("t") == "begin")
+        recs.insert(0, dict(begin))
+    _rewrite_journal(d, dup)
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 1, rec.stdout
+    assert "begin 记录数" in rec.stdout, rec.stdout
+    assert _pending(tmp_path), "日志不可信时不得清理现场"
+
+
+def test_日志路径越界_拒绝恢复并保留现场(tmp_path):
+    """第四轮 SCRIPT-006：恢复材料本身是信任边界——损坏日志不得让恢复写到 content/r 之外。"""
+    base = _corpus(tmp_path)
+    _crash(tmp_path, "crash_after_replace", 1)
+    d = _pending(tmp_path)[0]
+    outside = Path(tmp_path) / "outside.txt"
+    outside.write_bytes(b"OUTSIDE-ORIGINAL")
+
+    def forge(recs):
+        for r in recs:
+            if r.get("t") == "begin":
+                r["entries"][0]["path"] = str(outside)
+    _rewrite_journal(d, forge)
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 1, rec.stdout
+    assert "越界" in rec.stdout, rec.stdout
+    assert outside.read_bytes() == b"OUTSIDE-ORIGINAL", "越界路径被写了"
+    assert _pending(tmp_path)
+
+
+def test_备份名带路径分隔符_被拒(tmp_path):
+    base = _corpus(tmp_path)
+    _crash(tmp_path, "crash_after_replace", 1)
+    d = _pending(tmp_path)[0]
+
+    def forge(recs):
+        for r in recs:
+            if r.get("t") == "begin":
+                r["entries"][0]["backup"] = "../../evil.bin"
+    _rewrite_journal(d, forge)
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 1, rec.stdout
+    assert "备份文件名不合法" in rec.stdout or "越界" in rec.stdout, rec.stdout
+
+
+def test_备份写入中途崩溃_无begin记录时不会误用半备份(tmp_path):
+    """第四轮 P0-3：备份先写、begin 后写；备份写一半就崩（没有 begin 记录）时，
+    事务目录只应被当成「无日志残留」清掉，原文件分毫不动，绝不把半份备份当恢复材料。
+    """
+    base = _corpus(tmp_path)
+    before = _corpus_bytes(base)
+    r = _crash(tmp_path, "crash_in_backup", 1)
+    assert r.returncode == 9, r.stderr
+    tdir = Path(tmp_path) / mrj.TXN_DIRNAME
+    assert tdir.is_dir(), "该时点应已建出事务目录"
+    assert not mrj.find_pending_txns(tmp_path), "还没有 begin 记录，不该算未完成事务"
+    assert mrj.find_debris(tmp_path), "应被识别为无日志残留"
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 0, rec.stdout + rec.stderr
+    assert _corpus_bytes(base) == before, "备份崩溃不该动到任何题目"
+    assert not tdir.exists(), "无日志残留应被清理"
+
+
+def test_每个WAL记录边界崩溃都能收敛(tmp_path):
+    """第四轮 P0-4：不只在固定几点注入，逐个 WAL 记录边界杀一遍。
+
+    每个崩溃点恢复之后，题库必须处于「全没做」或「全做完」二者之一——
+    出现第三种状态就说明原子性被破坏。
+    """
+    # 2 个目标文件的完整日志 = 9 条：begin / temp×2 / committing / (applying+applied)×2 / committed
+    for k in range(1, 10):
+        root = tmp_path / ("k%d" % k)
+        root.mkdir()
+        base = _corpus(root)
+        before = _corpus_bytes(base)
+        r = _crash(root, "crash_after_append", k)
+        assert r.returncode == 9, "k=%d 未按预期崩溃：%s" % (k, r.stderr)
+        if not mrj.find_pending_txns(root) and not mrj.find_debris(root):
+            continue        # 崩在第一条记录之前：什么都没留下，等价于没跑
+        rec = _cli(root, "--recover")
+        assert rec.returncode == 0, "k=%d 恢复失败：%s" % (k, rec.stdout + rec.stderr)
+        after = _corpus_bytes(base)
+        all_old = after == before
+        all_new = all(b"judge_mode: run" in v for v in after.values())
+        assert all_old or all_new, "k=%d 恢复后既不是全没做也不是全做完：%s" % (k, sorted(after))
+        assert not mrj.find_pending_txns(root), "k=%d 恢复后仍有未完成事务" % k
+        assert not list(base.rglob("*.tmp")), "k=%d 恢复后还有临时文件残留" % k
+
+
+def test_恢复过程再次被中断_可重复执行并收敛(tmp_path):
+    """第四轮 SCRIPT-009：恢复本身被打断也不许发散——每次按当前内容重新判定即可收敛。"""
+    base = _corpus(tmp_path)
+    before = _corpus_bytes(base)
+    r = _crash(tmp_path, "crash_after_replace", 2)
+    assert r.returncode == 9
+    mid = _crash(tmp_path, "crash_during_recover", 1)
+    assert mid.returncode == 9, "恢复应被中途打断：%s" % mid.stderr
+    assert _pending(tmp_path), "被打断的恢复必须留下现场"
+    rec = _cli(tmp_path, "--recover")
+    assert rec.returncode == 0, rec.stdout + rec.stderr
+    assert _corpus_bytes(base) == before, "重复恢复没有收敛到事务前字节"
+    assert not _pending(tmp_path)
+    assert not list(base.rglob("*.tmp"))
+
+
+def test_残留扫描失败会被报告而不是当成没有残留(tmp_path, monkeypatch):
+    """第四轮 SCRIPT-003：过去 _scan_residue 把扫描异常吞掉，调用方无法区分
+    「没有残留」与「根本扫不动」——这两件事的诊断含义完全相反。"""
+    _corpus(tmp_path)
+
+    def boom(*a, **kw):
+        raise OSError("模拟：目录不可遍历")
+
+    monkeypatch.setattr(mrj.os, "scandir", boom)
+    residue, err = mrj._scan_residue(tmp_path)
+    assert residue == [] and err is not None, (residue, err)
+    assert "扫描失败" in err, err
+
+
+def test_make_temp异常路径的清理失败也进报告(tmp_path, monkeypatch):
+    """第四轮 SCRIPT-008：_make_temp 的异常清理过去用 _unlink()（静默吞）。"""
+    _corpus(tmp_path)
+    monkeypatch.setattr(mrj, "_unlink_report", lambda p: "%s（模拟：删不掉）" % p)
+
+    def boom(tmp, st_fd, when):
+        raise mrj.HardeningError("模拟：临时文件身份校验失败")
+    monkeypatch.setattr(mrj, "_assert_temp_identity", boom)
+    with pytest.raises(mrj.HardeningError) as e:
+        mrj.commit_all(tmp_path, mrj.prepare_all(tmp_path, mrj.scan(tmp_path)["todo"]))
+    msg = str(e.value)
+    assert "临时文件清理失败" in msg and "模拟：删不掉" in msg, msg

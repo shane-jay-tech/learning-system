@@ -58,16 +58,28 @@
   · **异常统一**：staging/备份/journal/回读各边界一律转 HardeningError，非 CLI 路径
     调用内部接口也拿不到裸 OSError。
 
-承诺边界（第三轮 P0-1 要求的「承诺与实现一致」，逐条可被测试/代码核对）：
-  ✅ 进程被 kill / 容器被杀 / 解释器崩溃后，下一次运行（或显式 --recover）一律把事务
-     收敛成「全做完」或「全没做」——提交中途被杀的半写状态回滚到事务前字节；
+承诺边界（第三轮 P0-1 + 第四轮 P0-3/P2-1 校准后的版本，逐条可被代码与测试核对）：
+  ✅ 在「WAL、备份、目标文件都可读，且没有检测到无法判定的外部修改」的前提下，下一次
+     运行（或显式 --recover）会把事务收敛成「全做完」或「全没做」；
+  ✅ 提交中途被杀（进程终止 / 容器被 kill / 解释器崩溃）留下的半写状态回滚到事务前字节；
   ✅ os.replace「实际成功却向调用方报错」也有账可查（替换前先落 applying 记录）；
   ✅ 回滚不覆盖并发修改；既非旧也非新的字节先存副本再恢复（状态明确时）或拒绝覆盖
      （崩溃后状态不明时）；回滚失败保留事务目录与旧内容备份供人工恢复；
-  ✅ 临时文件清理失败进报告，不静默吞掉。
-  ❌ **不承诺崩溃/掉电下的「改名本身」持久化**：文件内容在替换前已 fsync，但 Windows
-     不支持对目录 fsync（POSIX 上本脚本会尽力做），掉电后某次替换可能未生效——这种
-     情况会被当成未完成事务回滚，不会留下半写题目，但不等于「改名的持久化有保证」。
+  ✅ 清理失败（临时文件、事务目录、残留扫描）一律进入报告，不静默吞掉；
+  ✅ 恢复阶段对日志做完整性与边界校验：begin 唯一、条目字段齐全、rel 不重复、目标路径
+     必须落在 content/r 内、备份名不得含路径分隔符或 ..、committed 必须每个条目都有
+     applied 且目标字节确实是本事务写入的新内容；任一项不通过即**保留事务目录并阻塞**。
+  ⚠️ **不是无条件收敛**：日志损坏、备份缺失或校验和不符、条目状态不明且内容无法判定、
+     上次回滚失败等情况下，脚本会**阻塞并保留现场**（连同恢复材料）等人工处理，
+     不会自作主张继续或清理。
+  ⚠️ **默认自动回滚的语义**：--apply 发现未完成事务时默认先回滚再继续；崩溃后若有人
+     手工改过目标文件，改动内容既非旧也非新时会先存进冲突副本；若改动后恰好等于本事务
+     要写入的新内容，则无法与事务自身的写入区分，会被一并回滚。--check 与 dry-run 是
+     只读门禁，发现未完成事务一律拒绝并提示 --recover，不代用户恢复。
+  ❌ **不承诺掉电下的「目录项持久化」**：文件内容在替换前已 fsync；POSIX 上会尽力对目录
+     做 fsync（失败仅 best effort、不报错），**Windows 上不做等价的目录项 flush**——
+     因此不保证 os.replace 之后目录项在掉电场景下的持久性。掉电后某次替换若未生效，
+     恢复会把它当成未完成事务回滚，不会留下半写题目。
   ❌ **不承诺抵御恶意并发攻击者**：目录若可被不可信用户写入，「临时文件身份校验 →
      os.replace」之间理论上仍有 TOCTOU 窗口（Windows 无 renameat2 / 目录 fd 等价接口）。
      本脚本的安全模型是**可信目录所有者**，不是防恶意并发。
@@ -182,8 +194,14 @@ def r_dir(root) -> Path:
 
 
 def txn_root(root) -> Path:
-    """事务目录：content/r/.judge_plain_txn/（在扫描 glob 之外，且被 r_files 显式排除）。"""
-    return r_dir(root) / TXN_DIRNAME
+    """事务目录：<root>/.judge_plain_txn/ ——**放在 content/r 之外**。
+
+    第四轮 SCRIPT-010：放在题库目录里会被题库备份/打包/扫描工具当成内容资产
+    （崩溃那一刻里面还带着**完整旧内容备份**），风险高于收益。放到仓库根目录的隐藏
+    目录，与 content/ 彻底隔离；仓库里同时用 .gitignore 忽略它。
+    r_files() 仍保留排除逻辑（对老路径遗留的事务目录也一并挡掉）。
+    """
+    return Path(root).resolve() / TXN_DIRNAME
 
 
 def r_files(root):
@@ -439,33 +457,25 @@ def _make_temp(path: Path, data: bytes, base=None) -> Path:
         # 写入后再验一次：把窗口压到「本次校验 → os.replace」之间，越短越安全
         _assert_temp_identity(tmp, st_fd, "写入后提交前")
         return tmp
-    except HardeningError:
+    except BaseException as e:
+        # 第四轮 SCRIPT-008：异常清理路径过去用 _unlink()（静默吞），临时文件删不掉时
+        # 报告里只看到最初的写入错误，看不见"还留了个临时文件"——这里改成可报告。
         if fd is not None:
             try:
                 os.close(fd)
             except OSError:
                 pass
-        if tmp is not None:
-            _unlink(tmp)
-        raise
-    except (OSError, UnicodeError, ValueError) as e:
-        if fd is not None:
-            try:
-                os.close(fd)
-            except OSError:
-                pass
-        if tmp is not None:
-            _unlink(tmp)
-        _fail("写临时文件失败（%s）：%s" % (path, e))
-    except BaseException:
-        if fd is not None:
-            try:
-                os.close(fd)
-            except OSError:
-                pass
-        if tmp is not None:
-            _unlink(tmp)
-        raise
+        why = _unlink_report(tmp) if tmp is not None else None
+        if isinstance(e, HardeningError):
+            if why:
+                raise HardeningError("%s；另外临时文件清理失败，需人工删除：%s" % (e, why)) from e
+            raise
+        if isinstance(e, (OSError, UnicodeError, ValueError)):
+            msg = "写临时文件失败（%s）：%s" % (path, e)
+            if why:
+                msg += "；另外临时文件清理失败，需人工删除：%s" % why
+            _fail(msg)
+        raise          # KeyboardInterrupt / SystemExit 等原样上抛，不包装
 
 
 def _replace_bytes(path: Path, data: bytes, base=None) -> None:
@@ -505,7 +515,12 @@ def _replace_bytes(path: Path, data: bytes, base=None) -> None:
 #      字节；committed → 仅清残留。--check / dry-run 是只读门禁，不代用户恢复。
 
 def _fsync_dir(path: Path) -> bool:
-    """尽力 fsync 目录项（POSIX 有效）。Windows 不支持对目录 fsync → 返回 False。"""
+    """尽力 fsync 目录项。返回值只作记录，调用方不把它当失败。
+
+    POSIX：打开目录 fd 后 fsync；失败仅 best effort（返回 False，不报错）。
+    Windows：**不做等价的目录项 flush**（Python 路径下没有可移植且可靠的目录句柄方案），
+    直接返回 False——因此本脚本不保证 os.replace 之后目录项的掉电持久性；文件内容本身
+    仍在替换前已 fsync。（第四轮 P2-1：原措辞「Windows 不支持目录 fsync」过于绝对。）"""
     if os.name == "nt":
         return False
     try:
@@ -591,6 +606,81 @@ def _txn_state(records) -> str:
             if s in ("committing", "committed", "rolled_back", "rollback_failed"):
                 state = s
     return state
+
+
+def _validate_entry(e, root, txn_dir) -> "str | None":
+    """校验单条 WAL 条目，返回问题描述或 None。
+
+    第四轮 SCRIPT-006：恢复阶段过去直接信任日志里的 path/backup，日志一旦被截断、
+    损坏或人工改过，恢复就可能读写 content/r 之外的路径。恢复材料本身是脚本信任
+    边界的一部分——「防恶意攻击者」不在承诺内，但「损坏日志不得导致恢复越界」必须在。
+    """
+    rel, path, backup = e.get("rel"), e.get("path"), e.get("backup")
+    if not rel or not path or not backup or not e.get("old_sha") or not e.get("new_sha"):
+        return "条目字段缺失（rel/path/backup/old_sha/new_sha 必须齐全）：%r" % (rel or path)
+    p = Path(str(path))
+    if not p.is_absolute():
+        return "目标路径不是绝对路径：%r" % path
+    try:
+        p.resolve().relative_to(r_dir(root).resolve())
+    except ValueError:
+        return "目标路径越界（不在 content/r 内）：%s" % path
+    name = str(backup)
+    if name != Path(name).name or "/" in name or "\\" in name or ".." in name:
+        return "备份文件名不合法（不得含路径分隔符或 ..）：%r" % backup
+    bdir = (txn_dir / BACKUP_DIRNAME).resolve()
+    try:
+        (bdir / name).resolve().relative_to(bdir)
+    except ValueError:
+        return "备份路径越界：%r" % backup
+    return None
+
+
+def _validate_committed(entries, records) -> "str | None":
+    """校验「日志自称 committed」是否真的成立；返回问题描述或 None。
+
+    第四轮 SCRIPT-005：恢复分支过去只看最后一条 state 记录就认 committed 并**直接删掉
+    事务目录**（连同恢复材料）。日志被截断 / 选择性损坏 / 人工改过时，这一手会把
+    「日志说已提交、实际只写了一半」的事务当成成功，既漏了迁移又丢了备份。
+    判据：最后一条状态必须是 committed；每个 begin 条目都必须有配对的 applied；
+    不得出现 begin 之外的 entry；目标文件当前字节必须确实是本事务写入的新内容。
+    """
+    states = [r.get("state") for r in records if r.get("t") == "state"]
+    if not states or states[-1] != "committed":
+        return "最后一条状态记录不是 committed（%r）" % (states[-1:] or None)
+    got = {}
+    for r in records:
+        if r.get("t") == "entry":
+            got[r.get("rel")] = r.get("state")
+    known = {e.get("rel") for e in entries}
+    missing = [e.get("rel") for e in entries if got.get(e.get("rel")) != "applied"]
+    if missing:
+        return "以下条目没有 applied 记录：%s" % missing[:5]
+    unknown = [rel for rel in got if rel not in known]
+    if unknown:
+        return "存在不属于本事务的 entry 记录：%s" % sorted(unknown)[:5]
+    for e in entries:
+        try:
+            raw = Path(e["path"]).read_bytes()
+        except OSError as err:
+            return "复核 %s 失败：%s" % (e.get("rel"), err)
+        if _sha(raw) != e.get("new_sha"):
+            return "%s 的当前字节并非本事务写入的新内容" % e.get("rel")
+    return None
+
+
+def _validate_entries(entries, root, txn_dir) -> "str | None":
+    """整批条目校验：字段完整、路径不越界、rel 不重复。返回第一个问题或 None。"""
+    seen = set()
+    for e in entries:
+        why = _validate_entry(e, root, txn_dir)
+        if why:
+            return why
+        rel = e.get("rel")
+        if rel in seen:
+            return "同一条目 rel 重复出现：%r" % rel
+        seen.add(rel)
+    return None
 
 
 def _entries_from_records(records) -> list:
@@ -865,11 +955,12 @@ class Txn(object):
         why = _rmtree_report(self.dir)
         if why:
             self.residue.append(why)
+        troot = txn_root(self.root)
         try:
-            if txn_root(self.root).is_dir() and not any(txn_root(self.root).iterdir()):
-                os.rmdir(str(txn_root(self.root)))
-        except OSError:
-            pass
+            if troot.is_dir() and not any(troot.iterdir()):
+                os.rmdir(str(troot))
+        except OSError as e:
+            self.residue.append("事务根目录清理失败（%s）：%s" % (troot, e))
 
 
 class _EmptyTxn(object):
@@ -974,17 +1065,38 @@ def find_debris(root) -> list:
         return []
 
 
-def _scan_residue(root) -> list:
-    """content/r 下遗留的 *.tmp（staging 残留）清单——诊断用。"""
-    out = []
+def _scan_residue(root) -> tuple:
+    """content/r 下遗留的 *.tmp（staging 残留）清单——诊断用。
+
+    返回 (残留清单, 扫描错误或 None)。第四轮 SCRIPT-003：过去扫描失败被静默吞掉，
+    调用方无法区分「没有残留」与「根本扫不动」——这正是诊断能力的关键差别。
+    """
+    out, err, base = [], None, r_dir(root)
     try:
-        base = txn_root(root)
-        for p in sorted(r_dir(root).rglob("*.tmp")):
-            if p.is_file() and not _is_within(p, base):
-                out.append(str(p))
-    except OSError:
-        pass
-    return out
+        first = list(os.scandir(str(base)))
+    except OSError as e:
+        return [], "残留扫描失败（%s）：%s" % (base, e)
+    tbase = txn_root(root)
+
+    def walk(d, entries):
+        nonlocal err
+        for entry in entries:
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    try:
+                        walk(Path(entry.path), list(os.scandir(entry.path)))
+                    except OSError as e:
+                        err = "残留扫描中途失败（%s）：%s" % (entry.path, e)
+                elif entry.name.endswith(".tmp") and not _is_within(entry.path, tbase):
+                    out.append(entry.path)
+            except OSError as e:
+                err = "残留扫描中途失败（%s）：%s" % (entry.path, e)
+
+    # 注意：这里刻意自己走目录而不用 Path.rglob —— pathlib 的 glob 会**静默吞掉**
+    # OSError（读不了的目录直接跳过），于是「扫不动」和「没有残留」分不出来，
+    # 正是第四轮 SCRIPT-003 指出的诊断缺陷。自己走才能把失败如实报出来。
+    walk(base, first)
+    return sorted(out), err
 
 
 def recover_pending(root) -> dict:
@@ -1004,15 +1116,30 @@ def recover_pending(root) -> dict:
         if err:
             blocked.append((d.name, "%s（事务目录已保留，请人工核对）" % err))
             continue
+        begins = [r for r in records if r.get("t") == "begin"]
+        if len(begins) != 1:
+            blocked.append((d.name, "begin 记录数 = %d（应恰 1 条），日志不可信；"
+                            "事务目录已保留在 %s" % (len(begins), d)))
+            continue
         state = _txn_state(records)
         entries = _entries_from_records(records)
         tmps = _tmps_from_records(records)
+        bad = _validate_entries(entries, root, d)
+        if bad:
+            blocked.append((d.name, "日志条目校验不通过（%s）；事务目录已保留在 %s" % (bad, d)))
+            continue
         if state == "rollback_failed":
             blocked.append((d.name, "上次回滚失败，事务目录保留在 %s（内含旧内容备份）" % d))
             continue
         if state == "committing" and not entries:
             blocked.append((d.name, "日志缺少 begin 条目定义，无法自动恢复"))
             continue
+        if state == "committed":
+            bad = _validate_committed(entries, records)
+            if bad:
+                blocked.append((d.name, "日志自称已提交但完整性校验不通过（%s）；"
+                                "事务目录已保留在 %s，未按成功处理" % (bad, d)))
+                continue
         if state in ("prepared", "committed", "rolled_back"):
             residue = _cleanup_recorded_temps(tmps) + _sweep_staged_temps(entries)
             why = _rmtree_report(d)
@@ -1048,13 +1175,20 @@ def recover_pending(root) -> dict:
                 note += "；%d 个文件回滚前内容与预期都不符，副本已存 %s" % (
                     len(saved), txn_root(root) / CONFLICT_DIRNAME)
             recovered.append((d.name, note))
+    # 收尾：事务根目录空了就一并删掉（conflict/ 里还有副本时会保留，不会被误删）
+    troot = txn_root(root)
+    try:
+        if troot.is_dir() and not any(troot.iterdir()):
+            os.rmdir(str(troot))
+    except OSError as e:
+        blocked.append((troot.name, "事务根目录清理失败（%s）：%s" % (troot, e)))
     return {"recovered": recovered, "blocked": blocked, "debris": debris}
 
 
 def _print_recovery(rec) -> None:
     for tid, what in rec["recovered"]:
         print("  [恢复] %s：%s" % (tid, what))
-    for tid, what in rec["debris"]:
+    for tid in rec["debris"]:
         print("  [清理] %s：无日志残留（原文件未被改动）" % tid)
     for tid, why in rec["blocked"]:
         print("  [阻塞] %s：%s" % (tid, why))
@@ -1306,7 +1440,9 @@ def _run(args) -> int:
     tx.finalize()
     if tx.residue:
         print("  [残留] 临时文件清理失败，需人工删除：%s" % "；".join(tx.residue))
-    leftover = _scan_residue(root)
+    leftover, scan_err = _scan_residue(root)
+    if scan_err:
+        print("  [残留] %s" % scan_err)
     if leftover:
         print("  [残留] content/r 下仍有 %d 个 *.tmp：%s" % (len(leftover), "；".join(leftover[:5])))
     print("PASS：写盘完成且回读一致（事务已提交并清理；幂等：再跑 --apply 将零改动）")
