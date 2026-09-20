@@ -14,12 +14,23 @@
      等异常输入一律非零退出且**一个字节都不写**（连同一批的合法文件也不写）；
   ③ 字节级差分：真题库 84 行逐行「删掉再插回」，必须与原字节完全相等，
      且长度差 == 该行字节数 + 一个换行——即「新文件 == 原文 + 恰一行」。
-     另用 -O 跑一遍异常输入，证明 assert 剥离后防护仍在。
+     另用 -O 跑一遍异常输入，证明 assert 剥离后防护仍在；
+  ④ 批量原子性 / 临时文件安全 / 空输入（第二轮复核 SCRIPT-001..004）：
+     · 第二个文件写盘失败（真机只读属性 → os.replace WinError 5）时**第一个文件
+       必须回滚成原字节**，不留半写状态、不留临时文件残留；
+     · 第二个文件被并发篡改 → 整批终止、零提交；
+     · 写盘后回读不达标 → 整批回滚；staging 阶段失败 → 原文件分毫未动；
+     · 固定名临时文件抢占攻击（旧实现 <file>.tmp<PID>）已失效；
+       mkstemp 返回后被换成符号链接/硬链接（TOCTOU）→ 拒绝且外部文件零改动；
+     · scan 里的 OSError（*.yaml 是目录）与顶层 IO 异常 → 统一 FAIL 非零、零写盘；
+     · content/r 为空 → 不再 vacuous pass，默认 FAIL，--allow-empty 才放行。
 """
 import hashlib
 import os
+import stat
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -311,6 +322,222 @@ def test_插入函数_块状tags插到块尾(tmp_path):
     text = (base / "t1/block.yaml").read_text(encoding="utf-8")
     assert "  - \"b\"\njudge_mode: run\nstatement: |" in text
     assert yaml.safe_load(text)["judge_mode"] == "run"
+
+
+# ------------------------------------------------- ④ 批量原子性 / 临时文件安全 / 空输入
+
+def _prepare(root):
+    """走公开接口拿「已全量生成并验证通过」的计划（模拟 _run 的提交前状态）。"""
+    s = mrj.scan(root)
+    assert not s["anomalies"], s["anomalies"]
+    return mrj.prepare_all(root, s["todo"]), s
+
+
+def test_空输入_check不再vacuous_pass_allow_empty才放行(tmp_path):
+    """SCRIPT-004：content/r 空目录时旧输出是「PASS：0/0 判定模式全部显式」——什么也没证明。"""
+    base = Path(tmp_path) / "content" / "r"
+    base.mkdir(parents=True, exist_ok=True)
+    r = _cli(tmp_path, "--check")
+    assert r.returncode == 1, "空目录 --check 必须 FAIL（得到 %s）" % r.returncode
+    assert "0 个 yaml" in (r.stdout + r.stderr)
+    assert "PASS" not in r.stdout, "空输入不该出现 vacuous pass：%r" % r.stdout
+    assert _snapshot(base) == {}
+    # dry-run / apply 同样不放过空输入
+    assert _cli(tmp_path).returncode == 1
+    assert _cli(tmp_path, "--apply").returncode == 1
+    # 显式 --allow-empty 才放行（小型 fixture 场景的逃生门）
+    ok = _cli(tmp_path, "--check", "--allow-empty")
+    assert ok.returncode == 0, ok.stdout + ok.stderr
+    assert "PASS：0/0 判定模式全部显式（--allow-empty：空目录）" in ok.stdout
+
+
+def test_第二个文件写盘失败_第一个文件回滚成原字节(tmp_path):
+    """SCRIPT-001 真机复现：第 2 个目标不可替换（Windows 只读属性 → os.replace WinError 5）。
+
+    要求：第一个文件已经 os.replace 成功，也必须回滚成原字节——不许留部分写盘。
+    """
+    base, before = _good_corpus(tmp_path)
+    victim = base / "t1" / "04_crlf.yaml"        # 排序在 01 之后 → 会先写 01
+    os.chmod(victim, stat.S_IREAD)
+    try:
+        r = _cli(tmp_path, "--apply")
+    finally:
+        os.chmod(victim, stat.S_IWRITE)
+    out = r.stdout + r.stderr
+    assert r.returncode == 1, "部分写盘失败必须非零退出：%s" % out
+    assert "FAIL" in out and "Traceback" not in out, out
+    assert "已回滚 1/1" in out, "应点名回滚了 1 个已替换文件：%s" % out
+    assert _snapshot(base) == before, "第一个文件没有被恢复成原字节（部分写盘未回滚）"
+    # 回滚后仍是「未显式」状态：check 依然 FAIL
+    assert _cli(tmp_path, "--check").returncode == 1
+
+
+def test_第二个文件被并发篡改_整批终止且零提交(tmp_path):
+    """SCRIPT-001/003：准备阶段之后目标被改动 → 终止且一个字节都不提交。"""
+    base, before = _good_corpus(tmp_path)
+    plans, s = _prepare(tmp_path)
+    assert len(plans) == 2
+    victim = base / "t1" / "04_crlf.yaml"
+    victim.write_bytes(victim.read_bytes() + "# 并发篡改\n".encode("utf-8"))
+    tampered = _snapshot(base)
+    with pytest.raises(mrj.HardeningError) as e:
+        mrj.commit_all(tmp_path, plans, expect=s["snapshot"])
+    assert "并发修改" in str(e.value) and "04_crlf.yaml" in str(e.value), str(e.value)
+    after = _snapshot(base)
+    assert after["t1/01_missing.yaml"] == before["t1/01_missing.yaml"], "第一个文件被写了一半"
+    assert after == tampered, "除篡改本身外不该有任何字节变化"
+
+
+def test_写盘后回读不达标_整批回滚(tmp_path, monkeypatch):
+    """SCRIPT-001：提交阶段成功但最终回读不达标（第 2 次 scan 报异常）→ 整批回滚原字节。"""
+    base, before = _good_corpus(tmp_path)
+    real_scan = mrj.scan
+    calls = {"n": 0}
+
+    def flaky_scan(root):
+        calls["n"] += 1
+        s = real_scan(root)
+        if calls["n"] >= 2:
+            s["anomalies"] = [("t1/01_missing.yaml", "模拟：写盘后回读形态异常")]
+        return s
+
+    monkeypatch.setattr(mrj, "scan", flaky_scan)
+    rc = mrj.main(["--root", str(tmp_path), "--apply"])
+    assert rc == 1, "写盘后回读不达标应非零退出"
+    assert calls["n"] >= 2
+    assert _snapshot(base) == before, "回读不达标时必须把已写文件回滚成原字节"
+
+
+def test_staging阶段失败_原文件分毫未动(tmp_path, monkeypatch):
+    """SCRIPT-001：临时文件阶段就失败（磁盘满/目录不可写）→ 原文件一个字节都不动。"""
+    base, before = _good_corpus(tmp_path)
+    plans, s = _prepare(tmp_path)
+
+    def boom(*a, **kw):
+        raise OSError("模拟：临时文件创建失败（磁盘满/目录不可写）")
+
+    monkeypatch.setattr(mrj.tempfile, "mkstemp", boom)
+    with pytest.raises(mrj.HardeningError) as e:
+        mrj.commit_all(tmp_path, plans, expect=s["snapshot"])
+    assert "创建临时文件失败" in str(e.value), str(e.value)
+    assert _snapshot(base) == before
+
+
+def test_临时文件_固定名抢占攻击已失效(tmp_path):
+    """SCRIPT-002：旧实现用固定名 <file>.tmp<PID> 且 open(tmp,"wb")（跟随符号链接）。
+
+    这里把旧名全部预先占住并写入哨兵字节（真机无建符号链接权限，故用普通文件占位：
+    旧实现会直接 truncate 掉它们，新实现必须一个新字节都不写到这些名字上）。
+    """
+    base, before = _good_corpus(tmp_path)
+    sentinel = b"SENTINEL-DO-NOT-TOUCH"
+    decoys = [base / "t1" / ("01_missing.yaml.tmp%d" % os.getpid()),
+              base / "t1" / ("04_crlf.yaml.tmp%d" % os.getpid())]
+    for d in decoys:
+        d.write_bytes(sentinel)
+    plans, s = _prepare(tmp_path)
+    mrj.commit_all(tmp_path, plans, expect=s["snapshot"])     # 同进程 → PID 与旧实现一致
+    for d in decoys:
+        assert d.read_bytes() == sentinel, "抢占名 %s 被写入了（固定名临时文件回来了）" % d.name
+    for rel in ("t1/01_missing.yaml", "t1/04_crlf.yaml"):
+        assert (base / rel).read_bytes() == _expected_after_insert(before[rel]), rel
+    assert _cli(tmp_path, "--check").returncode == 0
+
+
+def _swap_with_link(tmp_name, outside):
+    """把 tmp_name 换成指向 outside 的链接；无建符号链接权限时退化为硬链接。"""
+    os.unlink(tmp_name)
+    try:
+        os.symlink(str(outside), tmp_name)
+        return "symlink"
+    except OSError:
+        os.link(str(outside), tmp_name)
+        return "hardlink"
+
+
+def test_临时文件_提交前被换成链接_拒绝并回滚且外部文件零改动(tmp_path, monkeypatch):
+    """SCRIPT-002 TOCTOU 攻击：在我们的临时文件就位后、os.replace 之前，攻击者把临时名
+    换成指向外部文件的链接（符号链接；本机无 SeCreateSymbolicLinkPrivilege 时退化为硬链接，
+    两者都命中同一条防线：写后回读不达标 → 拒绝 → 回滚）。
+
+    断言三件事：脚本 fail-closed 非零；外部文件一个字节没被写穿；content/r 全部恢复原字节。
+    """
+    base, before = _good_corpus(tmp_path)
+    outside = Path(tmp_path) / "outside.txt"
+    outside.write_bytes(b"OUTSIDE-ORIGINAL")
+    real_replace = os.replace
+    kind = {"v": None, "n": 0}
+
+    def hostile_replace(src, dst):
+        kind["n"] += 1
+        if kind["n"] == 1:                     # 只在第一次提交时动手，不影响回滚
+            kind["v"] = _swap_with_link(str(src), outside)
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(mrj.os, "replace", hostile_replace)
+    plans, s = _prepare(tmp_path)
+    with pytest.raises(mrj.HardeningError) as e:
+        mrj.commit_all(tmp_path, plans, expect=s["snapshot"])
+    print("本次攻击变体 =", kind["v"])
+    assert kind["v"] in ("symlink", "hardlink")
+    assert "已回滚 1/1" in str(e.value), str(e.value)
+    assert outside.read_bytes() == b"OUTSIDE-ORIGINAL", "外部文件被写穿"
+    assert _snapshot(base) == before, "content/r 未恢复成原字节 / 有链接残留"
+
+
+def test_临时文件身份校验_非普通文件或换过inode即拒(tmp_path):
+    """SCRIPT-002 防线契约单测。
+
+    「持有 fd 时被 unlink 后换名」在 POSIX 上可发生（Windows 会直接拒绝 unlink 打开中的
+    临时文件，WinError 32），故这里按契约单测校验函数本身：正常放行、换 inode 拒绝、
+    不是普通文件拒绝。
+    """
+    base = _corpus(tmp_path, {"t1/01_missing.yaml": RUN_MISSING})
+    fd, name = tempfile.mkstemp(dir=str(base / "t1"), prefix="01_missing.yaml.", suffix=".tmp")
+    other = Path(tmp_path) / "other.tmp"
+    other.write_bytes(b"not-the-temp-file")
+    try:
+        st_fd = os.fstat(fd)
+        mrj._assert_temp_identity(Path(name), st_fd, "单测")          # 正常：放行，不抛
+        with pytest.raises(mrj.HardeningError) as e1:
+            mrj._assert_temp_identity(other, st_fd, "单测")            # 换成了别的 inode
+        assert "inode" in str(e1.value), str(e1.value)
+        with pytest.raises(mrj.HardeningError) as e2:
+            mrj._assert_temp_identity(base / "t1", st_fd, "单测")      # 不是普通文件
+        assert "普通文件" in str(e2.value), str(e2.value)
+    finally:
+        os.close(fd)
+        mrj._unlink(name)
+        other.unlink()
+    # 清理干净：只该剩那个原始 yaml，临时文件与 other 都不许落在 content/r 里
+    assert _snapshot(base) == {"t1/01_missing.yaml": RUN_MISSING.encode("utf-8")}
+
+
+def test_scan遇到OSError_统一FAIL零写盘(tmp_path):
+    """SCRIPT-003 真机复现：content/r/t1/05_dir.yaml 是目录 → read_bytes() 抛 OSError。"""
+    base = _corpus(tmp_path, dict(GOOD_CORPUS))
+    (base / "t1" / "05_dir.yaml").mkdir()
+    before = _snapshot(base)
+    r = _cli(tmp_path, "--apply")
+    out = r.stdout + r.stderr
+    assert r.returncode == 1, "目录型 *.yaml 应走 fail-closed：%s" % out
+    assert "FAIL" in out and "Traceback" not in out, out
+    assert "05_dir.yaml" in out and "读取/解析异常" in out, out
+    assert _snapshot(base) == before, "异常输入下仍有文件被写"
+    assert _cli(tmp_path, "--check").returncode == 1
+
+
+def test_顶层IO异常_统一转FAIL非零(tmp_path, monkeypatch):
+    """SCRIPT-003：连扫描都抛 OSError（目录不可访问）也必须统一 FAIL，而不是崩栈。"""
+    base, before = _good_corpus(tmp_path)
+
+    def boom(root):
+        raise OSError("模拟：content/r 不可访问")
+
+    monkeypatch.setattr(mrj, "r_files", boom)
+    assert mrj.main(["--root", str(tmp_path), "--check"]) == 1
+    assert mrj.main(["--root", str(tmp_path), "--apply"]) == 1
+    assert _snapshot(base) == before
 
 
 # ------------------------------------------------------------------ ③ 字节级差分（真题库）

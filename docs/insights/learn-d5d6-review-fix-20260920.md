@@ -151,3 +151,62 @@ $ python -m pytest -q
 - 未改其他语言 300+ 题同样依赖 loader 隐式默认的现状（另一笔口径，需用户拍板）。
 - `tests/test_paths_reconcile.py` 仍保留 quick_stats 跨里程碑重复引用的白名单（同 path 内重复计数致进度虚高），
   属既有内容问题，未在本轮范围内处置。
+
+## 第二轮复核修复：SCRIPT-001..004（2026-09-20，第二轮 GPT 复审 4 条未消解意见）
+
+只改 `scripts/mark_r_judge_plain.py` 与 `tests/test_mark_r_judge_plain.py`（content/ 一个字节未动）。
+
+| 意见 | 处置 |
+|---|---|
+| **SCRIPT-001**（MAJOR）`--apply` 逐文件写盘，部分写盘后失败不回滚 | 改两阶段：① `prepare_all` 把全部目标生成为 (old,new) 并**全部验证通过**（本阶段零写盘）；② `commit_all` 先 staging（全部新内容落成同目录排他临时文件）再逐个 `os.replace`，任一失败即**回滚已替换文件**；提交后回读不达标（含最终 scan 异常/分布不符）同样整批回滚。回滚失败会点名列出待人工恢复文件。 |
+| **SCRIPT-002**（MAJOR）固定临时名 `<file>.tmp<PID>` + `open(tmp,"wb")` 可被预置符号链接抢先 | 弃固定名，改 `tempfile.mkstemp(dir=path.parent, prefix=..., suffix=...)` 的 O_EXCL 独占 fd 写入；写入前/写入后再各校验一次「临时名是普通文件且 st_dev/st_ino == fd 的」；`os.replace` 后再查非符号链接 + 回读比对；目标本身是符号链接一律拒绝。 |
+| **SCRIPT-003**（MINOR）scan 只捕 HardeningError，OSError/权限/文件消失不转 FAIL | scan/apply/commit 全程把 `OSError`/`UnicodeError`/`yaml.YAMLError` 统一转 `HardeningError`（`main()` 另有兜底 catch → 非零退出、不崩栈）；提交前用「文件集合 + 逐文件 sha256 快照」复核，发现增删或内容被并发改动即终止且不提交。 |
+| **SCRIPT-004**（MINOR）`content/r` 为空时 vacuous pass | 0 个 yaml 一律 FAIL（`--check` 旧输出「PASS：0/0 判定模式全部显式」不再出现）；仅小型 fixture 场景可显式加 `--allow-empty`。 |
+
+**新增测试 10 例**（`tests/test_mark_r_judge_plain.py` 18 → 28）：第二个文件写盘失败（真机只读属性 →
+`os.replace` WinError 5）时第一个文件回滚原字节 / 第二个文件被并发篡改 → 整批终止零提交 /
+写盘后回读不达标 → 整批回滚 / staging 失败 → 原文件分毫未动 / 固定名抢占（哨兵文件）已失效 /
+提交前临时名被换成链接（符号链接，本机无权限时退化为硬链接）→ 拒绝并回滚且外部文件零改动 /
+临时文件身份校验契约单测 / scan 遇 OSError（`*.yaml` 是目录）统一 FAIL 零写盘 /
+顶层 IO 异常统一 FAIL / 空输入 vacuous pass 与 `--allow-empty` 逃生门。
+
+**变异检验（阴性对照，6 项全部按预期转红）**：
+
+```
+M1  注掉 commit_all 的回滚调用        → FAILED test_第二个文件写盘失败…、test_临时文件_提交前被换成链接… (2 failed)
+M1b 注掉 _run 的写盘后回读回滚分支     → FAILED test_写盘后回读不达标_整批回滚 (1 failed)
+M2  临时文件改回固定名 + open 跟随     → FAILED test_临时文件_固定名抢占攻击已失效、test_staging阶段失败… (2 failed)
+M3  注掉空输入守卫                    → FAILED test_空输入_check不再vacuous_pass… (1 failed)
+M4  scan 不再把 OSError 转 anomaly     → FAILED test_scan遇到OSError_统一FAIL零写盘 (1 failed)
+M5  提交前不复核目标字节               → FAILED test_第二个文件被并发篡改… (1 failed)
+每次还原后 sha256 与本轮定稿一致（F774AF93AD480DE2696012BDF09BB44C89F038822F0194965F992B251AF6377B）
+```
+
+**真数据规模端到端（在临时根里复制真实 84 题，content/ 零改动）**：
+
+```
+① 真实语料 84 个 yaml 复制到临时根
+② 摘掉 70 个 judge_mode: run 行；--check exit=1（期望 1）
+③ 批量 --apply：exit=0｜已写盘 = 70｜PASS：写盘完成且回读一致
+④ 迁移后 84 文件 vs 真实 content/r 逐字节：完全一致 ✓
+⑤ 幂等：再 --apply exit=0，已写盘 = 0，字节未变：True
+⑥ 真规模回滚：把排序最后的目标文件设为只读再 --apply
+   exit=1｜FAIL：提交阶段失败（已回滚 69/69 个已替换文件）…；全部目标已恢复原字节，未留半写状态
+   全部文件恢复原字节：True｜*.tmp 残留：无 ✓
+```
+
+**门禁**：
+
+```
+$ python -m pytest -q
+530 passed, 7 skipped in 47.05s          # 基线 520/7 → +10 例（7 skipped 不变：g++ ×4、Rscript ×3）
+
+$ python scripts/mark_r_judge_plain.py --check --expect-distribution run=70,ai_open=14
+PASS：84/84 判定模式全部显式              # exit=0
+```
+
+**残留 / 未做**：`_run` 的「写盘前 dry-run / check」仍按需重新扫描（未加缓存，84 题开销可忽略）；
+POSIX 上「持有 fd 时被 unlink 后换名」只能靠身份校验拦（本机 Windows 连 unlink 打开中的临时文件都会
+WinError 32 拒绝，故该路径按契约单测覆盖）；跨文件系统的目录（临时文件与目标不同卷）不受支持
+——`mkstemp(dir=path.parent)` 已保证同目录。
+
