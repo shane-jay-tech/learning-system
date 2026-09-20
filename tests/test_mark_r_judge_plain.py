@@ -345,10 +345,14 @@ def test_空输入_check不再vacuous_pass_allow_empty才放行(tmp_path):
     # dry-run / apply 同样不放过空输入
     assert _cli(tmp_path).returncode == 1
     assert _cli(tmp_path, "--apply").returncode == 1
-    # 显式 --allow-empty 才放行（小型 fixture 场景的逃生门）
-    ok = _cli(tmp_path, "--check", "--allow-empty")
+    # 第三轮 SCRIPT-004：单给 --allow-empty 一律拒绝——生产门禁不得靠一个参数空跑成功
+    lone = _cli(tmp_path, "--check", "--allow-empty")
+    assert lone.returncode == 1, "单给 --allow-empty 必须被拒：%s" % (lone.stdout + lone.stderr)
+    assert "--fixture" in (lone.stdout + lone.stderr), lone.stdout + lone.stderr
+    # --allow-empty + --fixture 才放行（测试专用出口）
+    ok = _cli(tmp_path, "--check", "--allow-empty", "--fixture")
     assert ok.returncode == 0, ok.stdout + ok.stderr
-    assert "PASS：0/0 判定模式全部显式（--allow-empty：空目录）" in ok.stdout
+    assert "PASS：0/0 判定模式全部显式（--allow-empty --fixture：空目录）" in ok.stdout
 
 
 def test_第二个文件写盘失败_第一个文件回滚成原字节(tmp_path):
@@ -482,7 +486,16 @@ def test_临时文件_提交前被换成链接_拒绝并回滚且外部文件零
     assert kind["v"] in ("symlink", "hardlink")
     assert "已回滚 1/1" in str(e.value), str(e.value)
     assert outside.read_bytes() == b"OUTSIDE-ORIGINAL", "外部文件被写穿"
-    assert _snapshot(base) == before, "content/r 未恢复成原字节 / 有链接残留"
+    # 断言范围写精确：比对全部题目 yaml（.judge_plain_txn/ 是事务记账，不是题目）。
+    # 回滚证据不得被这件事掩盖——下面单独钉住「冲突副本必须留下」。
+    after = _snapshot(base)
+    corpus = {k: v for k, v in after.items() if not k.startswith(mrj.TXN_DIRNAME + "/")}
+    assert corpus == before, "content/r 题目未恢复成原字节 / 有链接残留"
+    assert kind["n"] >= 2, "回滚自身也应走 os.replace（攻击只在第一次动手）"
+    # 被掉包后写进目标的那份「既非旧也非新」的字节必须留痕，而不是被悄悄丢掉
+    conflicts = [k for k in after if k.startswith(mrj.TXN_DIRNAME + "/" + mrj.CONFLICT_DIRNAME + "/")]
+    assert len(conflicts) == 1, "冲突副本未保存：%s" % sorted(after)
+    assert after[conflicts[0]] == b"OUTSIDE-ORIGINAL", "冲突副本内容不对"
 
 
 def test_临时文件身份校验_非普通文件或换过inode即拒(tmp_path):

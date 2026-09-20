@@ -16,3 +16,4 @@ htmlcov/
 *.log
 data/*.db-shm
 data/*.db-wal
+/tmp/
