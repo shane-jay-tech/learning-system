@@ -12,6 +12,7 @@
   ③ prereqs 完整性——所有 prereq 引用存在且无环（现状干净，必须保持为空）。
 """
 import glob
+import os
 
 import yaml
 
@@ -93,3 +94,34 @@ def test_prereqs_引用完整且无环():
                     if indeg[mid] == 0:
                         queue.append(mid)
         assert seen == len(ids), f"{key}: prereq 图存在环"
+
+
+def test_topic_引用无悬空_每个引用都落到实目录():
+    """l921-02（接 l920-08 建议）：path → content 方向钉桩，悬空 topic 引用数必须为 0。
+
+    口径与 scripts/audit_paths_prereq.py 一致：topic 引用形如 "lang/slug"，
+    存在性以 content/<lang>/<slug>/ 目录为准。l920-08 当时是 43 个去重引用，
+    2026-09-21 复跑为 85 个（专题扩充，锚点数字已漂移，悬空仍为 0），
+    所以这是零风险翻桩；一旦里程碑写错 slug、或删掉专题目录而路径没同步，本例即红。
+    """
+    refs = []
+    for key, d in _load():
+        for m in d.get("milestones") or []:
+            for t in m.get("topics") or []:
+                refs.append((key, m.get("id"), t))
+    assert refs, "一条 topic 引用都没读到——空循环会让本例假绿"
+
+    root = os.path.normpath("content")
+    dangling = []
+    for key, mid, ref in sorted(set(refs)):
+        parts = str(ref).split("/")
+        # 空段（"r/"、"/r"）与越界段（"../x"）都算悬空：目录存在性不足以挡住它们。
+        target = os.path.normpath(os.path.join(root, *parts)) if len(parts) == 2 else ""
+        ok = len(parts) == 2 and all(parts) and target.startswith(root + os.sep) and os.path.isdir(target)
+        if not ok:
+            dangling.append("%s/%s: %r" % (key, mid, ref))
+    assert not dangling, "悬空 topic 引用（应为 0）：%s" % "; ".join(dangling)
+
+    # 覆盖面兜底：只防「引用被整体删空」，不锁上限（正常新增专题不该变红）。
+    assert len(set(r for _, _, r in refs)) >= 43, (
+        "去重 topic 引用数低于 l920-08 基线 43，疑有里程碑被删空")
