@@ -51,6 +51,17 @@ def _count_rows(dao, sql: str) -> int:
     return int(row[0]) if row and row[0] is not None else 0
 
 
+def _import_feedback_text(stats: dict) -> str:
+    """导入完成文案的**单一来源**。
+
+    成功当场不再直接 st.success——紧接着的 st.rerun() 会把那一帧整体丢掉（l922-105），
+    文案改由下一次渲染首行回显，所以抽成函数供两处共用。
+    """
+    return (f"导入完成：答题 {stats['attempts']} 条 · 事件 {stats['learning_events']} 条 · "
+            f"状态 {stats['problems_status']} 题 · 复习 {stats['review_state']} 题 · "
+            f"元数据 {stats['meta']} 项")
+
+
 def render_dashboard():
     hero("学习面板", "用趋势与复习状态了解进展，决定下一步学什么")
 
@@ -62,6 +73,11 @@ def render_dashboard():
 
 
 def _render_dashboard_body(dao):
+    # 上一次导入成功的反馈：只回显一帧，pop 掉即自动清除（想立刻清就是再触发一次 rerun）。
+    _feedback = st.session_state.pop("_import_feedback", None)
+    if _feedback:
+        st.success(_import_feedback_text(_feedback))
+
     streak = dao.daily_streak()
     summary = dao.summary_by_lang()
     total_attempts = dao.total_attempts()
@@ -250,11 +266,10 @@ def _render_dashboard_body(dao):
                     try:
                         raw = uploaded.getvalue().decode("utf-8")
                         stats = import_json(dao, raw)
-                        st.success(
-                            f"导入完成：答题 {stats['attempts']} 条 · 事件 {stats['learning_events']} 条 · "
-                            f"状态 {stats['problems_status']} 题 · 复习 {stats['review_state']} 题 · "
-                            f"元数据 {stats['meta']} 项"
-                        )
+                        # 当场 st.success 会被紧接着的 st.rerun() 整帧丢掉，用户只看到页面闪回
+                        # 上传态、五项统计一个字都不露（l922-105）：写进 session_state，
+                        # 由下一次渲染首行回显一次。
+                        st.session_state["_import_feedback"] = stats
                         dao._clear_memo()
                         # 合并式导入会覆盖同键旧值而**不改任何表的行数**，上面的行数键抓不到这种情形：
                         # 显式作废缓存，rerun 后那次渲染必然重新序列化（l922-104）。
