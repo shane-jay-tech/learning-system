@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """paths 元数据对账钉桩（l918-16；2026-09-20 复核修复；2026-09-21 l922-02 头注订正）。
 
-钉五条（本文件实有 5 个 test_ 用例，头注计数与用例数须一致——l921-02 点名的滞后）：
+钉五条（本文件实有 6 个 test_ 用例：①-⑤ 各一，另 1 例是 ⑤ 下限的缩半有牙自检；
+头注计数与用例数须一致——l921-02 点名的滞后）：
   ① header estimated_hours == sum(里程碑 estimated_hours)——**全路径强制，不留白名单例外**。
      2026-09-20 D5 追加 a10 后 agent_mastery 合计 26 → 29，而 header 仍写 22：
      用户按 header 读总时长＝少报 7 小时（约 24%）。GPT 独立复核判 CRITICAL——
@@ -13,8 +14,10 @@
   ④ 里程碑时数为正数——header 与每个 milestone 的 estimated_hours 必须是正实数
      （允许 0.5 步长），否则零/负数/字符串会让 ① 的合计断言假绿。
   ⑤ topic 引用无悬空——path → content 方向每个 "lang/slug" 引用都落到 content/<lang>/<slug>/
-     实目录（l921-02 接 l920-08 建议 #3 补的零风险翻桩；去重引用数下限 43 只防整体删空）。
-     2026-09-21 实测：去重被引用 85 / 磁盘 85 / 悬空 0 / 未被引用 0。
+     实目录（l921-02 接 l920-08 建议 #3 补的零风险翻桩）。覆盖面兜底下限自 l922-125 起改为
+     与磁盘 topic 目录数联动的动态口径（_REF_COVERAGE_FLOOR × 目录数，见下方 _disk_topic_dir_count
+     的取数命令），替代 l920-08 的字面量 43——只防整体删空、不锁上限，专题扩充时下限随目录数上移。
+     2026-09-21 实测：去重被引用 85 / 磁盘 85 / 悬空 0 / 未被引用 0（2026-09-22 复核同值）。
 """
 import glob
 import os
@@ -31,6 +34,32 @@ def _load():
     for f in PATHS:
         key = f.replace("\\", "/").rsplit("/", 1)[-1].split(".")[0]
         yield key, yaml.safe_load(open(f, encoding="utf-8"))
+
+
+# 覆盖面兜底下限（l922-125 动态化）：去重 topic 引用数 >= _REF_COVERAGE_FLOOR × 磁盘 topic 目录数。
+# 保留 l920-08「防里程碑删空」语义——里程碑被整段删掉时引用数会远低于磁盘专题目录数即红；
+# 不锁上限（正常新增专题时磁盘目录与引用同步增长，比例不降），也去掉了写死 43 离真值差 42 的钝感。
+# 0.9 留 10% 余量，容许少量「建了目录但暂未挂进任何路径」的专题（当前实测未被引用 0）。
+_REF_COVERAGE_FLOOR = 0.9
+
+
+def _disk_topic_dir_count() -> int:
+    """磁盘上的 topic 目录数（动态分母）。
+
+    取数命令（口径 = content/<lang>/<slug>/ 里带 _lesson.md 的目录，与 load_language 认专题一致）：
+        python -c "import glob; print(len({p.rsplit('/_lesson.md',1)[0] for p in glob.glob('content/*/*/_lesson.md')}))"
+    2026-09-22 实测 = 85。paths/ 与 datasets/ 下无 *_lesson.md，天然不计入，无需再排除。
+    """
+    return len({p.replace("\\", "/").rsplit("/_lesson.md", 1)[0]
+                for p in glob.glob("content/*/*/_lesson.md")})
+
+
+def _assert_ref_floor(dedup_ref_count: int, topic_dir_count: int) -> None:
+    """覆盖面断言（抽出来供缩半夹具做有牙自检，见 test_覆盖面下限夹具_缩半引用即红）。"""
+    floor = _REF_COVERAGE_FLOOR * topic_dir_count
+    assert dedup_ref_count >= floor, (
+        f"去重 topic 引用数 {dedup_ref_count} 低于磁盘 topic 目录数 {topic_dir_count} 的 "
+        f"{_REF_COVERAGE_FLOOR:.0%} 下限（{floor:.1f}），疑有里程碑被删空")
 
 
 def test_全路径_header时数等于里程碑合计_无白名单例外():
@@ -128,5 +157,25 @@ def test_topic_引用无悬空_每个引用都落到实目录():
     assert not dangling, "悬空 topic 引用（应为 0）：%s" % "; ".join(dangling)
 
     # 覆盖面兜底：只防「引用被整体删空」，不锁上限（正常新增专题不该变红）。
-    assert len(set(r for _, _, r in refs)) >= 43, (
-        "去重 topic 引用数低于 l920-08 基线 43，疑有里程碑被删空")
+    # l922-125：下限由字面量 43 改为与磁盘 topic 目录数联动的动态口径（取数命令见
+    # _disk_topic_dir_count 的 docstring）；缩半有牙自检见 test_覆盖面下限夹具_缩半引用即红。
+    _assert_ref_floor(len(set(r for _, _, r in refs)), _disk_topic_dir_count())
+
+
+def test_覆盖面下限夹具_缩半引用即红():
+    """l922-125 有牙自检：把去重引用数砍半，动态下限断言必须红（内存夹具，零写盘）。
+
+    取磁盘真实目录数 N（当前 85）：满覆盖 N/N 通过；缩到 N//2（模拟里程碑被删空一半）
+    必须让 _assert_ref_floor 抛 AssertionError。这条防的是「把断言又写回恒真的绝对值」——
+    旧口径 43 离真值 85 差 42，删掉近半里程碑仍绿，正是本单要修的钝感。
+    """
+    n = _disk_topic_dir_count()
+    assert n >= 3, f"磁盘 topic 目录数异常偏低（{n}），夹具前提失效"
+    _assert_ref_floor(n, n)  # 满覆盖：不红
+    raised = False
+    try:
+        _assert_ref_floor(n // 2, n)  # 缩半：必红（n//2 < 0.9×n 对一切 n>=3 成立）
+    except AssertionError:
+        raised = True
+    assert raised, (
+        f"缩半夹具（{n // 2}/{n}）未触发下限断言——断言退化成恒真，失去防删空能力")
