@@ -12,6 +12,8 @@ HomeFake 录制；只加测试不改页面代码。
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
+import ui.components as components
+import ui.components as components
 import ui.pages.home as home_page
 from tests.test_ui_behavior import FakeStreamlit
 
@@ -52,6 +54,10 @@ def _ts(days_ago):
 
 def _patch_st(monkeypatch, fake):
     monkeypatch.setattr(home_page, "st", fake)
+    # l922-130：AI 档位的 warning 不再由页面直调，改走 components.render_notice，
+    # 那条 st.warning 落在 ui.components 的模块名上 ⇒ 必须同时把 components.st 换成
+    # 同一个录制桩，否则本档 warning 断言全部失明（真实 streamlit 调用不报错也不留痕）。
+    monkeypatch.setattr(components, "st", fake)
     # load_all_paths 在 _detect_pulse_event 里是函数内局部 import（from core.paths import …），
     # 必须 patch 源模块 core.paths；空路径让事件检测循环零迭代。
     import core.paths as cp
@@ -107,3 +113,33 @@ def test_完成按钮写meta(monkeypatch):
     home_page._render_ai_pulse(dao2)
     keys = {c.args[0] for c in dao2.set_meta.call_args_list}
     assert {"ai_pulse_quarterly", "ai_pulse_monthly"} <= keys, "季度深查完成应双键置 done"
+
+
+def test_ai_pulse档位走统一组件render_notice(monkeypatch):
+    """l922-130：AI 档位通知收口到 components.render_notice，页面不再裸调 st.warning。
+
+    两路互证缺一不可：
+      ① 拦 `home_page.render_notice` 的 spy 拿到整段文案 ⇒ 调用点确实经过统一组件
+        （不是页面内联的裸 st.warning，那条不会被本 spy 看见）；
+      ② spy 原样转发组件真身，录制桩上仍出现 warning 档 ⇒ 收口没有把 l919-03 的
+        「提醒降档 error→warning」语义顺手改成别的档。
+    月度浅扫／季度深查两档是同一次迁移的两个分支，一次验完。
+    """
+    real_notice = components.render_notice
+    passed = []
+    monkeypatch.setattr(
+        home_page, "render_notice", lambda msg: (passed.append(msg), real_notice(msg))
+    )
+    for days_monthly, days_quarterly, needle in (
+        (35, 60, "该做月度浅扫了"),
+        (5, 95, "该做季度深查了"),
+    ):
+        fake = _patch_st(monkeypatch, PulseFake())
+        passed.clear()
+        home_page._render_ai_pulse(_dao(_ts(days_monthly), _ts(days_quarterly)))
+        assert any(needle in m for m in passed), (needle, passed)
+        warnings = _texts(fake, "warning")
+        assert any(needle in w for w in warnings), (needle, warnings)
+        off_tier = [c for c in fake.calls
+                    if c[0] in {"error", "info", "success"} and needle in str(c[1][0])]
+        assert not off_tier, (needle, off_tier)

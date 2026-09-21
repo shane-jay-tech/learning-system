@@ -87,6 +87,6 @@ ui/                   Streamlit 页面与组件
 content/              python / cpp / r / sql / agent_dev 题库与知识点
 scripts/              健康检查、备份、审计、性能与维护脚本
 tests/                测试套件
-docs/                 系统报告
+docs/                 系统报告与巡检留痕 insights/
 data/                 本地学习数据（不进入 Git）
 ```

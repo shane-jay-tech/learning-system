@@ -183,12 +183,15 @@ def _render_ai_pulse(dao):
 
     if days_quarterly >= 90:
         # l919-03：notice 档位统一——提醒类降档 error→warning（与月度浅扫同形态）。
-        st.warning(
+        # l922-130：档位文案改由 components.render_notice 单点收口（同页错题通知 :107
+        # 早已在册走它），页面不再自己直调告警档原语；文案与档位判据逐字未动，见
+        # docs/insights/learn-home-notice-migrate-20260922.md。
+        render_notice(
             f"⏰ **该做季度深查了**（{_label(days_quarterly)}）"
             "——4 问自检 + 5 个信息源全过一遍，约 30 分钟"
         )
     elif days_monthly >= 30:
-        st.warning(
+        render_notice(
             f"📅 **该做月度浅扫了**（{_label(days_monthly)}）"
             "——5 分钟看一眼，确认大版本没变"
         )

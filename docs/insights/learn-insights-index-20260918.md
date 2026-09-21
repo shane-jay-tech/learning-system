@@ -11,7 +11,7 @@
 >
 > 闭合等式：**A == B，且 C 为空，且 B 去重后条数 == B（无重复）**；B 已含索引自身 1 份，故等价于「磁盘其余档数 == 条目数 − 1」。
 >
-> - 本次落笔读数（2026-09-22 04:02 建档／04:2x 同班 l922-129 追加 1 份后复算，HEAD `157d201`）：**A=60、B=60、C=空、重复=0 ⇒ 等式闭合**。
+> - 本次落笔读数（2026-09-22 04:02 建档＝l922-127／04:2x 追加 1 份＝l922-129／04:4x 追加 1 份＝l922-130／04:5x 追加 1 份＝l922-131，后三份同处 HEAD `1831cc7` 的在途批；末次复算时刻 2026-09-22T04:52+08:00）：**A=62、B=62、C=空、重复=0 ⇒ 等式闭合**。
 > - 重建前读数（同一组命令）：**A=59、B=37、C=22 行、重复=0 ⇒ 不闭合**，缺的 22 行即 09-19 之后各浪新档。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
@@ -23,7 +23,7 @@
 - 旧表「被引用状态」列实测填的是 **git 入库状态**，且 37 行全写「未跟踪」——现 59 份全部入库（`git ls-files docs/insights | wc -l` = 59），该列读数整体过期。本次拆成两列，各自可用上面风格的单条命令复算：
   **git 入库**（`git ls-files` 判定）／**insights 外引用数**（`git grep -l --fixed-strings <文件干名> -- ':(exclude)docs/insights'` 命中文件数）。
 - 「主题」列改为**逐档 H1 原文**直取（不再手写摘要），杜绝转录漂移；本文件自身那一行取重建后的新 H1。
-- 现值分布：insights 外被引用 9 份／未被引用 51 份（合计 60）；未引用 ≠ 缺陷，与 colony 侧同形态，仅作登记不据此改动任何档。
+- 现值分布（l922-130／l922-131 各追加 1 份后复算）：insights 外被引用 10 份／未被引用 52 份（合计 62）；git 入库 60 份／未跟踪 2 份（`learn-home-notice-migrate-20260922.md`、`learn-readme-tree-20260922.md`，待主班收口提交后应转「已入库」）；未引用 ≠ 缺陷，与 colony 侧同形态，仅作登记不据此改动任何档。
 
 | 文件 | 日期 | 主题（各档 H1 原文） | git 入库 | insights 外引用数 |
 |---|---|---|---|---|
@@ -40,6 +40,7 @@
 | docs/insights/learn-deps-suspects-20260918.md | 20260918 | pywebview / streamlit-ace 疑点依赖只读核报（2026-09-19 晨间执行班，任务 l918-08，零改动） | 已入库 | 0 |
 | docs/insights/learn-difficulty-histogram-20260921.md | 20260921 | learning 难度分布第三轮：末档空洞普查与判定（l922-06，2026-09-21） | 已入库 | 1 |
 | docs/insights/learn-focus-surface-audit-20260922.md | 20260922 | learning 键盘焦点覆盖面静态审计（unsafe_allow_html 面，l922-118，2026-09-22） | 已入库 | 0 |
+| docs/insights/learn-home-notice-migrate-20260922.md | 20260922 | home AI 档位 st.warning → render_notice 统一收口（l922-130 双形态并档） | 未跟踪 | 1 |
 | docs/insights/learn-insights-index-20260918.md | 20260918 | learning insights 索引（l918-12 建档 2026-09-19；l922-127 于 2026-09-22 04:02 按磁盘实况重建，本文件为当前权威索引） | 已入库 | 0 |
 | docs/insights/learn-insights-intake-20260917.md | 20260917 | learning docs/insights 未入库报告收口（916p-a3-017，2026-09-17） | 已入库 | 0 |
 | docs/insights/learn-judge-edges-20260916.md | 20260916 | learning judge 三函数反例边界补测（l916-02） | 已入库 | 0 |
@@ -57,6 +58,7 @@
 | docs/insights/learn-r-plain-downgrade-20260920.md | 20260920 | r 题库判定模式显式化：84 题降级为普通题（D6 落地） | 已入库 | 0 |
 | docs/insights/learn-readme-commands-audit-20260922.md | 20260922 | README 验证命令块只读巡检（l922-109，2026-09-22） | 已入库 | 0 |
 | docs/insights/learn-readme-numbers-20260922.md | 20260922 | learning README 数字口径复现巡检（l922-108，2026-09-22） | 已入库 | 1 |
+| docs/insights/learn-readme-tree-20260922.md | 20260922 | README 目录树 vs 磁盘清单核对（l922-131，2026-09-22） | 未跟踪 | 0 |
 | docs/insights/learn-report-v065-reconcile-20260917.md | 20260917 | learning v0.6.5 报告指标对账（916p-a3-012，2026-09-17） | 已入库 | 0 |
 | docs/insights/learn-requirements-reconcile-20260917.md | 20260917 | learning requirements.txt 与 freeze 口径核验（916p-a3-018，2026-09-17，只读） | 已入库 | 0 |
 | docs/insights/learn-rubric-r1r3-20260918.md | 20260918 | agent_dev 48 道 rubric 题 R1-R3 规范对账（2026-09-19 晨间执行班，任务 l918-17，只读） | 已入库 | 0 |
