@@ -41,6 +41,16 @@ def _build_chart_data(daily, days: int = 14):
     return series, pass_series
 
 
+def _count_rows(dao, sql: str) -> int:
+    """导出缓存键专用的单表 COUNT(*)：一次计数远小于再序列化一遍全库 JSON。
+
+    sql 一律是本模块内写死的字面量（不接外部输入），故直接 execute；
+    取不到值时按 0 计，宁可多序列化一次也不能少。
+    """
+    row = dao.conn.execute(sql).fetchone()
+    return int(row[0]) if row and row[0] is not None else 0
+
+
 def render_dashboard():
     hero("学习面板", "用趋势与复习状态了解进展，决定下一步学什么")
 
@@ -208,9 +218,16 @@ def _render_dashboard_body(dao):
     exp_col, imp_col = st.columns([1, 2])
     with exp_col:
         from core.data_portability import export_json
-        # 导出全库 JSON 有成本：按「答题数+事件数」做渲染内缓存，
-        # 数据没变化时复用上次序列化结果
-        _exp_key = f"{dao.total_attempts()}_{dao.event_count()}"
+        # 导出全库 JSON 有成本：按「六张表各自行数」做渲染内缓存，数据没变化时复用上次序列化结果。
+        # 键必须覆盖 export_all 导出的每一张表：只数 attempts/learning_events 时，
+        # 一个只带 problems_status/review_state 的导入包不改这两个计数，
+        # rerun 后立刻导出会拿到合并前的旧快照（l922-104 复现）。
+        _exp_key = "_".join(str(n) for n in (
+            dao.total_attempts(), dao.event_count(),
+            _count_rows(dao, "SELECT COUNT(*) FROM problems_status"),
+            _count_rows(dao, "SELECT COUNT(*) FROM review_state"),
+            _count_rows(dao, "SELECT COUNT(*) FROM rubric_scores"),
+            _count_rows(dao, "SELECT COUNT(*) FROM meta")))
         if st.session_state.get("_export_cache_key") != _exp_key:
             st.session_state["_export_cache_json"] = export_json(dao)
             st.session_state["_export_cache_key"] = _exp_key
@@ -239,6 +256,9 @@ def _render_dashboard_body(dao):
                             f"元数据 {stats['meta']} 项"
                         )
                         dao._clear_memo()
+                        # 合并式导入会覆盖同键旧值而**不改任何表的行数**，上面的行数键抓不到这种情形：
+                        # 显式作废缓存，rerun 后那次渲染必然重新序列化（l922-104）。
+                        st.session_state["_export_cache_key"] = None
                         st.rerun()
                     except Exception as exc:
                         render_error_notice(
