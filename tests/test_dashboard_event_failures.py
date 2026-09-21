@@ -16,6 +16,10 @@ exc_info 有没有真带上——一件都没钉。本文件用 FakeStreamlit + 
 
 追加（l922-102-dash-click-nav，2026-09-22）：第四节 2 例，钉 :153 except 之后 :155
 `navigate_to_problem` 仍在 try 外——上报失败不得让「去做 →」按钮变成死键。仍零改动源码。
+
+追加（l922-103-dash-cross-except，2026-09-22）：第五节 3 例，覆盖跨路径推荐区（:273-323）。
+现场复核推翻了任务书前提：:294 的 shown 上报**根本没有 try**（唯一的 except 在 :321，包的是点击上报），
+故其中 2 例按现状钉（异常窜出函数＋整页后半段不渲染），等规划侧补 try 时由它们提醒改桩。仍零改动源码。
 """
 import logging
 
@@ -323,3 +327,113 @@ def test_navigate_runs_after_the_failed_emit_not_instead_of_it(wire, fake_st, mo
     assert attempts_at_nav == [2]                                       # shown(1) + clicked(1) 都发生在跳转前
     assert em.kinds("attempts")[-1] == "recommendation_clicked"
     assert len(em.sent_of("recommendation_clicked")) == 0               # 尝试了、但一条没送到
+
+
+# ---------------------------------------------------------------------------
+# 五、l922-103：跨路径推荐区（:273-323）的两条 except 面
+#     现场复核结论（写桩前先看磁盘）：任务书以为「_render_cross_recommend 的 shown 事件
+#     上报失败路径有 except、缺的是行为测试」——**不成立**。:294 那次 emit_event 完全不在
+#     try 里（:286-296 整个 for 体没有异常处理），函数里唯一的 except 在 :321，包的是
+#     **点击**上报（:311-320），日志文案却写成「跨路径推荐展示异常」。
+#     于是本节分两类钉：例 A 是真正的 except 行为面（可点、能跳、带栈）；
+#     例 B/C 是**现状桩**——shown 抛错会窜出函数、把整页后半段一起带走。
+#     规划侧若给 :294 补 try（本就该补），B/C 会转红：那是有意的提醒，改桩与改码请同一批做。
+# ---------------------------------------------------------------------------
+
+CROSS_MSG = "dashboard: 跨路径推荐展示异常"
+CROSS_SHOWN_KEY = "_cross_rec_shown_ids"
+
+
+def _cross(n=2, lang="sql"):
+    return [{
+        "lang": lang,
+        "problem_id": f"{lang}/02_y/{i:02d}_q",
+        "title": f"跨路径题{i}号",
+        "topic_slug": "02_y",
+        "topic_title": "进阶",
+        "difficulty": 3,
+        "cross_reason": "互补内容",
+    } for i in range(1, n + 1)]
+
+
+def _cross_setup(monkeypatch, items, emitter):
+    """把跨路径区单独拎出来跑：wire 夹具默认把 cross_recommend 打桩成 []，这里覆盖它。"""
+    monkeypatch.setattr(dashboard_page, "cross_recommend", lambda dao=None, **kw: items)
+    dao = _dao()
+    dao.emit_event = emitter
+    return dao
+
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_cross_click_failure_still_renders_records_navigates_and_logs(wire, monkeypatch, fake_st, caplog):
+    """唯一真 except（:321）：clicked 上报炸了，卡片/记账/跳转三件都不能少。
+
+    补的是 `test_dashboard_page_render.py:105` 只测正常流留下的洞：注入抛错后
+    曝光记账（shown 侧）与导航必须各自独立，日志级别 DEBUG 且真带栈。
+    """
+    items = _cross(2)
+    em = _Emitter(fail_on=("recommendation_clicked",))
+    dao = _cross_setup(monkeypatch, items, em)
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        dashboard_page._render_cross_recommend(dao)
+
+    # 展示侧未被牵连：两条 recommendation_shown 正常送达
+    assert len(em.sent_of("recommendation_shown")) == 2
+    assert [kw["payload"]["surface"] for _k, kw in em.sent_of("recommendation_shown")] == \
+        ["cross_path", "cross_path"]
+    # 卡片照常渲染、去重集合照常记账
+    assert _cards_rendered(fake_st, items) == [it["title"] for it in items]
+    assert fake_st.session_state[CROSS_SHOWN_KEY] == {(it["lang"], it["problem_id"]) for it in items}
+    assert len(fake_st.session_state[IMPR_KEY]) == 2
+    # 按钮仍可点：navigate 真跑（未被打桩），最后一次落在第二张卡
+    assert fake_st.rerun_count == 2
+    assert fake_st.session_state.route == "language"
+    assert fake_st.session_state.selected_lang == "sql"
+    assert fake_st.session_state.selection["problem_id"] == items[-1]["problem_id"]
+    # 日志面：一张卡一条、DEBUG、带栈；文案「展示异常」其实记的是点击上报炸了（见本节抬头）
+    hits = [r for r in caplog.records if r.getMessage() == CROSS_MSG]
+    assert len(hits) == 2, f"期望恰两条 {CROSS_MSG}，实得 {len(hits)}"
+    assert all(r.levelno == logging.DEBUG and r.exc_info is not None
+               and r.exc_info[0] is RuntimeError for r in hits)
+    assert em.sent_of("recommendation_clicked") == []
+
+
+def test_cross_shown_event_failure_escapes_the_function_entirely(wire, monkeypatch, fake_st):
+    """现状桩：:294 的 shown emit 没有 try 包——抛错直接窜出 `_render_cross_recommend`。
+
+    与 dashboard 推荐区（:115-129 有 try）不同，这里连「丢一条曝光」都算不上：
+    shown 记账已经写了（add 在 emit 之前，同一类写序问题），卡片却一张没渲。
+    """
+    items = _cross(2)
+    em = _Emitter(fail_on=("recommendation_shown",))
+    dao = _cross_setup(monkeypatch, items, em)
+    with pytest.raises(RuntimeError, match="事件库写入失败"):
+        dashboard_page._render_cross_recommend(dao)
+
+    assert em.kinds() == ["recommendation_shown"]                       # 第 1 条就炸，第 2 条没再试
+    assert fake_st.session_state[CROSS_SHOWN_KEY] == {(items[0]["lang"], items[0]["problem_id"])}
+    assert list(fake_st.session_state[IMPR_KEY]) == \
+        [(items[0]["lang"], items[0]["problem_id"], "cross_path")]      # 本地记了、事件库没有
+    md = " ".join(str(c[1][0]) for c in fake_st.calls if c[0] == "markdown")
+    assert all(it["title"] not in md for it in items), "抛错在渲染循环之前，跨路径卡应一张都没出"
+
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_cross_shown_event_failure_takes_down_every_section_below_it(wire, monkeypatch, fake_st):
+    """整页爆炸半径：`_render_cross_recommend` 在 :157 被直调（render 体只 try/finally 不 catch），
+    所以它一抛，下面成就/热力图/报告导出/学习数据（导出按钮＋导入器）/最近活动**全部不渲染**。
+
+    这条是本节最该让规划侧看见的：跨路径区一次事件库写入失败＝用户整页后半段空白。
+    """
+    items = _cross(1)
+    em = _Emitter(fail_on=("recommendation_shown",))
+    monkeypatch.setattr(dashboard_page, "cross_recommend", lambda dao=None, **kw: items)
+    with pytest.raises(RuntimeError):
+        wire([], em)                                                    # 今日推荐留空，只让跨路径区炸
+
+    joined = " ".join(str(a[0]) for c in fake_st.calls for a in [c[1]] if a)
+    assert "总览" in joined, "上半段确实渲染过（证明是中途断的，不是没跑）"
+    for missing in ("🏅 成就徽章", "📅 学习热力图", "📄 学习报告导出", "📦 学习数据", "最近活动"):
+        assert missing not in joined, f"{missing} 区被跨路径区的未捕获异常带走了"
+    assert not any(c[0] == "download_button" for c in fake_st.calls), "导出/下载按钮全没机会渲染"
+    assert not any(c[0] == "file_uploader" for c in fake_st.calls), "导入器也没机会渲染（导入功能整段消失）"
