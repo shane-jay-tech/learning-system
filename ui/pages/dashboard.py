@@ -410,12 +410,12 @@ def _render_achievements(dao):
 
 
 def _render_heatmap(dao):
-    """90天学习热力图。"""
-    section_title("📅 学习热力图（最近 90 天）")
+    """13 周（91 个日格）学习热力图。"""
+    section_title("📅 学习热力图（最近 13 周）")
 
     rows = dao.conn.execute(
         "SELECT DATE(ts, 'localtime') AS d, COUNT(*) AS n, SUM(passed) AS p "
-        "FROM attempts WHERE ts >= datetime('now', '-90 days') "
+        "FROM attempts WHERE ts >= datetime('now', '-91 days') "
         "GROUP BY d ORDER BY d"
     ).fetchall()
     if not rows:
