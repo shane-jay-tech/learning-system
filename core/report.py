@@ -47,7 +47,7 @@ def generate_report(dao: Optional[ProgressDAO] = None, days: int = 7) -> Dict:
             "icon": LANG_META[lang]["icon"],
             "total": total,
             "solved": solved,
-            "pct": round(solved / total * 100, 1) if total else 0,
+            "pct": round(solved / total * 100, 1) if total else 0.0,
         }
 
     return {
@@ -242,20 +242,9 @@ def report_to_markdown(report: Dict) -> str:
         f"## 下一步建议（3 个可执行目标）",
         f"",
     ])
-    goals = []
-    if report["grand_wrong"] > 0:
-        goals.append(f"清理 {report['grand_wrong']} 道错题——错题是最高效的学习材料")
-    if report["weak_topics"]:
-        top_weak = report["weak_topics"][0][0]
-        goals.append(f"重点攻克 **{top_weak}** 知识点（做 3-5 道相关题）")
-    if report["streak"] == 0:
-        goals.append("恢复每日打卡——哪怕只做 1 道题也比断连好")
-    elif report["streak"] < 7:
-        goals.append(f"保持打卡到 7 天连续（当前 {report['streak']} 天）")
-    else:
-        goals.append(f"保持优秀节奏，当前连续 {report['streak']} 天")
-    if report.get("due_reviews", 0) > 0:
-        goals.append(f"完成 {report['due_reviews']} 道到期复习题")
+    # k921-01（l920-07 收尾）：目标拼装改调 _build_goals——原先这里是一份逐字复制的第二实现，
+    # 两条出口的建议会各自漂移；对拍用例 tests/test_report_goals.py 即本改动的回归网。
+    goals = _build_goals(report)
     for i, g in enumerate(goals[:3], 1):
         lines.append(f"{i}. {g}")
 
