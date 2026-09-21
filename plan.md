@@ -30,4 +30,4 @@
 
 - 已完成全局设计系统、侧栏、首页、刷题、路径、诊断、面板与错题本改造。
 - 已验证 900×768、1366×768、1920×1080，均无横向溢出或页面异常。
-- 全量测试结果：384 passed，7 skipped（本机未安装 g++ / Rscript）。实测命令：python -m pytest tests -q；口径：pytest（非 unittest discover），2026-09-18 复核（9/17 时点为 376 passed，后续批次新增用例自然增长）。
+- 全量测试结果：**622 passed，7 skipped**（本机未安装 g++ / Rscript；7 条恒 skip 经复核为 cpp runner 4 + r runner 3，非「7 条 R」）。实测命令：python -m pytest tests -q；口径：pytest（非 unittest discover）。**基线绑 commit 不绑日期**：622/7（629 collected，622+7=629 自洽）@ commit `a0ee9b9`，2026-09-22 01:23 复跑、工作树 clean。口径链：376（9/17）→ 384（9/18）→ 566（9/21 @0564042，l922-03）→ 597（9/22 @1632f91，n922-10）→ **622**（9/22 @a0ee9b9，l922-107）；566→622 的 +56 逐文件归因见 `docs/insights/learn-plan-baseline-refresh-20260922.md`。
