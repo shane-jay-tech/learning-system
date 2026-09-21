@@ -19,10 +19,53 @@ def test_home_overview_renders_before_hero_blocks():
 
 
 def test_dashboard_column_cap_and_1280_breakpoint():
-    """修复②：列数上限 4（弃 min(n,5)），styles 增加 1280px 中间断点。"""
+    """修复②：每行列数上限（弃 min(n, 5)）＋ styles 的 1280px 中间断点。
+
+    l922-120 语义调整（改断言不改实现）：本例原本钉的是字面量
+    `st.columns(min(n, 4))` 在位，那等于把 h912-13 的**意图**（每行 ≤4 列、不许退回
+    5 列挤压）钉死成**一个具体写法**。「各语言通过情况」一节改成 3+2 居中分行后，
+    该字面量必然消失。现用三条等价把守替它：
+      a) `min(n, 5)` 依旧不得回归（原意图的正面表述，保留）；
+      b) 机械扫描 dashboard.py 里所有**字面量入参**的 st.columns 调用，槽位数必须 ≤4
+         （`st.columns(spec)` 这类变量入参扫不到，交给 c) 的纯函数断言兜住）；
+      c) 直接跑分行助手 `_lang_card_rows`：5 门语言排成 3+2，末行左右补等宽空槽居中，
+         每行权重和恒为 3 ⇒ 每张卡恰好 1/3 行宽（比旧的 1/4 更宽松）。
+    另加一条防回归：取模叠卡 `i % len(cols)` 不得再出现（它正是 4+1 断裂的成因）。
+    1280/900 两个断点的原有断言逐字保留。
+    """
     src = (PAGES / "dashboard.py").read_text(encoding="utf-8")
-    assert "st.columns(min(n, 4))" in src
     assert "min(n, 5)" not in src
+    # 取模叠卡（i % len(cols)）会把末行卡片塞回首列、造成 4+1 断裂，不得回归。
+    # 只扫代码行：解释本处历史的整行注释会原文引用那个写法，不能算违规；
+    # 同一行尾注释里的 # 不出现该写法，无需再剥。
+    code = [ln for ln in src.splitlines() if not ln.lstrip().startswith("#")]
+    assert all("i % len(cols)" not in ln for ln in code), "取模叠卡写法回归"
+
+    literal_specs = re.findall(r"st\.columns\((\[[^\]]*\]|[0-9]+)\)", src)
+    assert literal_specs, "dashboard.py 应仍有可静态扫描的字面量 st.columns 调用"
+    for spec in literal_specs:
+        slots = len(spec.split(",")) if spec.startswith("[") else int(spec)
+        assert slots <= 4, f"每行列数超上限：st.columns({spec})"
+
+    import ui.pages.dashboard as dashboard_page
+    langs = [f"l{i}" for i in range(1, 8)]
+    rows = list(dashboard_page._lang_card_rows(langs))
+    assert [r[2] for r in rows[:2]] == [langs[:3], langs[3:6]]
+    five = list(dashboard_page._lang_card_rows(langs[:5]))
+    assert [r[2] for r in five] == [langs[:3], langs[3:5]], f"5 门语言应排 3+2：{five}"
+    assert five[0][0] == [1, 1, 1] and five[0][1] == 0, "满行不补空槽（权重 ≤0 会被 st.columns 拒）"
+    assert five[1][0] == [0.5, 1, 1, 0.5] and five[1][1] == 1, "末行须左右补等宽空槽才能居中"
+    for spec, offset, chunk in five:
+        assert sum(spec) == 3, f"行权重和须恒为 3（每卡 1/3 行宽）：{spec}"
+        assert spec[offset:offset + len(chunk)] == [1] * len(chunk)
+    assert list(dashboard_page._lang_card_rows([])) == [], "空语言表不该渲染出任何行"
+
+    styles = STYLES.read_text(encoding="utf-8")
+    # d913c-10：断点数值收敛为常量单源（_BP_MID/_BP_NARROW），占位符经 inject() 注入；
+    # 断言常量定义与相对次序（保护意图不变：中间断点先于窄窗断点）。
+    assert "_BP_MID = 1280" in styles
+    assert "_BP_NARROW = 900" in styles
+    assert styles.index("_BP_MID = 1280") < styles.index("_BP_NARROW = 900")
     styles = STYLES.read_text(encoding="utf-8")
     # d913c-10：断点数值收敛为常量单源（_BP_MID/_BP_NARROW），占位符经 inject() 注入；
     # 断言常量定义与相对次序（保护意图不变：中间断点先于窄窗断点）。

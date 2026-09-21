@@ -62,6 +62,31 @@ def _import_feedback_text(stats: dict) -> str:
             f"元数据 {stats['meta']} 项")
 
 
+# 「各语言通过情况」的分行参数（l922-120）：每行最多 3 张卡。
+# 取 3 而非 4：5 门语言在每行 4 张下必然排成 4+1，每行 3 张正好 3+2；
+# 卡宽也从 1/4 行宽回到 1/3（1366 下更宽松）。上限仍守着 h912-13 修复② 的「每行 ≤4 列」，
+# 该意图现由 tests/test_ergo_h912_13.py::test_dashboard_column_cap_and_1280_breakpoint
+# 以「扫描所有 st.columns 字面量槽位数 ≤4」的机械断言把守。
+_CARDS_PER_ROW = 3
+
+
+def _lang_card_rows(langs, per_row: int = _CARDS_PER_ROW):
+    """按每行最多 per_row 张切块，逐行返回 (st.columns 槽位权重, 首张卡的槽位下标, 该行语言列表)。
+
+    末行不满时左右各补 (per_row - count) / 2 的等宽空槽，把卡片**居中**，同时保证每张卡
+    宽度恒为 1/per_row 行宽（左右空槽之和 + count 张卡 = per_row，故归一化后每卡仍是 1/per_row）。
+    count == per_row 时不补空槽——st.columns 拒绝权重 ≤ 0。langs 为空则一行都不产。
+    """
+    for i in range(0, len(langs), per_row):
+        chunk = langs[i:i + per_row]
+        count = len(chunk)
+        if count == per_row:
+            yield [1] * per_row, 0, chunk
+        else:
+            pad = (per_row - count) / 2
+            yield [pad] + [1] * count + [pad], 1, chunk
+
+
 def render_dashboard():
     hero("学习面板", "用趋势与复习状态了解进展，决定下一步学什么")
 
@@ -111,17 +136,20 @@ def _render_dashboard_body(dao):
         st.bar_chart(df, height=240)
 
     section_title("各语言通过情况")
-    n = len(ALL_LANGS)
-    cols = st.columns(min(n, 4))
-    for i, lang in enumerate(ALL_LANGS):
-        meta = LANG_META[lang]
-        s = summary.get(lang, {"solved": 0, "wrong": 0, "total": 0})
-        attempts = lang_counts.get(lang, {}).get("attempts", 0)
-        with cols[i % len(cols)]:
-            with st.container(border=True):
-                st.markdown(f"### {meta['icon']} {meta['name']}")
-                st.metric("通过", s.get("solved", 0))
-                st.caption(f"错题 {s.get('wrong', 0)} · 提交 {attempts} 次")
+    # l922-120：旧写法 st.columns(min(n, 4)) ＋ cols[i % len(cols)] 把第 5 张卡塞回第 1 列的
+    # 纵向堆叠里——st.columns 一行就是一个 flex 容器、不会自动折行，取模只是复用同一列，
+    # 结果是第 5 卡缩在 1/4 行宽、右侧 3/4 留白，1366 下视觉断裂。改为 3 张一行＋末行居中。
+    for spec, offset, chunk in _lang_card_rows(list(ALL_LANGS)):
+        slots = st.columns(spec)
+        for j, lang in enumerate(chunk):
+            meta = LANG_META[lang]
+            s = summary.get(lang, {"solved": 0, "wrong": 0, "total": 0})
+            attempts = lang_counts.get(lang, {}).get("attempts", 0)
+            with slots[offset + j]:
+                with st.container(border=True):
+                    st.markdown(f"### {meta['icon']} {meta['name']}")
+                    st.metric("通过", s.get("solved", 0))
+                    st.caption(f"错题 {s.get('wrong', 0)} · 提交 {attempts} 次")
 
     _render_recommendation_funnel(dao)
     _render_review_health(dao)
