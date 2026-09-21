@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""paths 元数据对账钉桩（l918-16；2026-09-20 复核修复）。
+"""paths 元数据对账钉桩（l918-16；2026-09-20 复核修复；2026-09-21 l922-02 头注订正）。
 
-钉三条：
+钉五条（本文件实有 5 个 test_ 用例，头注计数与用例数须一致——l921-02 点名的滞后）：
   ① header estimated_hours == sum(里程碑 estimated_hours)——**全路径强制，不留白名单例外**。
      2026-09-20 D5 追加 a10 后 agent_mastery 合计 26 → 29，而 header 仍写 22：
      用户按 header 读总时长＝少报 7 小时（约 24%）。GPT 独立复核判 CRITICAL——
@@ -10,6 +10,11 @@
   ② 同 path 专题重复引用——quick_stats 的 r/05_lm_anova、r/06_mixed_apa 各被两个里程碑
      引用（_path_overall_progress 会重复计数致进度虚高），按已知清单钉桩；
   ③ prereqs 完整性——所有 prereq 引用存在且无环（现状干净，必须保持为空）。
+  ④ 里程碑时数为正数——header 与每个 milestone 的 estimated_hours 必须是正实数
+     （允许 0.5 步长），否则零/负数/字符串会让 ① 的合计断言假绿。
+  ⑤ topic 引用无悬空——path → content 方向每个 "lang/slug" 引用都落到 content/<lang>/<slug>/
+     实目录（l921-02 接 l920-08 建议 #3 补的零风险翻桩；去重引用数下限 43 只防整体删空）。
+     2026-09-21 实测：去重被引用 85 / 磁盘 85 / 悬空 0 / 未被引用 0。
 """
 import glob
 import os
