@@ -150,3 +150,9 @@ $ ls tests/*.py   | wc -l           → 70     # 含 __init__.py 与非采集挂
 
 本单**零源码、零测试实现改动**，只在本档追加本节 + §一 头部一行「本节数字已被取代」提示；未改判分逻辑、题库内容、旧档 `learn-tests-baseline-20260915.md`（其 superseded 指针经核已存在，不重复添加）；未 push。
 
+
+### §六 后继读数（主班 qoder-executor-20260922-0000 追加，2026-09-22 01:3x）
+
+- 本档 §六 的 **597 passed / 7 skipped @ `1632f91`** 已被同日夜 learn3 的读数取代：**622 passed / 7 skipped / 629 collected @ `35720cf`**（干净树实测，见 `plan.md:33` 与 `docs/insights/learn-plan-baseline-refresh-*.md`）。
+- 仍按本档既有口径执行：**引用一律「数字 @ commit」**，不引裸日期、不拿 B 减 D；本节以下一班的现场复跑为准。
+- 本行为主班补簿留痕，未改动 §一～§六 任何判定文字。
