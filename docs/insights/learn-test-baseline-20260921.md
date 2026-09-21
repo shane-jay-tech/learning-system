@@ -7,6 +7,10 @@
 
 ## 一、实跑（先命令后数字）
 
+> ⚠️ **本节数字是 l922-03 于 2026-09-21 实跑的时点值，已被本档 §六 取代**（09-22 复跑为
+> 597 passed / 7 skipped / 604 collected）。原文按「基线档不回改」保留，不删不改。
+> 例行取数请直接看 §六。主题归类（§二）与缺口清单（§四）不受影响，仍有效。
+
 ```
 $ PYTHONIOENCODING=utf-8 python -m pytest -q
 566 passed, 7 skipped in 57.92s                      rc(${PIPESTATUS[0]})=0
@@ -76,3 +80,73 @@ skip 恒 7 故 passed 侧同界：384 + 182 = 566 ✅。182 的构成是「新�
 
 - 本单**零源码/零测试改动**，只新增本档 + 旧档头一行 superseded 指针；未改任何判分逻辑与题库内容（红线域未触碰）。
 - 所有数字均来自本机实跑，复现命令见 §一；未 push。
+
+---
+
+## 六、复跑刷新（n922-10，2026-09-22 00:3x，cwd `D:\code\learning-system`）
+
+- 任务：`n922-10-learn-baseline-file`（软预算 ≤30 分钟）；性质：**同档复跑刷新**，源码与测试实现零改动。
+- 取数时点：`HEAD = 1632f91`（工作树 `git status --porcelain` 空）。基线绑定 commit，不绑定日期——同日仍有别的班在往 `tests/` 追加用例。
+
+### 实跑
+
+```
+$ PYTHONIOENCODING=utf-8 python -m pytest tests -q          # 第一遍
+597 passed, 7 skipped in 46.09s                              rc(${PIPESTATUS[0]})=0
+$ PYTHONIOENCODING=utf-8 python -m pytest tests -q          # 第二遍（重跑稳定性）
+597 passed, 7 skipped in 44.25s                              rc=0
+$ PYTHONIOENCODING=utf-8 python -m pytest tests --collect-only -q
+604 tests collected in 1.08s                                 # 597 + 7 = 604 自洽
+```
+
+两遍 passed/skipped 完全一致（仅墙钟 46.09s → 44.25s 抖动），**重跑稳定**。
+
+### 与 §一 的界差（增量可复算，不是抄来的数）
+
+`0564042`（l922-03 落 566 的那个提交）到 `1632f91` 之间，逐提交净增 `def test_`：
+
+| commit | 单 | 净增用例 |
+|---|---|---:|
+| `7451474` | l922-04 content yaml 行尾普查 | +1 |
+| `304ddc7` | l922-05 topic 双号对账 | +1 |
+| `5e266ae` | l922-06 难度末档下限桩 | +5 |
+| `5b6bd03` | l922-08 recommend 私有纯函数直钉 | +9 |
+| `fee9dc6` | l922-09 achievements 私有对直钉 | +4 |
+| `1632f91` | l922-10 ai_review 缓存层直钉 | +11 |
+| **合计** | 6 提交（l922-07 纯文档，未触及 `tests/`） | **+31** |
+
+566 + 31 = **597** ✅ 采集侧同界：573 + 31 = **604** ✅ 两条界差与 passed 增量三者互洽，无一例消失、无一例凭空出现。
+（`def test_` 计数与采集数在此区间相等，说明这 31 例里没有 parametrize 展开；若将来出现展开，本表口径要改用 `--collect-only -q` 逐文件差值。）
+
+### skip 归属：与 §一 逐行相同，零变化
+
+```
+$ PYTHONIOENCODING=utf-8 python -m pytest tests -q -rs | grep "^SKIPPED" | sort
+SKIPPED [1] tests\test_cpp_runner.py:16: g++ not available; skipping C++ runner tests
+SKIPPED [1] tests\test_cpp_runner.py:27: g++ not available; skipping C++ runner tests
+SKIPPED [1] tests\test_cpp_runner.py:34: g++ not available; skipping C++ runner tests
+SKIPPED [1] tests\test_cpp_runner.py:44: g++ not available; skipping C++ runner tests
+SKIPPED [1] tests\test_r_runner.py:13: Rscript not available; skipping R runner tests
+SKIPPED [1] tests\test_r_runner.py:19: Rscript not available; skipping R runner tests
+SKIPPED [1] tests\test_r_runner.py:25: Rscript not available; skipping R runner tests
+```
+cpp 4 + r 3 = 7，行号与 §一 表格完全一致 → 「cpp/r 两条 runner 真跑面在本机为 0 验证」这条缺口（§四.1）在 09-21→09-22 之间**未被解除**（本单按禁止事项不装依赖）。
+
+### 测试文件面
+
+```
+$ ls tests/test_*.py | wc -l        → 68     # §一 记 65 个 test_*.py；09-21 后新增 3 个（crlf / difficulty / 双号对账 等，见上表）
+$ ls tests/*.py   | wc -l           → 70     # 含 __init__.py 与非采集挂具 mutation_mark_r_judge_plain.py
+```
+`tests/mutation_mark_r_judge_plain.py` 仍不被 pytest 采集（§四.3 未解除）。
+
+### 本档口径提示（防止下一班再抄错）
+
+- **基线数字绑 commit**：引用本档时写「597 passed / 7 skipped @ `1632f91`」，不要只写日期。
+- §二 的主题归类表与 §四 的缺口清单是**结构分析**，不随用例数漂移，本单复核后仍有效：cpp/r runner 零真跑、薄模块（`test_content_numeric_consistency` 2 例等）、变异挂具不入采集、覆盖率档过期——四条缺口**全部仍开放**。
+- 旧档 `learn-tests-baseline-20260915.md` 头部的 superseded 指针（l922-03 所加）指向本档，本单刷新后该指针依然落点正确，未重复添加。
+
+### 声明
+
+本单**零源码、零测试实现改动**，只在本档追加本节 + §一 头部一行「本节数字已被取代」提示；未改判分逻辑、题库内容、旧档 `learn-tests-baseline-20260915.md`（其 superseded 指针经核已存在，不重复添加）；未 push。
+
