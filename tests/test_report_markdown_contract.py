@@ -118,3 +118,62 @@ def test_尾部签名固定():
     md = report_to_markdown(_report())
     tail = md.split("\n")[-3:]
     assert tail[-3:] == ["", "---", "*由编程学习平台自动生成*"], f"尾部签名漂移：{tail}"
+
+
+# ---------------------------------------------------------------------------
+# l922-106：口径注记随导出件走（以下为本单追加段，上方 l920-07 原文零改动）
+# 修前的红：report_to_markdown / report_to_html 产物里根本没有「口径」二字，
+#           注记只活在面板 caption（ui/pages/dashboard.py:189）——下载即丢。
+# ---------------------------------------------------------------------------
+
+def test_口径注记进markdown产物头部():
+    """导出件头部必须带口径注记，且位置固定在元信息行之后、总览段之前。"""
+    from core.report import CALIBER_NOTE
+    md = report_to_markdown(_report())
+    lines = md.split("\n")
+    assert "口径" in md, "markdown 导出件不含口径注记（跨期对比失真风险随文件带走）"
+    assert CALIBER_NOTE.startswith("口径提示："), f"注记文案不以『口径提示：』起头：{CALIBER_NOTE}"
+    assert lines[4] == f"> {CALIBER_NOTE}", f"口径注记位置/格式漂移（应为元信息行之后的引用行）：{lines[3:6]}"
+    # 位置契约：注记在「## 总览」之前
+    assert md.index(CALIBER_NOTE) < md.index("## 总览"), "口径注记跑到了总览段之后"
+    # 头部三行（l920-07 契约）不得因新增注记而漂移
+    assert lines[0] == "# 📚 编程学习报告"
+    assert lines[2] == "> 生成日期：2026-09-19 | 统计周期：最近 7 天"
+
+
+def test_口径注记进html产物头部():
+    """HTML（打印/PDF 出口）同样要带注记。"""
+    from core.report import CALIBER_NOTE, report_to_html
+    html = report_to_html(_report())
+    assert CALIBER_NOTE in html, "html 导出件不含口径注记"
+    assert html.index(CALIBER_NOTE) < html.index("<h2>总览</h2>"), "html 口径注记跑到了总览段之后"
+
+
+def test_两条导出路径注记同一常量():
+    """md 与 html 共用 CALIBER_NOTE 常量——内联两份文案必然各自漂移（同 _build_goals 的教训）。"""
+    from core.report import CALIBER_NOTE, report_to_html
+    md = report_to_markdown(_report())
+    html = report_to_html(_report())
+    assert md.count(CALIBER_NOTE) == 1, "markdown 注记重复渲染"
+    assert html.count(CALIBER_NOTE) == 1, "html 注记重复渲染"
+
+
+def test_注记只随导出件不随report字典():
+    """注记是渲染层职责：generate_report 的字典键集合不受本单影响（防有人改成往数据里塞字段）。"""
+    md = report_to_markdown(_report())
+    assert "口径提示" in md
+    for forbidden in ("\n\n\n",):
+        assert forbidden not in md, "新增注记引入了连续空行（段落契约破裂）"
+
+
+def test_面板caption与导出注记同句():
+    """面板 caption（完成标准③要求保留不删）与导出注记必须同句，否则两处口径会各自漂移。"""
+    import pathlib
+    import re
+    from core.report import CALIBER_NOTE
+    src = pathlib.Path(__file__).resolve().parents[1] / "ui" / "pages" / "dashboard.py"
+    text = src.read_text(encoding="utf-8")
+    hit = re.search(r'st\.caption\("([^"]*口径[^"]*)"\)', text)
+    assert hit is not None, "面板 caption 口径提示被删（本单完成标准③要求保留）"
+    assert hit.group(1) == CALIBER_NOTE, (
+        f"面板 caption 与导出注记不同句\ncaption={hit.group(1)}\nCALIBER_NOTE={CALIBER_NOTE}")

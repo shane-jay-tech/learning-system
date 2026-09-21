@@ -7,6 +7,13 @@ from core.progress import ProgressDAO
 from core.recommend import all_problems, _topic_weakness
 from ui.components import ALL_LANGS, LANG_META
 
+# l922-106：口径注记的单一事实源。
+# 这句原本只写在面板页面（ui/pages/dashboard.py:189 的 st.caption），下载的 .md/.html
+# 与「预览报告」都不含它——注记随文件流失，跨期纵向对比失真的风险被带走。
+# 现在 report_to_markdown / report_to_html 两条渲染出口共用本常量（面板 caption 保留不删）。
+# 文案改动须与 a-47/c-04 的面板同步；tests/test_report_markdown_contract.py 有同句用例兜底。
+CALIBER_NOTE = "口径提示：任务条数口径随阅读合并规则变更，不同期的周报/月报条数不可直接纵向比较。"
+
 
 def generate_report(dao: Optional[ProgressDAO] = None, days: int = 7) -> Dict:
     """生成最近 N 天的学习报告。"""
@@ -122,6 +129,10 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   ol li { margin: 6px 0; line-height: 1.6; }
   .hint { color: var(--muted); font-size: 12px; margin-top: 24px;
           border-top: 1px dashed #E2E8F0; padding-top: 10px; }
+  /* l922-106：口径注记随导出件走（原先只在面板 caption 里，下载即丢） */
+  .caliber { color: var(--muted); font-size: 12px; background: #FFFBEB;
+             border-left: 3px solid var(--warning); border-radius: 4px;
+             padding: 8px 10px; margin: 0 0 20px; }
   @media print {
     body { background: #fff; padding: 0; }
     .page { box-shadow: none; border-radius: 0; padding: 0; }
@@ -182,6 +193,7 @@ def report_to_html(report: Dict) -> str:
     content = f"""
 <h1>📚 编程学习报告</h1>
 <div class="meta">生成日期：{e(report["generated_date"])} ｜ 统计周期：最近 {e(str(period))} 天</div>
+<div class="caliber">⚠️ {e(CALIBER_NOTE)}</div>
 
 <h2>总览</h2>
 <div class="grid">{cards}</div>
@@ -207,6 +219,8 @@ def report_to_markdown(report: Dict) -> str:
         f"# 📚 编程学习报告",
         f"",
         f"> 生成日期：{report['generated_date']} | 统计周期：最近 {report['period_days']} 天",
+        f"",
+        f"> {CALIBER_NOTE}",
         f"",
         f"## 总览",
         f"",
