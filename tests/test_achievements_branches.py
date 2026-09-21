@@ -102,3 +102,77 @@ def test_case_d_emit_event_failure_does_not_crash(stubbed_env, caplog):
     assert newly, "事件上报失败不影响成就发放"
     assert any("解锁事件上报失败" in r.message for r in caplog.records
                if r.levelno == logging.DEBUG)
+
+
+# ---------------------------------------------------------------------------
+# l922-09：_get_earned / _mark_earned 这一对私有函数的直钉补测（4 例）。
+# 开工前实测：`grep -rn "_get_earned\|_mark_earned" tests/` 0 命中 —— 上面的 case_a/b/d
+# 全走 check_achievements 顶层，从未单独打过这对存取函数。
+# 存储契约（core/achievements.py:213-223）：meta["achievements_earned"] = ",".join(sorted(ids))，
+# 读侧 raw.split(",") ⇒ 逗号是唯一分隔符，幂等全靠"先读成 set 再 add 再排序回写"。
+# 落点说明：任务书把产出写成"新建本文件"，但它开工前已存在且被 git 跟踪（104 行 d914-68 的分支补测），
+# 故按同文件加例处理，不覆盖写。
+# ---------------------------------------------------------------------------
+
+
+def _meta_raw(dao):
+    return dao.get_meta("achievements_earned", "")
+
+
+def test_get_earned_空库返回空set():
+    """两种"空"都要落到 set()：① meta 行根本不存在（get_meta 给 default ""）；
+    ② meta 行存在但值为空串。只钉一条，另一条被改成返回 {""} 也不会红。"""
+    from core.achievements import _get_earned
+    dao = ProgressDAO(":memory:")
+    try:
+        assert _get_earned(dao) == set()
+        assert isinstance(_get_earned(dao), set)
+        dao.set_meta("achievements_earned", "")
+        assert _get_earned(dao) == set(), "空串被 split 成 [''] 了"
+    finally:
+        dao.close()
+
+
+def test_mark_earned_幂等():
+    """同一 aid 连标三次：集合不涨、存储串逐字节不变（sorted 回写必须与上一次相同）。"""
+    from core.achievements import _mark_earned, _get_earned
+    dao = ProgressDAO(":memory:")
+    try:
+        _mark_earned(dao, "streak_3")
+        first = _meta_raw(dao)
+        for _ in range(2):
+            _mark_earned(dao, "streak_3")
+        assert _get_earned(dao) == {"streak_3"}
+        assert _meta_raw(dao) == first, (_meta_raw(dao), first)
+    finally:
+        dao.close()
+
+
+def test_mark_earned_后立即可读():
+    """标完立刻读得到；多成就按 sorted 落串（读侧不依赖顺序，写侧顺序决定 diff 稳定性）。"""
+    from core.achievements import _mark_earned, _get_earned
+    dao = ProgressDAO(":memory:")
+    try:
+        for aid in ("streak_30", "cpp_first", "streak_3"):   # 故意乱序写入
+            _mark_earned(dao, aid)
+            assert aid in _get_earned(dao), (aid, _get_earned(dao))
+        earned = _get_earned(dao)
+        assert earned == {"streak_30", "cpp_first", "streak_3"}
+        assert _meta_raw(dao) == ",".join(sorted(earned)) == "cpp_first,streak_3,streak_30"
+    finally:
+        dao.close()
+
+
+def test_逗号是编码分隔符_成就目录必须无逗号id():
+    """含逗号的 id 会静默裂成两个成就 ⇒ 把"22 个 id 全部不含逗号"这个前提钉住，
+    并用内存桩直接演示违反前提的后果，证明第一条断言不是凑数。"""
+    from core.achievements import ACHIEVEMENTS, _mark_earned, _get_earned
+    bad = [a.id for a in ACHIEVEMENTS if "," in a.id]
+    assert bad == [], f"成就 id 含逗号，CSV 编码会被撕裂：{bad}"
+    assert len({a.id for a in ACHIEVEMENTS}) == len(ACHIEVEMENTS), "成就 id 有重复"
+    dao = ProgressDAO(":memory:")
+    try:
+        _mark_earned(dao, "a,b")     # 反例
+        assert _get_earned(dao) == {"a", "b"}, "含逗号 id 的裂解行为已变，须同步改本注释"
+    finally:
+        dao.close()
