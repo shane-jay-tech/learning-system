@@ -1,43 +1,89 @@
-# learning insights 索引（对齐 colony-insights-index 模式；l918-12，2026-09-19 建档）
+# learning insights 索引（l918-12 建档 2026-09-19；l922-127 于 2026-09-22 04:02 按磁盘实况重建，本文件为当前权威索引）
 
-> 对账口径：本表行数 = `ls docs/insights/*.md | wc -l`（含本文件）。建档时点：36 份既有＋本文件=37。
+> **对账口径（唯一判据，改档必重跑并回填下面三行读数）**——命令均在仓库根 `D:/code/learning-system` 执行：
+>
+> ```bash
+> ls docs/insights/*.md | wc -l                                               # A 磁盘 .md 数
+> grep -c '^| docs/insights/' docs/insights/learn-insights-index-20260918.md  # B 本表条目数（含本文件）
+> comm -23 <(ls docs/insights/*.md | sort) \
+>          <(grep -o '^| docs/insights/[^ |]*' docs/insights/learn-insights-index-20260918.md | cut -d' ' -f2 | sort)   # C 未列项（应为空）
+> ```
+>
+> 闭合等式：**A == B，且 C 为空，且 B 去重后条数 == B（无重复）**；B 已含索引自身 1 份，故等价于「磁盘其余档数 == 条目数 − 1」。
+>
+> - 本次落笔读数（2026-09-22 04:02 建档／04:2x 同班 l922-129 追加 1 份后复算，HEAD `157d201`）：**A=60、B=60、C=空、重复=0 ⇒ 等式闭合**。
+> - 重建前读数（同一组命令）：**A=59、B=37、C=22 行、重复=0 ⇒ 不闭合**，缺的 22 行即 09-19 之后各浪新档。
+> - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
+> - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
+> - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
 
-| 文件 | 日期 | 主题 | 被引用状态 |
-|---|---|---|---|
-| docs/insights/agent-dev-rubric-review-20260905.md | 20260905 | Agent 开发题 rubric 评审 | **未跟踪** |
-| docs/insights/content-quality-sample-20260905.md | 20260905 | 内容质量抽检 | **未跟踪** |
-| docs/insights/learn-384-7-caliber-20260918.md | 20260918 | pytest 384/7 口径澄清（skipped 非 failed） | **未跟踪** |
-| docs/insights/learn-bank-cadence-20260915.md | 20260915 | 题库节奏 | **未跟踪** |
-| docs/insights/learn-compare-inventory-20260916.md | 20260916 | 对比清点 | **未跟踪** |
-| docs/insights/learn-coverage-reconcile-20260917.md | 20260917 | 覆盖率对账 | **未跟踪** |
-| docs/insights/learn-dashboard-coverage-20260917.md | 20260917 | dashboard 覆盖率盘点 | **未跟踪** |
-| docs/insights/learn-deps-suspects-20260918.md | 20260918 | 疑点依赖核报（pywebview/ace） | **未跟踪** |
-| docs/insights/learn-insights-intake-20260917.md | 20260917 | insights 入库清点 | **未跟踪** |
-| docs/insights/learn-judge-edges-20260916.md | 20260916 | 判题边界 | **未跟踪** |
-| docs/insights/learn-metrics-dual-20260918.md | 20260918 | metrics 双口径对账（399/85/3 复现） | **未跟踪** |
-| docs/insights/learn-plan-count-drift-20260917.md | 20260917 | plan 题数漂移 | **未跟踪** |
-| docs/insights/learn-report-v065-reconcile-20260917.md | 20260917 | v0.6.5 报告对账 | **未跟踪** |
-| docs/insights/learn-requirements-reconcile-20260917.md | 20260917 | requirements 对账 | **未跟踪** |
-| docs/insights/learn-sidebar-218-20260915.md | 20260915 | 侧栏 218px | **未跟踪** |
-| docs/insights/learn-skipped-audit-20260916.md | 20260916 | skipped 审计 | **未跟踪** |
-| docs/insights/learn-tests-baseline-20260915.md | 20260915 | 测试基线 | **未跟踪** |
-| docs/insights/learn-uncommitted-inventory-20260917.md | 20260917 | 未提交清点 | **未跟踪** |
-| docs/insights/learn-untracked-tests-intake-20260917.md | 20260917 | 未跟踪测试收编 | **未跟踪** |
-| docs/insights/learn-verify-commands-audit-20260917.md | 20260917 | 验证命令审计 | **未跟踪** |
-| docs/insights/learning-breakpoint-constant-20260913.md | 20260913 | 断点常量 | **未跟踪** |
-| docs/insights/learning-dashboard-coverage-20260917.md | 20260917 | （学习平台治理） | **未跟踪** |
-| docs/insights/learning-dashboard-density-20260913.md | 20260913 | dashboard 密度 | **未跟踪** |
-| docs/insights/learning-empty-caption-tokens-20260914.md | 20260914 | 空态文案 token | **未跟踪** |
-| docs/insights/learning-empty-state-20260913.md | 20260913 | 空态 | **未跟踪** |
-| docs/insights/learning-ergo-diag-path-1366-20260913.md | 20260913 | 工效·诊断路径 1366 | **未跟踪** |
-| docs/insights/learning-ergo-fix-20260912.md | 20260912 | 工效修复 | **未跟踪** |
-| docs/insights/learning-ergonomics-scan-20260911.md | 20260911 | 工效扫描 | **未跟踪** |
-| docs/insights/learning-error-feedback-20260913.md | 20260913 | 错误反馈 | **未跟踪** |
-| docs/insights/learning-focus-visible-20260913.md | 20260913 | 焦点可见性 | **未跟踪** |
-| docs/insights/learning-line-length-20260913.md | 20260913 | 行长 | **未跟踪** |
-| docs/insights/learning-metrics-recheck-20260917.md | 20260917 | 指标复核（384 pytest） | **未跟踪** |
-| docs/insights/learning-narrow-sidebar-20260913.md | 20260913 | 窄侧栏 | **未跟踪** |
-| docs/insights/learning-nav-current-item-20260913.md | 20260913 | 导航当前项 | **未跟踪** |
-| docs/insights/silent-except-batch2-20260913.md | 20260913 | 静默 except 批二 | **未跟踪** |
-| docs/insights/weekly-card-note-20260913.md | 20260913 | 周卡注记 | **未跟踪** |
-| docs/insights/learn-insights-index-20260918.md | 20260918 | insights 索引（本文件） | 本单新增 |
+## 重建记录（l922-127，2026-09-22；只动本索引文件，未触碰任何被索引报告）
+
+- 补登 23 份未列档：20260918 批 4 份（l918-13/17/26/27）、20260919 批 2 份（l920-08 与 `content-id-conflict-04-functions-20260919.md`）、20260920 批 3 份、20260921 批 4 份（l922-03/05/06/07）、20260922 批 9 份（l922-107/108/109/116/117/118/120/126/129）、另 1 份为 09-17 旧索引本身。**无删除条目、无改名、未动任何被索引报告**。
+- 旧表「被引用状态」列实测填的是 **git 入库状态**，且 37 行全写「未跟踪」——现 59 份全部入库（`git ls-files docs/insights | wc -l` = 59），该列读数整体过期。本次拆成两列，各自可用上面风格的单条命令复算：
+  **git 入库**（`git ls-files` 判定）／**insights 外引用数**（`git grep -l --fixed-strings <文件干名> -- ':(exclude)docs/insights'` 命中文件数）。
+- 「主题」列改为**逐档 H1 原文**直取（不再手写摘要），杜绝转录漂移；本文件自身那一行取重建后的新 H1。
+- 现值分布：insights 外被引用 9 份／未被引用 51 份（合计 60）；未引用 ≠ 缺陷，与 colony 侧同形态，仅作登记不据此改动任何档。
+
+| 文件 | 日期 | 主题（各档 H1 原文） | git 入库 | insights 外引用数 |
+|---|---|---|---|---|
+| docs/insights/agent-dev-rubric-review-20260905.md | 20260905 | agent_dev 开放题 rubric 评分设计质量评审（只评不改，2026-09-05 夜 1022） | 已入库 | 0 |
+| docs/insights/content-id-conflict-04-functions-20260919.md | 20260919 | 跨语言 slug 冲突 04_functions —— 用户拍板维持（2026-09-19） | 已入库 | 0 |
+| docs/insights/content-quality-sample-20260905.md | 20260905 | 编程题库抽样质量评审（seed=20260905，psy-C…/learning 100c） | 已入库 | 1 |
+| docs/insights/learn-384-7-caliber-20260918.md | 20260918 | learning pytest「384/7」口径澄清留档（2026-09-19 晨间执行班，任务 l918-01，零改动） | 已入库 | 0 |
+| docs/insights/learn-bank-cadence-20260915.md | 20260915 | verify-question-bank 纳入例行方案（n915-65，只出设计） | 已入库 | 0 |
+| docs/insights/learn-compare-inventory-20260916.md | 20260916 | learning 全仓同族比较逻辑清点（n916x-40，_cell_eq 语义校正后横向核验，只读） | 已入库 | 0 |
+| docs/insights/learn-coverage-reconcile-20260917.md | 20260917 | learning 覆盖率三口径对账（916p-a3-014，2026-09-17，只读） | 已入库 | 0 |
+| docs/insights/learn-d5d6-review-fix-20260920.md | 20260920 | D5/D6 处置记录：agent_mastery 时数、judge_mode 等价性证明、迁移脚本加固 | 已入库 | 0 |
+| docs/insights/learn-dashboard-768-fold-budget-20260922.md | 20260922 | dashboard 首屏 768 纵向预算静态推演（1366×768，l922-117） | 已入库 | 0 |
+| docs/insights/learn-dashboard-coverage-20260917.md | 20260917 | dashboard.py 渲染主路径补测（916p-a3-015，2026-09-17，只增测试） | 已入库 | 0 |
+| docs/insights/learn-deps-suspects-20260918.md | 20260918 | pywebview / streamlit-ace 疑点依赖只读核报（2026-09-19 晨间执行班，任务 l918-08，零改动） | 已入库 | 0 |
+| docs/insights/learn-difficulty-histogram-20260921.md | 20260921 | learning 难度分布第三轮：末档空洞普查与判定（l922-06，2026-09-21） | 已入库 | 1 |
+| docs/insights/learn-focus-surface-audit-20260922.md | 20260922 | learning 键盘焦点覆盖面静态审计（unsafe_allow_html 面，l922-118，2026-09-22） | 已入库 | 0 |
+| docs/insights/learn-insights-index-20260918.md | 20260918 | learning insights 索引（l918-12 建档 2026-09-19；l922-127 于 2026-09-22 04:02 按磁盘实况重建，本文件为当前权威索引） | 已入库 | 0 |
+| docs/insights/learn-insights-intake-20260917.md | 20260917 | learning docs/insights 未入库报告收口（916p-a3-017，2026-09-17） | 已入库 | 0 |
+| docs/insights/learn-judge-edges-20260916.md | 20260916 | learning judge 三函数反例边界补测（l916-02） | 已入库 | 0 |
+| docs/insights/learn-judge-mode-census-20260922.md | 20260922 | judge_mode 显式化只读普查：全库 399 题的显式/默认切面（l922-116） | 已入库 | 0 |
+| docs/insights/learn-lang-cards-layout-20260922.md | 20260922 | learning「各语言通过情况」5 卡断行均衡复核（l922-120，2026-09-22） | 已入库 | 0 |
+| docs/insights/learn-metrics-dual-20260918.md | 20260918 | generate_metrics 归仓＋183/399 题量双口径对账（2026-09-19 晨间执行班，任务 l918-07） | 已入库 | 0 |
+| docs/insights/learn-notice-census-20260918.md | 20260918 | learning 散落 st.warning/info/error/success 裸用普查（2026-09-19 日间续班，任务 l918-26，只读零改动） | 已入库 | 0 |
+| docs/insights/learn-pages-coverage-20260918.md | 20260918 | ui/pages 各页覆盖率缺口盘点（2026-09-19 晨间执行班，任务 l918-13，只读） | 已入库 | 0 |
+| docs/insights/learn-path-coverage-fill-20260920.md | 20260920 | learning 补学习路径：42 个未引用 topic 全部进线（D5 落地） | 已入库 | 1 |
+| docs/insights/learn-paths-order-consistency-20260922.md | 20260922 | learning path 双顺序通道一致性实测（l922-126，2026-09-22） | 已入库 | 1 |
+| docs/insights/learn-paths-prereq-20260919.md | 20260919 | learning 五语言 lessons 与 paths prereqs 引用一致性（l920-08） | 已入库 | 1 |
+| docs/insights/learn-plan-baseline-refresh-20260922.md | 20260922 | learning 对外基线口径刷新（l922-107，2026-09-22） | 已入库 | 1 |
+| docs/insights/learn-plan-count-drift-20260917.md | 20260917 | learning plan.md 验收数字订正（916p-a3-011，2026-09-17） | 已入库 | 0 |
+| docs/insights/learn-progressdb-census-20260918.md | 20260918 | data/progress.db 表结构快照体检（2026-09-19 日间续班，任务 l918-27，只读） | 已入库 | 0 |
+| docs/insights/learn-r-plain-downgrade-20260920.md | 20260920 | r 题库判定模式显式化：84 题降级为普通题（D6 落地） | 已入库 | 0 |
+| docs/insights/learn-readme-commands-audit-20260922.md | 20260922 | README 验证命令块只读巡检（l922-109，2026-09-22） | 已入库 | 0 |
+| docs/insights/learn-readme-numbers-20260922.md | 20260922 | learning README 数字口径复现巡检（l922-108，2026-09-22） | 已入库 | 1 |
+| docs/insights/learn-report-v065-reconcile-20260917.md | 20260917 | learning v0.6.5 报告指标对账（916p-a3-012，2026-09-17） | 已入库 | 0 |
+| docs/insights/learn-requirements-reconcile-20260917.md | 20260917 | learning requirements.txt 与 freeze 口径核验（916p-a3-018，2026-09-17，只读） | 已入库 | 0 |
+| docs/insights/learn-rubric-r1r3-20260918.md | 20260918 | agent_dev 48 道 rubric 题 R1-R3 规范对账（2026-09-19 晨间执行班，任务 l918-17，只读） | 已入库 | 0 |
+| docs/insights/learn-sidebar-218-20260915.md | 20260915 | learning 侧栏 218px 降级验收余项核验（n915-66，只读） | 已入库 | 0 |
+| docs/insights/learn-skipped-audit-20260916.md | 20260916 | learning 7 个 skipped 测试核查与分类（l916-01，只读） | 已入库 | 0 |
+| docs/insights/learn-sql-roworder-census-20260922.md | 20260922 | learning SQL 多行题行序判读普查（l922-129，2026-09-22，只读零改动） | 已入库 | 1 |
+| docs/insights/learn-test-baseline-20260921.md | 20260921 | learning 测试资产基线（l922-03，2026-09-21） | 已入库 | 0 |
+| docs/insights/learn-tests-baseline-20260915.md | 20260915 | learning 仓 unittest 发现计数基线（n915-77，只读） | 已入库 | 0 |
+| docs/insights/learn-thin-thick-topics-20260921.md | 20260921 | learning 薄/厚 topic 比例失衡分析与增题优先级（l922-07，2026-09-21） | 已入库 | 0 |
+| docs/insights/learn-topic-dualnum-20260921.md | 20260921 | learning topic 双号冲突对账与影响判定（l922-05，2026-09-21） | 已入库 | 1 |
+| docs/insights/learn-uncommitted-inventory-20260917.md | 20260917 | learning 未提交改动盘点与提交就绪度（916p-a3-019，2026-09-17，只读） | 已入库 | 0 |
+| docs/insights/learn-untracked-tests-intake-20260917.md | 20260917 | learning 3 个未跟踪测试文件入库收口（916p-a3-016，2026-09-17） | 已入库 | 0 |
+| docs/insights/learn-verify-commands-audit-20260917.md | 20260917 | learning README「验证」节 8 条命令可用性核验（916p-a3-013，2026-09-17） | 已入库 | 0 |
+| docs/insights/learning-breakpoint-constant-20260913.md | 20260913 | learning 断点字面量收敛为常量（d913c-10，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-dashboard-coverage-20260917.md | 20260917 | learning dashboard 覆盖率复核＋未覆盖段清单（917-37，只读零改动） | 已入库 | 0 |
+| docs/insights/learning-dashboard-density-20260913.md | 20260913 | learning 面板页表格密度与列宽可读性（d913c-11，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-empty-caption-tokens-20260914.md | 20260914 | 学习系统空态 caption 差异化样式 token 落点盘点（d914-36，2026-09-14，只读出稿） | 已入库 | 0 |
+| docs/insights/learning-empty-state-20260913.md | 20260913 | learning 空态文案与样式统一（d913c-06，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-ergo-diag-path-1366-20260913.md | 20260913 | learning 诊断/路径/语言/侧栏 1366 适配走查（d913c-01，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-ergo-fix-20260912.md | 20260912 | learning 人体工学走查修复批报告（h912-13，2026-09-13 夜班） | 已入库 | 0 |
+| docs/insights/learning-ergonomics-scan-20260911.md | 20260911 | learning 前端人体工学有界只读走查（2026-09-12 夜间执行班，任务 p911r-42，零改码） | 已入库 | 0 |
+| docs/insights/learning-error-feedback-20260913.md | 20260913 | learning 错误提示统一 formatter（d913c-07，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-focus-visible-20260913.md | 20260913 | learning 键盘焦点可见性（d913c-02，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-insights-index-20260917.md | 20260917 | learning insights 索引与未引用清单核对（r917-20，p917-20 重投） | 已入库 | 0 |
+| docs/insights/learning-line-length-20260913.md | 20260913 | learning 长文本区行宽收敛 ≤80ch（d913c-08，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-metrics-recheck-20260917.md | 20260917 | learning 指标数字三处一致性复核（917-35，partial） | 已入库 | 0 |
+| docs/insights/learning-narrow-sidebar-20260913.md | 20260913 | learning 窄窗（<1000px）侧栏关键入口可达性（d913c-12，2026-09-13） | 已入库 | 0 |
+| docs/insights/learning-nav-current-item-20260913.md | 20260913 | learning 导航当前项高亮单源化（d913c-09，2026-09-13） | 已入库 | 0 |
+| docs/insights/silent-except-batch2-20260913.md | 20260913 | learning 静默 except 续清批次（c-03，2026-09-13） | 已入库 | 0 |
+| docs/insights/weekly-card-note-20260913.md | 20260913 | learning 周报卡口径提示落地（a-47/c-04，2026-09-13） | 已入库 | 0 |
