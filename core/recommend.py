@@ -52,8 +52,6 @@ def _topic_weakness(items: List[Dict], status: Dict) -> Dict[str, float]:
 
     weakness = {}
     for key, s in topic_stats.items():
-        if s["total"] == 0:
-            continue
         pass_rate = s["solved"] / s["total"]
         fail_rate = s["wrong"] / s["total"]
         weakness[key] = fail_rate * 2 + (1 - pass_rate)
