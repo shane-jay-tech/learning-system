@@ -13,6 +13,9 @@ exc_info 有没有真带上——一件都没钉。本文件用 FakeStreamlit + 
   - `tests/test_ergo_h912_13.py:40` 源级断言（本文件不改动它，只补运行时面）
 零改动 `ui/pages/dashboard.py`；不触真实 Streamlit、不连库、不联网。
 复跑：python -m pytest tests/test_dashboard_event_failures.py -q
+
+追加（l922-102-dash-click-nav，2026-09-22）：第四节 2 例，钉 :153 except 之后 :155
+`navigate_to_problem` 仍在 try 外——上报失败不得让「去做 →」按钮变成死键。仍零改动源码。
 """
 import logging
 
@@ -261,3 +264,62 @@ def test_shown_side_failure_yields_clicked_events_with_no_matching_shown_event(w
     assert clicks[1][1]["payload"]["rank"] == 0                        # imp.get("rank", 0)
     assert clicks[1][1]["problem_id"] == plan[1]["problem_id"]         # 事件库里它从未 shown 过
     assert [r.getMessage() for r in caplog.records if r.name == LOGGER] == [SHOWN_MSG]
+
+
+# ---------------------------------------------------------------------------
+# 四、l922-102：点击上报炸了之后，:155 的 navigate 仍在 try 外——「断网也能跳」
+#     回归把 navigate_to_problem 挪进 try（或挪到 emit 之前），本节两例立刻转红。
+#     与上一节的分工：那里用 rerun_count 侧面看「跳了」，这里直接数 navigate 的调用次数与实参。
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_click_emit_failure_leaves_navigate_called_exactly_once(wire, fake_st, monkeypatch):
+    """:142-155 单卡：recommendation_clicked 抛错 → navigate 调用次数 ==1，且 route 真切换。
+
+    这条顺序（emit 在 try 内、navigate 在 try 外）此前无测试保护：
+    一旦有人「顺手」把 navigate 收进 try 想统一兜异常，断网/事件库写失败时点「去做 →」
+    就会变成按钮没反应，而页面渲染测试全绿——只有这里会红。
+    """
+    plan = _plan(1)
+    em = _Emitter(fail_on=("recommendation_clicked",))
+    real_navigate = components.navigate_to_problem
+    nav_calls = []
+
+    def spy(lang, topic_slug, problem_id):
+        nav_calls.append((lang, topic_slug, problem_id))
+        return real_navigate(lang, topic_slug, problem_id)
+
+    monkeypatch.setattr(dashboard_page, "navigate_to_problem", spy)
+    wire(plan, em)                                                     # 异常没窜出来＝except 生效
+
+    assert nav_calls == [(plan[0]["lang"], plan[0]["topic_slug"], plan[0]["problem_id"])], \
+        "上报失败后 navigate 必须仍被调用恰一次、且带完整路由三参数"
+    assert fake_st.session_state.route == "language"
+    assert fake_st.session_state.selected_lang == "python"
+    assert fake_st.session_state.selection == {
+        "lang": "python", "topic_slug": "01_x", "problem_id": plan[0]["problem_id"]}
+    assert em.kinds("attempts") == ["recommendation_shown", "recommendation_clicked"]
+    assert em.sent_of("recommendation_clicked") == []                   # 事件确实没送达
+
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_navigate_runs_after_the_failed_emit_not_instead_of_it(wire, fake_st, monkeypatch):
+    """:145-155 顺序桩：navigate 发生时，clicked 上报已经**尝试过**一次（emit 尝试计数 ==1）。
+
+    钉的是「先试上报、炸了照样跳」这条时序，而不是「跳了就算对」：
+    若实现改成 emit 在 navigate 之后，跳转触发的 rerun 会把上报整条丢掉，本例即红。
+    """
+    plan = _plan(1)
+    em = _Emitter(fail_on=("recommendation_clicked",))
+    attempts_at_nav = []
+
+    def spy(lang, topic_slug, problem_id):
+        attempts_at_nav.append(len(em.attempts))
+        # 故意不打真 navigate：本例只关心调用点先后，路由断言在上一条已钉死
+
+    monkeypatch.setattr(dashboard_page, "navigate_to_problem", spy)
+    wire(plan, em)
+
+    assert attempts_at_nav == [2]                                       # shown(1) + clicked(1) 都发生在跳转前
+    assert em.kinds("attempts")[-1] == "recommendation_clicked"
+    assert len(em.sent_of("recommendation_clicked")) == 0               # 尝试了、但一条没送到
