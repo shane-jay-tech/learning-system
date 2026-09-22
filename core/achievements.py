@@ -1,4 +1,5 @@
 """Achievement system: badges, streaks, milestones."""
+import json
 import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -210,14 +211,40 @@ def _estimate_progress(a, total_solved: int, streak: int, langs_count: int,
     return 0.0
 
 
+def _split_legacy(raw: str) -> set:
+    """旧格式（l923-04 之前的裸逗号串）一次性兼容读：按逗号拆并**过滤空段**。
+
+    旧实现 ``set(raw.split(","))`` 不过滤空段 ⇒ 值为 ``"a,,b"`` / ``","`` 时会产出
+    幽灵成就 id ``""``（它不在 _ACHIEVEMENT_MAP 里，却会占掉集合位、被 get_progress_summary 计数）。
+    """
+    return {seg for seg in raw.split(",") if seg}
+
+
 def _get_earned(dao: ProgressDAO) -> set:
+    """读已解锁成就 id 集合。
+
+    现役存储格式：JSON 数组（``_mark_earned`` 写 ``json.dumps(sorted(...))``）。
+    兼容读：存量库里可能是旧裸逗号串 ⇒ 不以 ``[`` 开头的一律走 ``_split_legacy``；
+    下次 ``_mark_earned`` 会把整份集合以 JSON 回写，旧值随写随升级。
+    JSON 里非字符串或空串的条目一律丢弃（写侧只产出非空字符串，出现即脏数据）。
+    """
     raw = dao.get_meta("achievements_earned", "")
-    if not raw:
+    if not isinstance(raw, str) or not raw:
+        # 非字符串（含测试替身里 get_meta 返回的 MagicMock）沿用旧行为：视作"没有成就"
         return set()
-    return set(raw.split(","))
+    text = raw.strip()
+    if text.startswith("["):
+        try:
+            data = json.loads(text)
+        except ValueError:
+            logger.warning("achievements: meta 里的 JSON 数组解析失败，退回逗号解析: %r", raw)
+            return _split_legacy(raw)
+        if isinstance(data, list):
+            return {item for item in data if isinstance(item, str) and item.strip()}
+    return _split_legacy(raw)
 
 
 def _mark_earned(dao: ProgressDAO, aid: str) -> None:
     earned = _get_earned(dao)
     earned.add(aid)
-    dao.set_meta("achievements_earned", ",".join(sorted(earned)))
+    dao.set_meta("achievements_earned", json.dumps(sorted(earned)))

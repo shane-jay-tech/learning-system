@@ -6,6 +6,7 @@ monkeypatch.patch 模块属性（check_achievements 是函数内 import，patch 
 core.loader.load_language / core.paths.load_all_paths）。DAO 一律 :memory:。
 断言一律用 in / not in newly，不断言精确相等（streak 等环境成就可能共存）。
 """
+import json
 import logging
 
 import pytest
@@ -110,6 +111,11 @@ def test_case_d_emit_event_failure_does_not_crash(stubbed_env, caplog):
 # 全走 check_achievements 顶层，从未单独打过这对存取函数。
 # 存储契约（core/achievements.py:213-223）：meta["achievements_earned"] = ",".join(sorted(ids))，
 # 读侧 raw.split(",") ⇒ 逗号是唯一分隔符，幂等全靠"先读成 set 再 add 再排序回写"。
+# ↑ 以上是 l922-09 当时的契约原文。
+# 🔴 l923-04 改约（本文件下方断言随之改）：存储换成 JSON 数组
+#   meta["achievements_earned"] = json.dumps(sorted(ids))；读侧 json.loads，
+#   非 "[ 开头"的值按旧逗号串一次性兼容读并**过滤空段**（旧 "a,,b" 会产出幽灵 id ""）。
+#   幂等仍全靠"先读成 set 再 add 再排序回写"，只是分隔符从逗号变成 JSON 结构。
 # 落点说明：任务书把产出写成"新建本文件"，但它开工前已存在且被 git 跟踪（104 行 d914-68 的分支补测），
 # 故按同文件加例处理，不覆盖写。
 # ---------------------------------------------------------------------------
@@ -149,7 +155,7 @@ def test_mark_earned_幂等():
 
 
 def test_mark_earned_后立即可读():
-    """标完立刻读得到；多成就按 sorted 落串（读侧不依赖顺序，写侧顺序决定 diff 稳定性）。"""
+    """标完立刻读得到；多成就按 sorted 落 JSON 数组（读侧不依赖顺序，写侧顺序决定 diff 稳定性）。"""
     from core.achievements import _mark_earned, _get_earned
     dao = ProgressDAO(":memory:")
     try:
@@ -158,21 +164,116 @@ def test_mark_earned_后立即可读():
             assert aid in _get_earned(dao), (aid, _get_earned(dao))
         earned = _get_earned(dao)
         assert earned == {"streak_30", "cpp_first", "streak_3"}
-        assert _meta_raw(dao) == ",".join(sorted(earned)) == "cpp_first,streak_3,streak_30"
+        # l923-04：写侧是 JSON 数组，sorted 顺序仍逐字节确定
+        raw = _meta_raw(dao)
+        assert raw.startswith("["), raw
+        assert json.loads(raw) == sorted(earned) == ["cpp_first", "streak_3", "streak_30"]
     finally:
         dao.close()
 
 
-def test_逗号是编码分隔符_成就目录必须无逗号id():
-    """含逗号的 id 会静默裂成两个成就 ⇒ 把"22 个 id 全部不含逗号"这个前提钉住，
-    并用内存桩直接演示违反前提的后果，证明第一条断言不是凑数。"""
+def test_逗号不再是分隔符_但成就目录仍须无逗号id():
+    """l922-09 原例名「逗号是编码分隔符」——l923-04 换 JSON 存储后该前提不再成立，
+    本例改成钉 JSON 语义：含逗号的 id 在 JSON 里整段存活（不再被静默裂成两个成就），
+    而在旧逗号串里仍会被裂解（兼容读侧的行为，用于证明"旧值不改写会怎样"）。
+    成就目录"无逗号 id / 无重复 id"两条仍然钉住：目录还要过 CSV 导出与展示层，
+    且存量库里躺着旧格式值，收紧目录比依赖格式转换更稳。"""
     from core.achievements import ACHIEVEMENTS, _mark_earned, _get_earned
     bad = [a.id for a in ACHIEVEMENTS if "," in a.id]
     assert bad == [], f"成就 id 含逗号，CSV 编码会被撕裂：{bad}"
     assert len({a.id for a in ACHIEVEMENTS}) == len(ACHIEVEMENTS), "成就 id 有重复"
     dao = ProgressDAO(":memory:")
     try:
-        _mark_earned(dao, "a,b")     # 反例
-        assert _get_earned(dao) == {"a", "b"}, "含逗号 id 的裂解行为已变，须同步改本注释"
+        _mark_earned(dao, "a,b")     # 反例：JSON 存储下不再裂解
+        assert _get_earned(dao) == {"a,b"}, "JSON 存储把含逗号 id 又裂开了——写侧序列化退化"
+        # 旧格式值仍在库里时：兼容读按逗号裂解（这正是本次换格式要消灭的行为）
+        dao.set_meta("achievements_earned", "a,b")
+        assert _get_earned(dao) == {"a", "b"}
     finally:
         dao.close()
+
+
+# ---------------------------------------------------------------------------
+# l923-04：存储层换 JSON 数组 + 幽灵空段守卫（旧实现 set(raw.split(",")) 不过滤空段）。
+# 三种盘态各自直钉：旧逗号串（存量库）／JSON 数组（新写）／两者混合的坏值。
+# ---------------------------------------------------------------------------
+
+
+def test_新旧两种格式_读出的集合相同():
+    """完成标准①：夹具 '旧逗号串 a,b' 与 'JSON ["a","b"]' 都要落到 {a, b}。"""
+    from core.achievements import _get_earned
+    dao = ProgressDAO(":memory:")
+    try:
+        dao.set_meta("achievements_earned", "cpp_first,streak_3")      # 旧格式
+        legacy = _get_earned(dao)
+        dao.set_meta("achievements_earned", '["cpp_first", "streak_3"]')  # 新格式
+        modern = _get_earned(dao)
+        assert legacy == modern == {"cpp_first", "streak_3"}, (legacy, modern)
+    finally:
+        dao.close()
+
+
+def test_空段不再产出幽灵成就id():
+    """完成标准②：'a,,b' 这类旧脏值经兼容读后不得含 ""；
+    JSON 侧同样过滤空串与非字符串脏项（脏数据不进集合，也不进 get_progress_summary 计数）。"""
+    from core.achievements import _get_earned
+    dao = ProgressDAO(":memory:")
+    try:
+        for raw, expect in (
+            ("a,,b", {"a", "b"}),
+            (",", set()),
+            (",,", set()),
+            ("a,", {"a"}),
+            ('["a", "", "b"]', {"a", "b"}),
+            ('["", 1, null]', set()),
+            ("[]", set()),
+        ):
+            dao.set_meta("achievements_earned", raw)
+            got = _get_earned(dao)
+            assert got == expect, (raw, got, expect)
+            assert "" not in got, (raw, got)
+    finally:
+        dao.close()
+
+
+def test_旧值升级_标记一次后盘上是json且集合不丢():
+    """一次性兼容读的实际用途：存量旧逗号串被 _mark_earned 读回后整份以 JSON 回写，
+    旧 id 一个不丢、空段消失，且第二次标记不再依赖逗号解析（幂等仍成立）。"""
+    from core.achievements import _mark_earned, _get_earned
+    dao = ProgressDAO(":memory:")
+    try:
+        dao.set_meta("achievements_earned", "streak_3,,cpp_first")   # 旧格式 + 空段
+        assert _get_earned(dao) == {"streak_3", "cpp_first"}
+        _mark_earned(dao, "first_solve")
+        raw = _meta_raw(dao)
+        assert raw.startswith("["), raw
+        assert json.loads(raw) == ["cpp_first", "first_solve", "streak_3"], raw
+        assert _get_earned(dao) == {"streak_3", "cpp_first", "first_solve"}
+        _mark_earned(dao, "first_solve")                              # 幂等
+        assert _meta_raw(dao) == raw, (_meta_raw(dao), raw)
+    finally:
+        dao.close()
+
+
+def test_坏json_退回逗号解析而不抛异常():
+    """写侧之外的脏值（人工改库／半截写入／替身 DAO）不能把成就页打挂：
+    解析失败退回逗号分支，非字符串一律视作"没有成就"。
+    第二条是 l923-04 的实现坑：json.loads(MagicMock) 会抛 TypeError，
+    而 ui/pages/dashboard.py:391 每条渲染都走 _get_earned ⇒ 测试替身里 get_meta 不返 str 就整页红。"""
+    from core.achievements import _get_earned
+    dao = ProgressDAO(":memory:")
+    try:
+        dao.set_meta("achievements_earned", '["streak_3"')            # 残缺 JSON
+        assert _get_earned(dao) == {'["streak_3"'}
+        dao.set_meta("achievements_earned", '["a",,"b"]')             # 语法错 + 空段
+        assert "" not in _get_earned(dao)
+        dao.set_meta("achievements_earned", '["streak_3"]')           # 正常 JSON
+        assert _get_earned(dao) == {"streak_3"}
+    finally:
+        dao.close()
+
+    class _NonStrMeta:
+        def get_meta(self, key, default=None):
+            return object()
+
+    assert _get_earned(_NonStrMeta()) == set()
