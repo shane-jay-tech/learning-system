@@ -13,6 +13,7 @@
 >
 > - 本次落笔读数（2026-09-22 04:02 建档＝l922-127／04:2x 追加 1 份＝l922-129／04:4x 追加 1 份＝l922-130／04:5x 追加 1 份＝l922-131，后三份同处 HEAD `1831cc7` 的在途批；末次复算时刻 2026-09-22T04:52+08:00）：**A=62、B=62、C=空、重复=0 ⇒ 等式闭合**。
 > - 重建前读数（同一组命令）：**A=59、B=37、C=22 行、重复=0 ⇒ 不闭合**，缺的 22 行即 09-19 之后各浪新档。
+> - 2026-09-23 追加 1 份＝l923-06（写序缺陷设计稿 `learn-shown-writeorder-design-20260923.md`，登记时未跟踪）：复算 **A=63、B=63、C=空、重复=0 ⇒ 等式闭合**；哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
 > - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
@@ -62,6 +63,7 @@
 | docs/insights/learn-report-v065-reconcile-20260917.md | 20260917 | learning v0.6.5 报告指标对账（916p-a3-012，2026-09-17） | 已入库 | 0 |
 | docs/insights/learn-requirements-reconcile-20260917.md | 20260917 | learning requirements.txt 与 freeze 口径核验（916p-a3-018，2026-09-17，只读） | 已入库 | 0 |
 | docs/insights/learn-rubric-r1r3-20260918.md | 20260918 | agent_dev 48 道 rubric 题 R1-R3 规范对账（2026-09-19 晨间执行班，任务 l918-17，只读） | 已入库 | 0 |
+| docs/insights/learn-shown-writeorder-design-20260923.md | 20260923 | dashboard 推荐曝光写序缺陷修法设计稿：emit 前 vs emit 后 ＋ 幂等键（l923-06，只出设计零改码） | 未跟踪 | 0 |
 | docs/insights/learn-sidebar-218-20260915.md | 20260915 | learning 侧栏 218px 降级验收余项核验（n915-66，只读） | 已入库 | 0 |
 | docs/insights/learn-skipped-audit-20260916.md | 20260916 | learning 7 个 skipped 测试核查与分类（l916-01，只读） | 已入库 | 0 |
 | docs/insights/learn-sql-roworder-census-20260922.md | 20260922 | learning SQL 多行题行序判读普查（l922-129，2026-09-22，只读零改动） | 已入库 | 1 |
