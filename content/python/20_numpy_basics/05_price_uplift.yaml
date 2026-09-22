@@ -1,0 +1,32 @@
+title: "整列调价并保留小数"
+topic: "20_numpy_basics"
+difficulty: 3
+tags: ["numpy", "arithmetic", "format"]
+statement: |
+  四个商品的现价 `prices = np.array([100.0, 120.0, 90.0, 150.0])`。
+  商家决定**全线上调 8%**（即每个价格乘 1.08），按行依次打印调价后的四个价格
+  （各保留 2 位小数），最后打印调价后的均值（保留 1 位小数），格式为：
+
+  ```
+  108.00
+  129.60
+  97.20
+  162.00
+  均值: 124.2
+  ```
+starter_code: |
+  import numpy as np
+
+  prices = np.array([100.0, 120.0, 90.0, 150.0])
+
+  # 整列上调 8% 后按要求打印
+expected_output: |
+  108.00
+  129.60
+  97.20
+  162.00
+  均值: 124.2
+hints:
+  - "整列乘一个数只要一行：new_prices = prices * 1.08，不需要循环"
+  - "小数位数用 f-string 控：f'{p:.2f}' 保留 2 位、f'{new_prices.mean():.1f}' 保留 1 位"
+  - "直接 print 整个浮点数组会带上 NumPy 的空格对齐，本题要求逐行打印才好比对"

@@ -1,0 +1,21 @@
+title: "推算完工日期"
+topic: "21_datetime_ts"
+difficulty: 2
+tags: ["datetime", "timedelta", "strftime"]
+statement: |
+  一个项目 `2024-03-01` 开工，工期 **45 个自然日**。
+  打印完工日期，用 `%Y-%m-%d` 格式（形如 `2024-04-15`）。
+
+  注意：用题面给的固定日期，不要用 `date.today()`。
+starter_code: |
+  from datetime import date, timedelta
+
+  start = date(2024, 3, 1)
+  duration = 45
+
+  # 计算并打印完工日期
+expected_output: |
+  2024-04-15
+hints:
+  - "date + timedelta(days=duration) 得到完工的 date 对象"
+  - "date 直接 print 是 2024-04-15，但按本题要求请显式写 dt.strftime('%Y-%m-%d')"

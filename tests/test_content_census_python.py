@@ -2,13 +2,15 @@
 """python 题库纵向普查钉桩（l920-01）。
 
 口径：core.loader.load_language("python")，只读题库文件，零写库零源码改动。
-锚点 l920-01：content/python 实测 121 题 / 27 lesson。编号与总数全部精确钉桩，
+锚点 l920-01：content/python 实测 125 题 / 27 lesson。编号与总数全部精确钉桩，
 任何增删题/改难度/丢 hints 都会让本文件变红，强制内容变更知悉。
 
-实测基线（2026-09-19，D:\\code\\learning-system）：
-  题数 121 / topic 27；difficulty 直方图 {1:27, 2:56, 3:31, 4:7}（5 档 0 题）
-  答案字段：expected_output 113、tests 46、rubric 8、reference_answer 8（总和 121）
-  judge_mode：run 113 / ai_open 8；hints 缺失 0 题
+实测基线（2026-09-19 建档，**2026-09-23 l923-03 按磁盘实况刷新**）：
+  题数 125 / topic 27；difficulty 直方图 {1:27, 2:58, 3:33, 4:7}（5 档 0 题）
+  答案字段：expected_output 117、tests 46、rubric 8、reference_answer 8（总和 125）
+  judge_mode：run 117 / ai_open 8；hints 缺失 0 题
+  ⇒ 121→125 的 +4 来自 20_numpy_basics、21_datetime_ts 各补 2 题（难度均 ≤3，
+     故 4 档 7 题与 PINNED_TOP_TIER 未动）；规范见 plan.md「题库内容规范」。
 """
 import collections
 
@@ -16,8 +18,8 @@ from core.loader import load_language
 
 LANG = "python"
 EXPECTED_TOPICS = 27
-EXPECTED_PROBLEMS = 121
-EXPECTED_DIFF = {1: 27, 2: 56, 3: 31, 4: 7}
+EXPECTED_PROBLEMS = 125
+EXPECTED_DIFF = {1: 27, 2: 58, 3: 33, 4: 7}
 EXPECTED_SLUGS = (
     "01_hello_and_vars", "02_conditionals", "03_loops", "04_functions", "05_lists",
     "06_strings", "07_dicts_sets", "08_files_exceptions", "09_pandas_basics",
@@ -37,7 +39,7 @@ def _problems():
     return [p for t in _topics() for p in t.problems]
 
 
-def test_题数121_且topic27():
+def test_题数125_且topic27():
     topics = _topics()
     problems = [p for t in topics for p in t.problems]
     assert len(topics) == EXPECTED_TOPICS, f"python topic 数漂移：{len(topics)} != {EXPECTED_TOPICS}"
@@ -68,7 +70,7 @@ def test_答案字段完备计数精确():
             if getattr(p, key, None):
                 fields[key] += 1
     assert dict(fields) == {
-        "expected_output": 113, "tests": 46, "rubric": 8, "reference_answer": 8,
+        "expected_output": 117, "tests": 46, "rubric": 8, "reference_answer": 8,
     }, f"python 答案字段计数漂移：{dict(fields)}"
     # python 题库不产出 expected_rows（那是 sql 的字段）
     assert "expected_rows" not in fields, "python 题库意外出现 expected_rows"
@@ -77,7 +79,7 @@ def test_答案字段完备计数精确():
 def test_judge_mode与hints完备():
     problems = _problems()
     judge = dict(collections.Counter(p.judge_mode for p in problems))
-    assert judge == {"run": 113, "ai_open": 8}, f"python judge_mode 分布漂移：{judge}"
+    assert judge == {"run": 117, "ai_open": 8}, f"python judge_mode 分布漂移：{judge}"
     missing = [p.id for p in problems if not p.hints]
     assert missing == [], f"python 缺 hints 名单漂移：{sorted(missing)}"
     # judge_mode=run 必须带可机判答案字段（expected_output 或 tests）

@@ -26,8 +26,11 @@ from core.loader import load_language
 LANGS = ("python", "sql", "cpp", "r", "agent_dev")
 
 # 2026-09-21 磁盘实算快照（键 = difficulty 1..5，值 = 题数；括号内为该语言总题数）
+# 2026-09-23 l923-03 更新 python 行：20_numpy_basics / 21_datetime_ts 各补 2 题（难度 2、3 档），
+#   121 → 125 题、全库 399 → 403；4/5 档题名单未动（新题刻意只出到 3 档，避免扩宽
+#   core/progress.py 的 SRS ease 惩罚可达面）。规范口径见 plan.md「题库内容规范」。
 PINNED_HIST = {
-    "python":    {1: 27, 2: 56, 3: 31, 4: 7, 5: 0},    # 121
+    "python":    {1: 27, 2: 58, 3: 33, 4: 7, 5: 0},    # 125
     "sql":       {1: 12, 2: 22, 3: 19, 4: 1, 5: 0},    # 54
     "cpp":       {1: 10, 2: 31, 3: 21, 4: 0, 5: 0},    # 62
     "r":         {1: 15, 2: 37, 3: 31, 4: 1, 5: 0},    # 84
@@ -74,10 +77,11 @@ def test_逐语言难度直方_钉死():
     assert _hist_by_lang() == PINNED_HIST, "难度直方漂移：与 2026-09-21 快照不符（见 insight 表）"
 
 
-def test_合计399与直方自洽():
-    """直方快照本身必须仍指向 README 官方口径 399，防「只改测试不改快照」的空转绿。"""
+def test_合计403与直方自洽():
+    """直方快照本身必须仍指向 README 官方口径 403，防「只改测试不改快照」的空转绿。
+    （口径 399 → 403 由 l923-03 补 python 4 题造成；变更须有意，联动清单见 plan.md）"""
     per_lang = {lang: sum(h.values()) for lang, h in PINNED_HIST.items()}
-    assert sum(per_lang.values()) == 399, per_lang
+    assert sum(per_lang.values()) == 403, per_lang
     live = {lang: sum(h.values()) for lang, h in _hist_by_lang().items()}
     assert live == per_lang, f"语言级题量漂移：{live} != {per_lang}"
 

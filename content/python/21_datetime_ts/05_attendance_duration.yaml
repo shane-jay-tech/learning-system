@@ -1,0 +1,28 @@
+title: "考勤时长换算"
+topic: "21_datetime_ts"
+difficulty: 3
+tags: ["datetime", "timedelta", "strptime"]
+statement: |
+  某员工一次打卡记录为 `check_in = "2024-06-10 08:30"`，
+  签退记录为 `check_out = "2024-06-10 11:45"`。
+  先把两个字符串解析成 datetime，再打印在岗时长：小时数保留 2 位小数，
+  同时换算成「X小时Y分钟」，格式为：
+
+  ```
+  时长: 3.25 小时
+  换算: 3小时15分钟
+  ```
+starter_code: |
+  from datetime import datetime
+
+  check_in = "2024-06-10 08:30"
+  check_out = "2024-06-10 11:45"
+
+  # 解析、求差、按要求打印两行
+expected_output: |
+  时长: 3.25 小时
+  换算: 3小时15分钟
+hints:
+  - "带时分的格式码是 '%Y-%m-%d %H:%M'，datetime.strptime(s, fmt) 解析"
+  - "两个 datetime 相减得到 timedelta；delta.total_seconds() 返回秒数（浮点）"
+  - "小时数 = delta.total_seconds() / 3600；整小时用 //3600，剩余分钟用 %3600 // 60"

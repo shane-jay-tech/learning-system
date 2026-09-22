@@ -10,6 +10,12 @@
 本文件补的是 l922-07 遗留 2 点名的结构缺口——「现 `tests/test_content_census.py` 只在**题**级断言，
 无 topic 级」，把「补题这件事发生时哪些口径必须同步」变成可 diff 的红。
 
+> **2026-09-23 l923-03 落地进度**：上段是 l922-128 当时的自述，仍然成立（无素材来源时代造属红线）。
+> 本夜规划班已把「每 topic 5 题」钉进 `plan.md`（授权落点），并按「python 侧可本机机验」的范围
+> 补掉两个 python 目录（各 3→5、难度取 2/3 档、参考解经 `PythonRunner` + `core.judge._normalize`
+> 逐字节对拍通过）⇒ **P0 四目录现剩 cpp 两个**（本机无 g++，判不了参考答案，留日间班）。
+> 下方 `P0_SNAPSHOT` 与联动清单已按此刷新，cpp 那两行仍是补题即红的现状桩。
+
 判据风格沿用 `tests/test_paths_reconcile.py`（l922-125）与 `tests/test_paths_coverage.py`：
 绑磁盘实取、比例式、不锁会随内容自然增长的条目魔数；三个阈值常量的现值与取数命令逐条写在就近注释里。
 
@@ -19,6 +25,8 @@
     for lg in ('python','sql','cpp','r','agent_dev') for t in load_language(lg)}; \
     print(len(c), sum(c.values()), dict(sorted(collections.Counter(c.values()).items())))"
 2026-09-22 @ HEAD 157d201 实算：85 topic / 399 题，题数直方 {2:4, 3:8, 4:10, 5:55, 6:6, 8:2}，众数 5。
+2026-09-23 @ HEAD 1eebffb + l923-03 补题后复算：85 topic / **403 题**，
+    题数直方 {2:4, 3:6, 4:10, 5:57, 6:6, 8:2}，众数仍 5（两个 3 题目录升到 5 题）。
 
 复跑：PYTHONIOENCODING=utf-8 python -m pytest tests/test_content_thin_topic_p0.py -q
 只读题库（零写库、零 yaml 改动、零网络、零 session_state）。
@@ -39,27 +47,37 @@ P0_DIRS = (
 )
 
 # 2026-09-22 现状快照：目录 -> 该目录各题 difficulty（升序）。
+# 2026-09-23 l923-03 更新：两个 python 目录已补齐 3→5（各加难度 2、3 各一题），
+#   cpp 两目录仍是薄的（本机无 g++，参考答案无法机验，留日间班）——见 plan.md「399 → 403 预留」。
 # 补题即红**是设计意图**（与 tests/test_content_difficulty_pins.py 的 PINNED_HIST 同构），
-# 目的是逼改动者在同一提交里同步下列口径（2026-09-22 全仓 grep「399」实取，共 3 处等值 + 1 处直方）：
+# 目的是逼改动者在同一提交里同步下列口径（2026-09-23 磁盘实取，等值点 4 处 + 精确桩 2 件）：
 #   1) tests/test_content_difficulty_pins.py 的 PINNED_HIST（逐语言 1-5 档题数直方）
-#   2) 同文件 :80 `assert sum(per_lang.values()) == 399`
-#   3) tests/test_content_census.py:27 `assert total == 399`
-#   4) README.md:52 对外口径「399 题、85 知识点、6 条学习路径」
+#   2) 同文件 :84 `assert sum(per_lang.values()) == 403`
+#   3) tests/test_content_census.py:27 `assert total == 403`
+#   4) README.md:52 对外口径「403 题、85 知识点、6 条学习路径」
+#   5) tests/test_content_census_python.py 的四组精确桩（题数/difficulty 直方/答案字段/judge_mode）
+#   6) 本文件 P0_SNAPSHOT 自身 ＋ docs/insights/learn-thin-thick-topics-20260921.md §四落点表
 # 另 tests/test_scripts.py:310 是 `total_problems >= 399` 下界护栏，补题无需改它。
 # 若新题难度全 <=3，则 PINNED_TOP_TIER 不动（见 test_content_difficulty_pins.py 的 >=4 名单桩）。
 P0_SNAPSHOT = {
     "cpp/01_io_and_vars": [1, 2],
     "cpp/02_branch_loop": [1, 2, 2],
-    "python/20_numpy_basics": [2, 3, 4],
-    "python/21_datetime_ts": [2, 3, 4],
+    "python/20_numpy_basics": [2, 2, 3, 3, 4],
+    "python/21_datetime_ts": [2, 2, 3, 3, 4],
 }
 
 # 结构下限：现值全仓 topic 题数最小 2（直方 2 档有 4 个目录），掉到 1 说明新建目录只放了题占位
 MIN_QUESTIONS_PER_TOPIC = 2
 
-# 非薄（题数 >= 全仓众数）占比下界：现值 63/85 = 74.1%（众数 5，薄 22 个）。
-# 0.72 留 1 个目录的余量：全仓再多出 2 个薄目录即红，补题让它变厚只会更宽松。
-NON_THIN_RATIO_FLOOR = 0.72
+# 非薄（题数 >= 全仓众数）占比下界：建档时 63/85 = 74.1%（众数 5，薄 22 个）；
+# 2026-09-23 l923-03 补题后现值 65/85 = 76.5%（薄剩 20 个）。
+# 本常量的自述规则是「留 1 个目录的余量、再多出 2 个薄目录即红」⇒ 现值上移时**按同一条规则重算**，
+#   而不是留在 0.72：留在 0.72 会让余量从 1.8 格悄悄涨到 3.8 格，即**补题把这道桩磨钝了 2 个目录**，
+#   而这恰是本文件设计意图的反面（补题应让桩更有力，不是让它更松）。实测证据：0.72 时
+#   test_哨兵有牙_合成劣化必红而补齐不红 的「削薄 3 个目录必红」段变绿（65−3=62 > 0.72×85=61.2）。
+# 现值 65 − 2 个目录 = 63 ⇒ 63/85 = 0.7412 → 取 **0.74**（咬合关系与建档时逐字等价：
+#   再多 2 个薄目录即红，补题让它变厚只会更宽松）。
+NON_THIN_RATIO_FLOOR = 0.74
 
 # 里程碑层面「题/标称小时」下界：现值最稀 = 1.667（cpp_foundation:c1 5题/3h 与
 # people_analytics:m4 5题/3h **并列最稀**——l922-07 §四称 c1「全仓最稀」，实测是并列，此处按实况登记）。
@@ -120,7 +138,7 @@ def test_P0四目录现状_钉死难度多重集():
     """
     live = _difficulty_by_topic()
     assert {k: live.get(k) for k in P0_DIRS} == P0_SNAPSHOT, (
-        "P0 薄目录题量/难度已变动：请同批改 PINNED_HIST ＋ 两处 `== 399` 等值断言 ＋ README:52"
+        "P0 薄目录题量/难度已变动：请同批改 PINNED_HIST ＋ 两处 `== 403` 等值断言 ＋ README:52"
         "（完整同步清单见本文件 P0_SNAPSHOT 注释），"
         "并把本快照与 docs/insights/learn-thin-thick-topics-20260921.md 的落点表一起刷新"
     )

@@ -1,0 +1,25 @@
+title: "数组形状与总量"
+topic: "20_numpy_basics"
+difficulty: 2
+tags: ["numpy", "shape", "sum"]
+statement: |
+  仓库盘点的库存数组 `stock = np.array([12, 7, 0, 25, 3])`（5 个货位，0 表示该货位已空）。
+  打印它的形状与总件数，格式为：
+
+  ```
+  形状: (5,)
+  总件数: 47
+  ```
+starter_code: |
+  import numpy as np
+
+  stock = np.array([12, 7, 0, 25, 3])
+
+  # 打印形状与总件数
+expected_output: |
+  形状: (5,)
+  总件数: 47
+hints:
+  - "arr.shape 返回元组，一维 5 个元素就是 (5,)（注意逗号不能少）"
+  - "整列求和用 stock.sum()，不用写 for 循环累加"
+  - "f'形状: {stock.shape}' 直接用 f-string 打印元组即可"

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """五语言题目 id 唯一性与 slug 跨语言冲突契约（l918-28）。
 
-全量加载 399 题断言：
+全量加载 403 题断言（题数口径随补题变动，2026-09-23 l923-03 由 399 → 403）：
   ① 各语言内 problem id 全局唯一（id 形如 <lang>/<topic_slug>/<nnn>，天然带语言前缀）；
   ② 跨语言 topic slug 冲突面 == 已知清单（agent_dev 的 07_write_spec 等「目录名即 slug」
      例外已计入；当前唯一真冲突 = 04_functions 同时出现在 python 与 cpp）——钉桩现状，
