@@ -349,14 +349,24 @@ def _render_cross_recommend(dao):
     for rank, it in enumerate(cross, 1):
         pid_key = (it["lang"], it["problem_id"])
         if pid_key not in st.session_state[cross_shown_key]:
-            st.session_state[cross_shown_key].add(pid_key)
-            rec_id = _make_rec_id("cross_path", "cross_path", it["lang"], it["problem_id"], rank)
-            st.session_state[impressions_key][(it["lang"], it["problem_id"], "cross_path")] = {
-                "recommendation_id": rec_id, "reason_code": "cross_path", "rank": rank,
-            }
-            dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
-                           payload={"reason_code": "cross_path", "surface": "cross_path",
-                                    "rank": rank, "recommendation_id": rec_id})
+            # l923-07：本区原先整段裸奔——emit 一抛就窜出 _render_cross_recommend，
+            # 而 render_dashboard(:94-97) 只 try/finally 不 catch ⇒ 后半页（成就/热力图/
+            # 报告导出/学习数据/最近活动）全部不渲染。改成 per-item try 后一条失败只影响一条，
+            # 与 dashboard 区 :169-183 同型（含 logger.debug 不静默）。
+            # ⚠️ 写序未动（add → impressions → emit 仍在送达之前）：把「永久丢一条曝光」也一并
+            #    解决掉需要 A2 方案（emit 成功后再落本地账），那属规划裁决，见
+            #    docs/insights/learn-shown-writeorder-design-20260923.md，本单不越权。
+            try:
+                st.session_state[cross_shown_key].add(pid_key)
+                rec_id = _make_rec_id("cross_path", "cross_path", it["lang"], it["problem_id"], rank)
+                st.session_state[impressions_key][(it["lang"], it["problem_id"], "cross_path")] = {
+                    "recommendation_id": rec_id, "reason_code": "cross_path", "rank": rank,
+                }
+                dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
+                               payload={"reason_code": "cross_path", "surface": "cross_path",
+                                        "rank": rank, "recommendation_id": rec_id})
+            except Exception:
+                logger.debug("dashboard: 跨路径推荐展示异常", exc_info=True)
 
     for it in cross:
         meta = LANG_META[it["lang"]]
@@ -382,7 +392,9 @@ def _render_cross_recommend(dao):
                                        "rank": imp.get("rank", 0),
                                    })
                 except Exception:
-                    logger.debug("dashboard: 跨路径推荐展示异常", exc_info=True)
+                    # l923-07 名实订正：这个 except 包的是 recommendation_clicked 上报，
+                    # 原文案写「展示异常」会把排障指向错误站点（展示侧现在有自己的 except 了）。
+                    logger.debug("dashboard: 跨路径推荐点击上报异常", exc_info=True)
                 navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
 
 
