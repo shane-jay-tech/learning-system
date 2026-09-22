@@ -66,6 +66,11 @@ def test_beginner_fail_limits_code_examples():
 # 容量截断的确切边界、两类缓存共挤同一只 OrderedDict、读写两侧的复制不对称。
 # 全程离线：不碰 _call/_call_chain，零 LLM、零子进程、零网络。
 # 上面 7 例（_build_review_system_prompt）未改动、未删除。
+# ---------------------------------------------------------------------------
+# l923-05（2026-09-23 追加）：① 注释口径订正为 FIFO（core/ai_review.py 缓存段头注释，零行为变更）；
+# ② "读写两侧的复制不对称"被修掉了——新增第 7 个私有符号 _copy_open_result，写侧与读侧都过它，
+#    故 l922-10 那条"浅复制现状桩"改为修好版断言，另加 1 例钉 append/sort 不串改缓存。
+#    容量截断/FIFO 顺位/跨类挤占三例语义未动、仍绿。
 # ===========================================================================
 
 
@@ -169,19 +174,43 @@ def test_open_result_cache_roundtrip_miss_and_llm_failure_guard(cache):
     assert len(cache) == 1
 
 
-def test_open_result_cache_copy_is_shallow_on_both_sides(cache):
-    """两侧都只是浅复制：写入 dict(result) 挡得住顶层键重新赋值，但 dimensions
-    那只列表是共享的——缓存之后就地改嵌套字段会串改缓存。读出给的是活字典，
-    同样只挡顶层（grade_open_answer:412 的 return dict(cached) 亦是浅复制）。"""
+def test_open_result_cache_isolates_dimensions_on_both_sides(cache):
+    """🔴 l923-05 改造例（原名 test_open_result_cache_copy_is_shallow_on_both_sides）：
+    l922-10 当时钉的是"两侧都只 dict() 浅复制 ⇒ dimensions 那只列表共享"这个**缺陷现状**。
+    现写侧与读侧都过 _copy_open_result（顶层浅复制 + dimensions 逐元素复制），本例改为修好版断言：
+    缓存之后对调用方手里那份、或对读出来的那份做任何就地改动，都不再串改缓存。
+    顶层键原本就隔离，语义未变。"""
     result = {"passed": True, "score": 80, "dimensions": [{"name": "正确性"}], "llm_ok": True}
     ai_review._cache_open_result("python", "p1", "答案", result)
     result["score"] = 0
     stored = ai_review._cached_open_result("python", "p1", "答案")
-    assert stored["score"] == 80                                 # 顶层：隔离住了
-    result["dimensions"].append({"name": "污染"})
-    assert len(stored["dimensions"]) == 2                        # 嵌套：浅复制漏点
-    stored["passed"] = False
-    assert ai_review._cached_open_result("python", "p1", "答案")["passed"] is False
+    assert stored["score"] == 80                                 # 顶层：写侧隔离（原本就有）
+    result["dimensions"].append({"name": "污染"})                 # 写侧漏点：调用方就地 append
+    assert len(stored["dimensions"]) == 1, stored["dimensions"]
+    result["dimensions"][0]["name"] = "被改"                      # 元素级也不共享
+    assert stored["dimensions"][0]["name"] == "正确性"
+    stored["passed"] = False                                     # 读侧漏点：改返回值
+    assert ai_review._cached_open_result("python", "p1", "答案")["passed"] is True
+    assert len(ai_review._cached_open_result("python", "p1", "答案")["dimensions"]) == 1
+
+
+def test_取缓存结果后就地_append_sort_dimensions_再取缓存不变(cache):
+    """l923-05 完成标准②：读出来的结果被就地 append/sort/reverse 后，再取缓存仍原样；
+    且两次读出是不同对象（谁都改不动谁）。淘汰/容量语义不在本例范围（上面几例仍钉 FIFO）。"""
+    dims = [{"name": "正确性", "score": 90}, {"name": "风格", "score": 60}]
+    ai_review._cache_open_result("python", "p1", "答案",
+                                 {"passed": True, "score": 75, "dimensions": dims, "llm_ok": True})
+    first = ai_review._cached_open_result("python", "p1", "答案")
+    snapshot = [dict(d) for d in first["dimensions"]]
+    first["dimensions"].append({"name": "污染"})
+    first["dimensions"].sort(key=lambda d: d["name"])
+    first["dimensions"].reverse()
+    dims.append({"name": "写侧也污染"})                            # 调用方手里那只同样不相连
+    again = ai_review._cached_open_result("python", "p1", "答案")
+    assert again["dimensions"] == snapshot, again["dimensions"]
+    assert len(again["dimensions"]) == 2
+    assert again is not first
+    assert again["dimensions"] is not first["dimensions"]
 
 
 def test_code_and_open_caches_share_one_trim_budget(cache):

@@ -44,7 +44,12 @@ logger = logging.getLogger(__name__)
 
 # 反馈缓存：同一道题 + 相同代码重复提交时直接复用上次点评，
 # 避免学生「改一个字再跑一次」反复触发 LLM 调用（每次几秒到几十秒）。
-# 以 (lang, pid, code_hash) 为键，LRU 上限 64 条。
+# 键两类：代码点评 (lang, pid, code_hash)、开放题评分 ("open", lang, pid, answer_hash)，
+# 共用同一只 OrderedDict ⇒ 也共用 64 条容量，两类会互相挤占。
+# 🔴 淘汰语义是 FIFO，不是注释曾写的「LRU 上限 64 条」（l922-10 实测、l923-05 订正本注释）：
+# OrderedDict 对已存在的键赋值不会 move_to_end ⇒ 复写同键只改值、不刷新顺位，
+# 超容量时 popitem(last=False) 淘汰的仍是「最早插入」那条。改成真 LRU 是一次行为决策，
+# 现状由 tests/test_ai_review_strategy.py::test_cache_feedback_reinsert_updates_value_but_not_eviction_rank 钉住。
 from collections import OrderedDict as _OrderedDict  # noqa: E402
 import hashlib as _hashlib  # noqa: E402
 _feedback_cache: "_OrderedDict" = _OrderedDict()
@@ -70,18 +75,38 @@ def _open_key(lang: str, pid: str, answer: str) -> tuple:
     return ("open", lang, pid, _hashlib.sha1(answer.encode("utf-8", errors="replace")).hexdigest())
 
 
+def _copy_open_result(result: dict) -> dict:
+    """缓存两侧的隔离层（l923-05）：顶层浅复制 + dimensions 列表逐元素复制。
+
+    旧实现只 `dict(result)` 浅复制 ⇒ 缓存里那份和调用方手里那份共用同一只列表，
+    事后任何人对 dimensions 就地 append/sort/reverse 都会串改进缓存的评分结果
+    （评分是"判定"，被串改后同一答案的后续提交会拿到脏分数）。
+    读侧同样走这里：`_cached_open_result` 若直接吐活字典，拿返回值的人就成了那个"任何人"。
+    元素是 {name, dimension_id, score, comment} 的纯值字典（grade_open_answer 构造侧），
+    逐元素 dict() 已足够，不用 copy.deepcopy 给未知结构付不确定代价。
+    """
+    copied = dict(result)
+    dims = copied.get("dimensions")
+    if isinstance(dims, list):
+        copied["dimensions"] = [dict(d) if isinstance(d, dict) else d for d in dims]
+    return copied
+
+
 def _cache_open_result(lang: str, pid: str, answer: str, result: dict) -> dict:
     if not result.get("llm_ok"):
         return result  # 基础设施失败不入缓存
     key = _open_key(lang, pid, answer)
-    _feedback_cache[key] = dict(result)
+    _feedback_cache[key] = _copy_open_result(result)
     while len(_feedback_cache) > _FEEDBACK_CACHE_MAX:
         _feedback_cache.popitem(last=False)
     return result
 
 
 def _cached_open_result(lang: str, pid: str, answer: str):
-    return _feedback_cache.get(_open_key(lang, pid, answer))
+    cached = _feedback_cache.get(_open_key(lang, pid, answer))
+    if isinstance(cached, dict):
+        return _copy_open_result(cached)   # 读侧也隔离：改返回值不串改缓存
+    return cached
 
 
 from core.utils import trim_text as _trim_impl
