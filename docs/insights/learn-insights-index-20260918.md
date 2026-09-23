@@ -17,6 +17,7 @@
 > - 2026-09-23 再追加 1 份＝l923-17（F-1 outline 复位静态普查 `learn-focus-f1-outline-static-20260923.md`，登记时未跟踪）：复算 **A=64、B=64、C=空、重复=0 ⇒ 等式闭合**；同批哨兵复跑见 result（3 passed）。
 > - 2026-09-23 主班代登 1 份＝l923-24（CALIBER_NOTE 前提取证 `learn-caliber-note-premise-20260923.md`，登记时未跟踪）：复算 **A=65、B=65、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。登记人＝主班而非出档班，原因见本仓并行纪律：多路子班同时改本表会互相覆盖，故索引件由主班单点写。
 > - 2026-09-23 主班代登 1 份＝l923-28（cpp／sql／r 末档难度上抬设计稿 `learn-tail-difficulty-design-20260923.md`，登记时未跟踪）：复算 **A=67、B=67、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。
+> - 2026-09-23 主班代登 1 份＝l923-30（事件型普查 `learn-eventtypes-census-20260923.md`）：复算 **A=68、B=68、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。同时把 l923-24 那行的 git 状态列由「未跟踪」更正为「已入库」（该档已随 `e8447b7` 入库；此列不参与哨兵断言，只影响人读准确性）。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
 > - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
@@ -36,7 +37,7 @@
 | docs/insights/content-quality-sample-20260905.md | 20260905 | 编程题库抽样质量评审（seed=20260905，psy-C…/learning 100c） | 已入库 | 1 |
 | docs/insights/learn-384-7-caliber-20260918.md | 20260918 | learning pytest「384/7」口径澄清留档（2026-09-19 晨间执行班，任务 l918-01，零改动） | 已入库 | 0 |
 | docs/insights/learn-bank-cadence-20260915.md | 20260915 | verify-question-bank 纳入例行方案（n915-65，只出设计） | 已入库 | 0 |
-| docs/insights/learn-caliber-note-premise-20260923.md | 20260923 | CALIBER_NOTE「阅读合并」前提交叉取证＋learning_events 账本重建量化：注记因果前提在全量 git 历史不成立（l923-24，纯只读，三选一待裁决） | 未跟踪 | 0 |
+| docs/insights/learn-caliber-note-premise-20260923.md | 20260923 | CALIBER_NOTE「阅读合并」前提交叉取证＋learning_events 账本重建量化：注记因果前提在全量 git 历史不成立（l923-24，纯只读，三选一待裁决） | 已入库 | 0 |
 | docs/insights/learn-compare-inventory-20260916.md | 20260916 | learning 全仓同族比较逻辑清点（n916x-40，_cell_eq 语义校正后横向核验，只读） | 已入库 | 0 |
 | docs/insights/learn-coverage-reconcile-20260917.md | 20260917 | learning 覆盖率三口径对账（916p-a3-014，2026-09-17，只读） | 已入库 | 0 |
 | docs/insights/learn-d5d6-review-fix-20260920.md | 20260920 | D5/D6 处置记录：agent_mastery 时数、judge_mode 等价性证明、迁移脚本加固 | 已入库 | 0 |
@@ -44,6 +45,7 @@
 | docs/insights/learn-dashboard-coverage-20260917.md | 20260917 | dashboard.py 渲染主路径补测（916p-a3-015，2026-09-17，只增测试） | 已入库 | 0 |
 | docs/insights/learn-deps-suspects-20260918.md | 20260918 | pywebview / streamlit-ace 疑点依赖只读核报（2026-09-19 晨间执行班，任务 l918-08，零改动） | 已入库 | 0 |
 | docs/insights/learn-difficulty-histogram-20260921.md | 20260921 | learning 难度分布第三轮：末档空洞普查与判定（l922-06，2026-09-21） | 已入库 | 1 |
+| docs/insights/learn-eventtypes-census-20260923.md | 20260923 | learning 事件型 emit_event 普查：11 类／12 写点、5 类零行、heatmap 读侧不存在（progress.py:538 events_by_date() 生产零调用方）（l923-30，只读零改动） | 已入库 | 0 |
 | docs/insights/learn-focus-f1-outline-static-20260923.md | 20260923 | learning F-1 上行风险排查：Streamlit 1.58 自带样式里的 outline 复位普查（l923-17，2026-09-23，只读零源码改动） | 未跟踪 | 0 |
 | docs/insights/learn-focus-surface-audit-20260922.md | 20260922 | learning 键盘焦点覆盖面静态审计（unsafe_allow_html 面，l922-118，2026-09-22） | 已入库 | 0 |
 | docs/insights/learn-home-notice-migrate-20260922.md | 20260922 | home AI 档位 st.warning → render_notice 统一收口（l922-130 双形态并档） | 未跟踪 | 1 |
