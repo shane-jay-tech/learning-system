@@ -38,6 +38,43 @@ def test_cpp_compiler_resolution_uses_path_then_fallback(monkeypatch):
     assert runner._resolve_compiler() == runner.fallback_paths[1]
 
 
+def test_cpp_fallback_glob_picks_highest_numeric_version(monkeypatch):
+    """l923-31：which 与 fallback_paths 全落空时，通配兜底按**数值**排序取最高版本。
+
+    字典序会把 mingw6.4.0 排在 mingw6.10.0 之后，从而选中老版本 —— 与 R 侧
+    test_rscript_fallback_chooses_highest_numeric_version 同型判别。
+    """
+    runner = CppRunner()
+    monkeypatch.setattr(cpp_mod.shutil, "which", lambda name: None)
+    monkeypatch.setattr(cpp_mod.os.path, "exists", lambda p: False)
+    hits = [r"D:\tools\mingw6.10.0\bin\g++.exe", r"D:\tools\mingw6.4.0\bin\g++.exe"]
+    monkeypatch.setattr("glob.glob", lambda pattern: list(hits) if pattern == runner.fallback_glob[0] else [])
+
+    picked = runner._resolve_compiler()
+    assert picked == r"D:\tools\mingw6.10.0\bin\g++.exe"
+    assert picked != max(hits)  # 数值序 ≠ 字典序：老实现（max/字典序）必在此红
+
+    # 三通道全空 → 仍返回 None，actionable 报错路径不被兜底吞掉
+    monkeypatch.setattr("glob.glob", lambda pattern: [])
+    assert runner._resolve_compiler() is None
+
+
+def test_cpp_fallback_paths_take_priority_over_fallback_glob(monkeypatch):
+    """l923-31：fallback_glob 是**追加**的兜底，不得改变既有优先序 —— 即使命中更高版本。"""
+    runner = CppRunner()
+    monkeypatch.setattr(cpp_mod.shutil, "which", lambda name: None)
+    monkeypatch.setattr(cpp_mod.os.path, "exists", lambda p: p == runner.fallback_paths[2])
+    monkeypatch.setattr("glob.glob", lambda pattern: [r"D:\tools\mingw99.0.0\bin\g++.exe"])
+    assert runner._resolve_compiler() == runner.fallback_paths[2]
+
+    # which 命中时，两条兜底通道都不该被走到
+    called = []
+    monkeypatch.setattr("glob.glob", lambda pattern: called.append(pattern) or [])
+    monkeypatch.setattr(cpp_mod.shutil, "which", lambda name: r"C:\bin\g++.exe")
+    assert runner._resolve_compiler() == r"C:\bin\g++.exe"
+    assert called == []
+
+
 def test_cpp_missing_compiler_returns_actionable_sandbox_error(monkeypatch):
     monkeypatch.setattr(CppRunner, "_resolve_compiler", lambda self: None)
     result = CppRunner().run("int main(){}")

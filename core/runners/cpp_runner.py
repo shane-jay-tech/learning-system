@@ -40,6 +40,27 @@ class CppRunner(BaseRunner):
         r"C:\MinGW\bin\g++.exe",
     ]
 
+    # l923-31：与 RRunner.fallback_glob 同型的通配兜底。多版本并存的发行版目录
+    # （winlibs 解出来的 mingw13.1.0、msys2 的 mingw64、TDM-GCC-64 等）此前完全看不见，
+    # 只有三个写死的盘符路径命中才行。优先级严格在 which 与 fallback_paths 之后。
+    # ⚠️ 排序键沿用 RRunner._version_key（整路径抽数字）⇒ 跨根目录比较时数字可能来自
+    #    "msys64/mingw64" 这类架构后缀而非版本号，该局限与 R 侧同源，未在本单扩大范围修。
+    fallback_glob = [
+        r"D:\tools\mingw*\bin\g++.exe",
+        r"D:\tools\gcc*\bin\g++.exe",
+        r"C:\msys64\mingw*\bin\g++.exe",
+        r"C:\mingw*\bin\g++.exe",
+        r"C:\TDM-GCC-*\bin\g++.exe",
+    ]
+
+    @staticmethod
+    def _version_key(path: str) -> tuple:
+        """从路径中提取 (major, minor, patch...) 数字元组，用于数值排序
+        （字典序会把 4.9 排在 4.10 之后）。与 RRunner._version_key 同款。"""
+        import re as _re
+        nums = _re.findall(r"\d+", path)
+        return tuple(int(n) for n in nums) or (0,)
+
     def _resolve_compiler(self) -> Optional[str]:
         which = shutil.which("g++")
         if which:
@@ -47,7 +68,16 @@ class CppRunner(BaseRunner):
         for p in self.fallback_paths:
             if os.path.exists(p):
                 return p
-        return None
+        import glob
+        best = None
+        best_key = None
+        for pat in self.fallback_glob:
+            for p in glob.glob(pat):
+                key = self._version_key(p)
+                if best_key is None or key > best_key:
+                    best_key = key
+                    best = p
+        return best
 
     def run(self, code: str, stdin: str = "", expected: Optional[dict] = None) -> RunResult:
         blocked = self.check_security()

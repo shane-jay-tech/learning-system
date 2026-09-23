@@ -44,6 +44,10 @@ def test_stdin_passed():
 def test_sandbox_when_no_gpp(monkeypatch):
     monkeypatch.setattr("core.runners.cpp_runner.shutil.which", lambda _: None)
     monkeypatch.setattr(CppRunner, "fallback_paths", [])
+    # l923-31：解析通道多了一条通配兜底 ⇒ 「编译器彻底找不到」必须把它一起清零，
+    # 否则本例会在装了 mingw 但未进 PATH 的机器上变成「真跑一次 g++」。与 R 侧
+    # test_r_runner.py:27 monkeypatch fallback_glob 同型。
+    monkeypatch.setattr(CppRunner, "fallback_glob", [])
     r = CppRunner().run('int main(){return 0;}')
     assert not r.ok
     assert r.error_kind == "sandbox"
