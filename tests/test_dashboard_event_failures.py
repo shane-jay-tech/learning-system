@@ -33,6 +33,15 @@ per-item try ＋ 点击侧文案订正为「跨路径推荐点击上报异常」
 的主面（全条失败 → 渲染/记账/跳转三件不丢）钉成例 A；本节补的是例 A 覆盖不到的三格：
 归因链正向面、**部分失败**（第 2 条炸不连坐第 1 条）、以及 impressions 查不到时写空
 `recommendation_id`/`rank=0` 的脏事件。仍零改动源码。
+
+追加（l924-01，2026-09-24）：**生产码改了**——`ui/pages/dashboard.py` 今日推荐曝光区的
+`try:` 从"包整个 for"下沉为循环体内 per-item try，与 `_render_cross_recommend` 同型
+（l923-07 遗留问题 2 交的主班选项）。于是一批断言随之改桩：第一节例 1/例 2、第二节例 3/例 4、
+第三节例 6 共 **5 例** 实测转红（l923-07 按当时盘面点名 3 例，那三个行号已随文件增长漂移；
+批级形态不止钉在它点名的那几处，本文件只用符号常量定位）。核心变化：一条 emit 失败不再把
+本帧后续条踢出循环，"试过几条"从"首抛为止"变成"全量"；而写序 add→impressions→emit 未动
+（A2 裁决域），失败那条仍本地有账、事件库永无。
+新增第七节 3 例钉拉齐后的规格：坏一项只掉一项（计数面＋渲染面）＋两区同一注入下的形态对照。
 """
 import logging
 
@@ -87,6 +96,27 @@ class _Emitter:
         return [k for k, _kw in getattr(self, box)]
 
 
+class _NthBoomer(_Emitter):
+    """只让**第 n 次** `kind` 调用抛错（n 可为整数或整数集合），其余照常送达（l924-01 新增）。
+
+    批级 try 时代"首抛即出循环"，选择性注入没有意义；下沉为 per-item 后要钉的恰恰是
+    "坏一项只掉一项"⇒ 必须能只弄坏中间那一条（`n` 给 int 或 int 集合皆可）。
+    沿用 `_Emitter` 的 attempts/sent 两面记账。
+    """
+
+    def __init__(self, n, kind="recommendation_shown", boom="第 N 条上报炸"):
+        super().__init__(fail_on=(), boom=boom)
+        self.n = n
+        self.kind = kind
+
+    def __call__(self, kind, **kw):
+        self.attempts.append((kind, kw))
+        bad = {self.n} if isinstance(self.n, int) else set(self.n)
+        if kind == self.kind and sum(1 for k, _ in self.attempts if k == kind) in bad:
+            raise RuntimeError(self.boom)
+        self.sent.append((kind, kw))
+
+
 def _cards_rendered(fake, plan):
     md = " ".join(str(c[1][0]) for c in fake.calls if c[0] == "markdown")
     return [it["title"] for it in plan if it["title"] in md]
@@ -122,7 +152,8 @@ def wire(monkeypatch, fake_st):
 
 
 # ---------------------------------------------------------------------------
-# 一、展示侧（:129）：抛错不中断渲染，日志真带栈
+# 一、展示侧：抛错不中断渲染，日志真带栈
+#     🔴 l924-01：try 已从"包整个 for"下沉为循环体内 per-item ⇒ 本节的"试过几条"全部改写。
 # ---------------------------------------------------------------------------
 
 def test_shown_event_failure_still_renders_all_five_cards(wire, fake_st):
@@ -132,20 +163,27 @@ def test_shown_event_failure_still_renders_all_five_cards(wire, fake_st):
     wire(plan, em)                                     # 异常没窜到调用方，本身就是断言
     assert _cards_rendered(fake_st, plan) == [it["title"] for it in plan], \
         "展示事件抛错把推荐区整块带走了"
-    assert em.kinds() == ["recommendation_shown"]      # try 包整个 for：首条抛即出循环
+    # l924-01 前：`== ["recommendation_shown"]`，注释写"try 包整个 for：首条抛即出循环"。
+    # 下沉后首条抛错不再踢出循环 ⇒ 五条各试一次（连带半径归零），但一条也没送达。
+    assert em.kinds() == ["recommendation_shown"] * 5, \
+        "per-item 之后坏一条不该再吃掉本帧后续四条的尝试机会"
     assert em.sent == []
 
 
 def test_shown_event_failure_logs_debug_with_exc_info(wire, caplog):
-    """钉「不静默」的行为面：日志真发出、级别 DEBUG、exc_info 真带（源级 count 断言给不了）。"""
+    """钉「不静默」的行为面：日志真发出、级别 DEBUG、exc_info 真带（源级 count 断言给不了）。
+
+    l924-01 改桩：批级 try 时代 3 条只试 1 条 ⇒ 恰 1 条日志；per-item 后 3 条全试全炸 ⇒
+    **每条失败各记一条**。这正是要的语义（不计数、不汇总提示，掉哪条报哪条）。
+    """
     em = _Emitter(fail_on=("recommendation_shown",))
     with caplog.at_level(logging.DEBUG, logger=LOGGER):
         wire(_plan(3), em)
     hits = [r for r in caplog.records if r.getMessage() == SHOWN_MSG]
-    assert len(hits) == 1, f"期望恰一条 {SHOWN_MSG}，实得 {len(hits)}"
-    assert hits[0].levelno == logging.DEBUG
-    assert hits[0].name == LOGGER
-    assert hits[0].exc_info is not None and hits[0].exc_info[0] is RuntimeError
+    assert len(hits) == 3, f"期望恰三条 {SHOWN_MSG}（每条失败一项一记），实得 {len(hits)}"
+    assert all(r.levelno == logging.DEBUG for r in hits)
+    assert all(r.name == LOGGER for r in hits)
+    assert all(r.exc_info is not None and r.exc_info[0] is RuntimeError for r in hits)
     assert "RuntimeError" in caplog.text               # 栈已渲染，不是只留一句话
 
 
@@ -154,28 +192,33 @@ def test_shown_event_failure_logs_debug_with_exc_info(wire, caplog):
 # ---------------------------------------------------------------------------
 
 def test_local_state_is_written_before_emit_so_one_failure_loses_that_impression_forever(wire, fake_st):
-    """钉 :118-127 写序：add(shown) → impressions[k]=… → emit_event，三件全在送达之前。
+    """钉写序：add(shown) → impressions[k]=… → emit_event，三件全在**送达之前**。
 
     于是「本地认为展示过」与「事件库收到 recommendation_shown」并不等价：emit 抛错时
     shown 与 impressions 都已经记了这条，下一次渲染 `if pid_key not in shown` 直接跳过 →
     该条曝光**永久补不回来**，本地口径与 DB 漏斗口径从此恒差 1。用「先坏后好」两次渲染钉死。
+
+    🔴 l924-01 改桩：注入由"首条就炸"换成"第 2 条炸"。批级 try 下第 3 条压根不会被试，
+    本例当时的差额 1 混着两种成因（emit 失败 + 被批级 try 提前踢出循环）；per-item 下
+    第 1、3 条正常送达 ⇒ 剩下的那条差额**只可能**来自写序 ⇒ 本例从今往后只钉写序这一件事。
     """
     plan = _plan(3)
 
-    bad = _Emitter(fail_on=("recommendation_shown",))
+    bad = _NthBoomer(2, boom="第 2 条曝光上报炸")
     wire(plan, bad)
-    assert len(fake_st.session_state[SHOWN_KEY]) == 1                   # 炸的那条已进 shown
-    assert len(fake_st.session_state[IMPR_KEY]) == 1                    # 也已进 impressions
-    assert bad.kinds() == ["recommendation_shown"]                      # 试过 1 次
-    assert bad.sent == []                                               # 事件库一条都没有
+    assert len(fake_st.session_state[SHOWN_KEY]) == 3                  # 三条全进 shown（含炸的第 2 条）
+    assert len(fake_st.session_state[IMPR_KEY]) == 3                   # 也已全进 impressions
+    assert bad.kinds() == ["recommendation_shown"] * 3                 # 试过 3 次（坏项不连坐）
+    assert [kw["problem_id"] for _k, kw in bad.sent] == \
+        [plan[0]["problem_id"], plan[2]["problem_id"]]                 # 事件库到的正是另两条
 
-    good = _Emitter()                                                   # 故障恢复，再渲染一次
+    good = _Emitter()                                                  # 故障恢复，再渲染一次
     fake_st.calls.clear()
     wire(plan, good)
-    assert [kw["problem_id"] for _k, kw in good.sent_of("recommendation_shown")] == \
-        [p["problem_id"] for p in plan[1:]], "恢复后应补第 2、3 条；第 1 条已被 shown 永久挡掉"
-    assert len(fake_st.session_state[IMPR_KEY]) == 3                    # 本地记 3 条 …
-    assert len(good.sent_of("recommendation_shown")) == 2               # … 事件库只到 2 条
+    assert good.sent_of("recommendation_shown") == [], \
+        "炸那条已被 shown 门控永久挡掉 ⇒ 恢复后一条也补不回来（写序未动的直接后果，A2 才修）"
+    assert len(fake_st.session_state[IMPR_KEY]) == 3                   # 本地记 3 条 …
+    assert len(bad.sent_of("recommendation_shown")) == 2               # … 事件库只到 2 条
 
 
 def test_local_impression_state_and_emitted_events_match_when_nothing_fails(wire, fake_st):
@@ -198,21 +241,22 @@ def test_local_impression_state_and_emitted_events_match_when_nothing_fails(wire
 
 
 def test_failure_on_third_item_leaves_local_state_ahead_of_events_by_one(wire, fake_st):
-    """第 3 次上报抛错：前 2 条完整入账，第 3 条「本地有、事件库没有」，
-    第 4-5 条连试都没试（try 包整个 for，首抛即出循环），但五张卡全部渲染。
-    任务书问的「shown/impressions 会不会被污染」——答案是两处同步污染，且与事件库差 1。"""
+    """第 3 次上报抛错：本地五账全记、事件库到 4 条 ⇒ 差的恰好只有坏的那一条。
+
+    任务书问的「shown/impressions 会不会被污染」——答案不变：两处同步污染、与事件库差 1。
+    🔴 l924-01 变的是第 4、5 条：批级 try 时代它们连试都没试（旧断言 `n["i"] == 3`、
+    旧注释"try 包整个 for，首抛即出循环"），per-item 之后各试一次并全部送达
+    ⇒ 本帧未试条数由 2 归零，掉的只剩第 3 条本身。
+    """
     plan = _plan(5)
-    n = {"i": 0}
+    em = _NthBoomer(3, boom="第 3 条炸")
 
-    def emit(kind, **kw):
-        n["i"] += 1
-        if n["i"] == 3:
-            raise RuntimeError("第 3 条炸")
-
-    wire(plan, emit)
-    assert n["i"] == 3                                                   # 第 4、5 条没再试
-    assert len(fake_st.session_state[SHOWN_KEY]) == 3
-    assert len(fake_st.session_state[IMPR_KEY]) == 3                     # 与 shown 同步（不差在这）
+    wire(plan, em)
+    assert em.kinds() == ["recommendation_shown"] * 5                  # 第 4、5 条现在也试了
+    assert len(fake_st.session_state[SHOWN_KEY]) == 5
+    assert len(fake_st.session_state[IMPR_KEY]) == 5                     # 与 shown 同步（不差在这）
+    assert [kw["problem_id"] for _k, kw in em.sent] == \
+        [p["problem_id"] for i, p in enumerate(plan) if i != 2]          # 事件库恰少第 3 条
     assert _cards_rendered(fake_st, plan) == [it["title"] for it in plan]
 
 
@@ -259,10 +303,13 @@ def test_click_report_reuses_the_impression_id_written_at_shown_time(wire, fake_
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
 def test_shown_side_failure_yields_clicked_events_with_no_matching_shown_event(wire, fake_st, caplog):
-    """跨站点后果（本单最有价值的一条）：展示侧第 1 条就炸 → shown/impressions 只记第 1 条，
-    但卡片仍渲染 2 张、按钮仍可点 → 第 2 张卡的 recommendation_clicked 在 impressions 里查不到，
-    recommendation_id 退化成空串。事件库最终 shown=0 / clicked=2 ——
-    漏斗表出现 clicked > shown 就是这么产生的。钉现状，不改（结论写进 result 遗留问题）。
+    """跨站点后果：展示侧两条全炸 ⇒ 卡片仍渲染、按钮仍可点，事件库 shown=0 / clicked=2。
+
+    漏斗表出现 `clicked > shown` 就是这么产生的。🔴 l924-01 改桩（脏的**形态**变了，脏的
+    **事实**没变）：批级 try 时代第 2 条从没被记过 ⇒ 第 2 张卡的 clicked 只能写空
+    `recommendation_id`/`rank=0`；per-item 之后两条都记了本地账 ⇒ 两条 clicked 各带一个
+    **事件库里永不存在的 rid**（悬空归因）。跨路径侧的空串回退分支没被本单抹掉，
+    仍由第六节 l923-08 例 3/例 4（预填 shown 集合构造）钉着。
     """
     plan = _plan(2)
     em = _Emitter(fail_on=("recommendation_shown",))
@@ -270,17 +317,18 @@ def test_shown_side_failure_yields_clicked_events_with_no_matching_shown_event(w
         wire(plan, em)
 
     assert em.kinds() == ["recommendation_shown",            # 第 1 条：抛错
-                          "recommendation_clicked",          # 第 1 张卡被点（id 有）
-                          "recommendation_clicked"]          # 第 2 张卡被点（id 空）
+                          "recommendation_shown",            # 第 2 条：也抛错（不再被前者带走）
+                          "recommendation_clicked",          # 第 1 张卡被点
+                          "recommendation_clicked"]          # 第 2 张卡被点
     assert em.sent_of("recommendation_shown") == []
     clicks = em.sent_of("recommendation_clicked")
     assert len(clicks) == 2
-    assert clicks[0][1]["payload"]["recommendation_id"] == \
-        fake_st.session_state[IMPR_KEY][(plan[0]["lang"], plan[0]["problem_id"], "dashboard")]["recommendation_id"]
-    assert clicks[1][1]["payload"]["recommendation_id"] == ""          # 空串兜底，归因链断在这里
-    assert clicks[1][1]["payload"]["rank"] == 0                        # imp.get("rank", 0)
-    assert clicks[1][1]["problem_id"] == plan[1]["problem_id"]         # 事件库里它从未 shown 过
-    assert [r.getMessage() for r in caplog.records if r.name == LOGGER] == [SHOWN_MSG]
+    for idx, it in enumerate(plan):
+        local = fake_st.session_state[IMPR_KEY][(it["lang"], it["problem_id"], "dashboard")]
+        assert clicks[idx][1]["payload"]["recommendation_id"] == local["recommendation_id"]
+        assert clicks[idx][1]["payload"]["rank"] == idx + 1                  # 本地账在、归因照带
+        assert clicks[idx][1]["problem_id"] == it["problem_id"]              # 事件库里它从未 shown 过
+    assert [r.getMessage() for r in caplog.records if r.name == LOGGER] == [SHOWN_MSG, SHOWN_MSG]
 
 
 # ---------------------------------------------------------------------------
@@ -543,7 +591,8 @@ def test_second_cross_click_failure_does_not_take_down_the_first_click_report(
     """部分失败面：只有**第 2 条** clicked 抛 RuntimeError ⇒ 第 1 条照样送达、两条照样跳转。
 
     这是例 A（fail-all 型）看不见的一格：跨路径点击的 try 收在单条 `if st.button` 体内
-    （与 dashboard 区 :169 那个"try 包整个 for"不同型），所以连带半径必须是零。
+    （dashboard 区点击侧同型；其曝光记账侧自 l924-01 起也已是 per-item ⇒ 本文件涉及的
+    四个上报面两区齐平、再无批级 try 残留），所以连带半径必须是零。
     断言 ①：渲染完成、两张卡全在；②：第 1 条 clicked 落库且归因正确；③：失败那条按钮
     仍完成跳转（rerun 2 次、selection 落在第 2 张卡）；④：日志恰 1 条点击侧文案、
     DEBUG 带栈，且不误报"展示异常"；⑤：本地比事件库多 1 条 clicked（悬空账，A2 才归零）。
@@ -636,3 +685,107 @@ def test_cross_click_with_no_impression_still_lands_an_unattributable_event(wire
     pay = em.sent_of("recommendation_clicked")[0][1]["payload"]
     assert pay["recommendation_id"] == "" and pay["rank"] == 0
     assert pay["surface"] == "cross_path"
+
+
+# ---------------------------------------------------------------------------
+# 七、l924-01：今日推荐曝光区批级 try 下沉 per-item —— 两区 except 语义拉齐
+#     改动点（**本单动了生产码**）：`ui/pages/dashboard.py` 今日推荐曝光记账循环的 `try:`
+#     由"包整个 for"挪进循环体内，形状与 `_render_cross_recommend` 完全一致；失效模式从
+#     "一条坏 → 本帧后续条连试都不试"变成"一条坏 → 只掉这一条"。写序 add→impressions→emit
+#     未动（A2 裁决域：docs/insights/learn-shown-writeorder-design-20260923.md）。
+#     掉的那一项怎么落（选了跨路径那一案，非本单自创）：**跳过该项、其余照常，按项各记一条
+#     DEBUG（带栈）**；不计数、不汇总提示、面板零可见变化——例 3 用「故障帧 vs 全好帧的
+#     渲染调用序列逐项相等」把这条钉死，改成"收集后统一提示"或"跳过并计数"当场红。
+#     🔴 有牙：把 try 挪回批级（＝本单改动前的实现）时，例 1/例 2 红（主班按字节写回旧实现
+#     实测过，读数见 zcode-bridge/outbox/l924-01.result.md「证据」）。
+# ---------------------------------------------------------------------------
+
+def test_one_bad_item_only_drops_itself_in_a_five_item_frame(wire, fake_st, caplog):
+    """核心规格：5 条里第 3 条 emit 抛错 ⇒ 其余 4 条各上报**并送达**、五张卡全渲染。
+
+    断言按"坏项存在时其余项仍在输出里／计数正确"两条各钉一遍：
+      ① 计数面：事件库收到 4 条 recommendation_shown，problem_id 恰为除坏项外的 4 个，
+         且 rank 仍是 1/2/4/5（跳过一条不许把后面的号往前挪——归因串号比掉一条更坏）；
+      ② 渲染面：五张卡的标题全在 markdown 输出里；
+      ③ 连带半径：attempts == 5（每条各试一次，首抛不再踢出循环）；
+      ④ 日志面：SHOWN_MSG 恰 1 条、DEBUG、exc_info 真带 RuntimeError；
+      ⑤ 记账面：shown/impressions 均 5 条 ⇒ 与事件库差的正好是坏的那 1 条（写序未动的老账）。
+    """
+    plan = _plan(5)
+    em = _NthBoomer(3, boom="第 3 条炸")
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        wire(plan, em)                                          # 不外窜＝异常收在单条体内
+
+    shown = em.sent_of("recommendation_shown")
+    assert em.kinds() == ["recommendation_shown"] * 5
+    assert [kw["problem_id"] for _k, kw in shown] == \
+        [p["problem_id"] for i, p in enumerate(plan) if i != 2]
+    assert [kw["payload"]["rank"] for _k, kw in shown] == [1, 2, 4, 5]
+    assert {kw["payload"]["surface"] for _k, kw in shown} == {"dashboard"}
+    assert _cards_rendered(fake_st, plan) == [it["title"] for it in plan]
+    assert len(fake_st.session_state[SHOWN_KEY]) == 5
+    assert len(fake_st.session_state[IMPR_KEY]) == 5
+    hits = [r for r in caplog.records if r.getMessage() == SHOWN_MSG]
+    assert len(hits) == 1, f"只该为坏掉那条记一条展示异常，实得 {len(hits)}"
+    assert hits[0].levelno == logging.DEBUG and hits[0].exc_info[0] is RuntimeError
+
+
+@pytest.mark.parametrize("surface", ["dashboard", "cross_path"])
+def test_both_surfaces_share_the_same_per_item_containment_shape(
+        wire, monkeypatch, fake_st, caplog, surface):
+    """两区拉齐的对照例：同一份"3 条里第 2 条炸"注入打在两个区上，六个读数逐位相等。
+
+    这条就是 l923-07 遗留问题 2「两区 except 语义不一致」的收口断言：改动前 dashboard 支
+    attempts 只到第 2 条（批级 try 首抛即出循环）、跨路径支到第 3 条 ⇒ 本例在旧实现下
+    红在 dashboard 那一支。断言面：试过的条数 / 送达的 problem_id 序列 / 本地 shown 记账数 /
+    impressions 数 / 卡片全渲 / 展示侧日志条数与各自文案。
+    """
+    em = _NthBoomer(2, boom="第 2 条炸")
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        if surface == "dashboard":
+            items = _plan(3)
+            wire(items, em)
+            shown_key, msg = SHOWN_KEY, SHOWN_MSG
+        else:
+            items = _cross(3)
+            dashboard_page._render_cross_recommend(_cross_setup(monkeypatch, items, em))
+            shown_key, msg = CROSS_SHOWN_KEY, CROSS_MSG
+
+    assert em.kinds() == ["recommendation_shown"] * 3, \
+        f"{surface} 区：坏一条不该吃掉本帧后续条的尝试机会"
+    assert [kw["problem_id"] for _k, kw in em.sent] == \
+        [it["problem_id"] for i, it in enumerate(items) if i != 1]
+    assert {kw["payload"]["surface"] for _k, kw in em.sent} == {surface}
+    assert len(fake_st.session_state[shown_key]) == 3
+    assert len(fake_st.session_state[IMPR_KEY]) == 3
+    assert _cards_rendered(fake_st, items) == [it["title"] for it in items]
+    hits = [r for r in caplog.records if r.getMessage() == msg]
+    assert len(hits) == 1 and hits[0].levelno == logging.DEBUG
+    assert hits[0].exc_info[0] is RuntimeError
+
+
+def test_dropped_items_log_one_debug_each_and_change_nothing_on_screen(wire, monkeypatch, caplog):
+    """掉项的确切落法：按项各一条 DEBUG，**面板输出与全好帧逐项相同**（不计数、不汇总提示）。
+
+    同一份 5 条计划跑两帧：全好帧 vs 第 2、4 条坏帧。若实现改成「收集后统一提示」或
+    「跳过并在面板上标计数」，两帧的渲染调用序列就会分叉 ⇒ 本例红。
+    两帧的送达数（5 vs 3）同时钉住"只掉坏的那两条"，日志条数钉住"一项一记"（2 条，
+    不是批级时代整区 1 条）。
+    """
+    plan = _plan(5)
+    frames = {}
+    for tag, em in (("clean", _Emitter()), ("two_bad", _NthBoomer({2, 4}, boom="第 2、4 条炸"))):
+        fake = DashboardFakeStreamlit()                              # 每帧一份全新 session_state
+        monkeypatch.setattr(dashboard_page, "st", fake)
+        monkeypatch.setattr(components, "st", fake)
+        with caplog.at_level(logging.DEBUG, logger=LOGGER):
+            wire(plan, em)
+        frames[tag] = ([c[0] for c in fake.calls], len(em.sent_of("recommendation_shown")))
+
+    assert frames["clean"][1] == 5 and frames["two_bad"][1] == 3, \
+        "全好帧 5 条送达、坏两子的帧只掉这 2 条"
+    assert frames["clean"][0] == frames["two_bad"][0], \
+        "故障帧的面板输出必须与全好帧逐项相同——本案不给用户加提示"
+    hits = [r for r in caplog.records if r.getMessage() == SHOWN_MSG]
+    assert len(hits) == 2, f"per-item 那一案是「每项一条 DEBUG」，实得 {len(hits)}"
+    assert all(r.levelno == logging.DEBUG and r.exc_info[0] is RuntimeError for r in hits)

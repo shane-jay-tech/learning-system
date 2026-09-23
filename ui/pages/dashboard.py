@@ -178,10 +178,20 @@ def _render_dashboard_body(dao):
             st.session_state[shown_key] = set()
         if impressions_key not in st.session_state:
             st.session_state[impressions_key] = {}
-        try:
-            for rank, it in enumerate(plan, 1):
-                pid_key = (it["lang"], it["problem_id"])
-                if pid_key not in st.session_state[shown_key]:
+        # l924-01：本区批级 try 下沉为循环体内 per-item try，与 `_render_cross_recommend`
+        # 的记账循环同型（两区 except 语义自此拉齐）。旧形态 `try:` 包整个 for ⇒ 一条
+        # emit_event 失败即出循环，本帧**后续条连试都不试**（一条坏项吃掉整区记账）；
+        # 现收在单条循环体内 ⇒ 坏一项只掉一项。
+        # 🔴 掉的那一项怎么落（=跨路径区那一案，不自创第三案）：**跳过该项、其余照常**，
+        #    按项各记一条 DEBUG（带栈、不静默）；不计数、不汇总提示、不在面板上报警告。
+        # ⚠️ 写序未动（add → impressions → emit 仍在送达之前，属 A2 裁决域，本单不越界）：
+        #    失败那条本地已记账、事件库永无 ⇒ 下次渲染被 shown 门控挡掉。下沉后一次故障帧
+        #    的「本地−事件库」差额从固定 1 条变成**本帧失败条数**（每项各丢各的），
+        #    试过的条数从「首抛为止」变成全量——推演见 l923-07 结果「证据 3」。
+        for rank, it in enumerate(plan, 1):
+            pid_key = (it["lang"], it["problem_id"])
+            if pid_key not in st.session_state[shown_key]:
+                try:
                     st.session_state[shown_key].add(pid_key)
                     rc = it.get("reason_code", "")
                     rec_id = _make_rec_id("dashboard", rc, it["lang"], it["problem_id"], rank)
@@ -191,8 +201,8 @@ def _render_dashboard_body(dao):
                     dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
                                    payload={"reason_code": rc, "surface": "dashboard",
                                             "rank": rank, "recommendation_id": rec_id})
-        except Exception:
-            logger.debug("dashboard: 推荐展示数据异常", exc_info=True)
+                except Exception:
+                    logger.debug("dashboard: 推荐展示数据异常", exc_info=True)
         for it in plan:
             meta = LANG_META[it["lang"]]
             with st.container(border=True):
