@@ -105,7 +105,7 @@ milestones:
 
   - id: m9
     title: "高级统计"
-    description: "SEM、CFA、中介调节 —— 读研核心技能（待题目新增后解锁）"
+    description: "SEM、CFA、中介调节 —— 读研核心技能"
     topics:
       - "r/14_sem_basics"
       - "r/15_cfa"

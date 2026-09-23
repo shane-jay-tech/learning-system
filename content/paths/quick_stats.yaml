@@ -43,7 +43,7 @@ milestones:
 
   - id: s5
     title: "信效度分析"
-    description: "问卷质量评估 —— Cronbach alpha 和 CFA（待题目新增后解锁）"
+    description: "问卷质量评估 —— Cronbach alpha 和 CFA"
     topics:
       - "r/15_cfa"
     estimated_hours: 1.5

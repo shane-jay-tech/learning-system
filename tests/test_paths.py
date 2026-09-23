@@ -26,7 +26,15 @@ def test_agent_a0_has_python_topics():
 
 def test_all_paths_load():
     paths = load_all_paths()
-    assert len(paths) >= 3
+    # l923-12 收口（2026-09-23）：此处原为 `>= 3` 松下界——README:52 的「3 条学习路径」在
+    # 磁盘已是 6 条的情况下存活 68 天无人拦，根因就是这条下界加到 6 不触红
+    # （见 docs/insights/learn-readme-numbers-20260922.md 第四节）。现钉等值：
+    # 增删 content/paths/*.yaml 必须有意改这里，并同步 README:52
+    # （README 侧对账见 tests/test_readme_reconcile.py，同族的代码侧等值副本另见
+    # tests/test_paths_order_consistency.py 的 test_覆盖全部path）。
+    assert len(paths) == 6, (
+        f"学习路径条数漂移（本桩钉 6，现值 {len(paths)}）：{[p.id for p in paths]} "
+        "—— 有意变更请同步改这里 + README:52 + tests/test_readme_reconcile.py")
     names = [p.id for p in paths]
     assert "agent_mastery" in names
 
