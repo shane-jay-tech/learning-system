@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 """home _render_ai_pulse 30/90 天档位补测（l918-19）。
 
-钉时间兜底三档（:184-199）与「已完成浅扫/深查」按钮的 set_meta 行为（:214-232）：
-  ①quarterly ≥90 天 → st.warning「该做季度深查了」（l919-03 降档翻桩）；
-  ②monthly ≥30 天（quarterly <90）→ st.warning「该做月度浅扫了」；
-  ③两档未到 → st.success 倒计时文案；
+钉时间兜底三档（页面现值 :194-210，l923-21 复核刷新）与「已完成浅扫/深查」按钮的
+set_meta 行为（:225-227 与 :240-243）：
+  ①quarterly ≥90 天 → 告警档文案「该做季度深查了」（l919-03 降档翻桩）；
+  ②monthly ≥30 天（quarterly <90）→ 告警档文案「该做月度浅扫了」；
+  ③两档未到 → 确认档倒计时文案；
   ④按钮：完成月度浅扫 → set_meta('ai_pulse_monthly')；完成季度深查 → set_meta 双键。
-dao.get_meta_ts 用可控假值驱动 _days_since；error/warning/success/tabs/buttons 经
-HomeFake 录制；只加测试不改页面代码。
+dao.get_meta_ts 用可控假值驱动 _days_since；error/warning/info/success/tabs/buttons 经
+**PulseFake** 录制（本文件从来没有叫 HomeFake 的桩，档头旧自述系笔误，l922-130 已登记、
+本单按任务书订正）。旧自述末句「只加测试不改页面代码」**已不成立**：l922-130 把两个告警
+档迁到 components.render_notice，l923-21 又把信息档/确认档迁到 render_info_notice／
+render_success_notice，两单都按各自任务书动了页面码 ⇒ 该句删去，别当真。
 """
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
-import ui.components as components
 import ui.components as components
 import ui.pages.home as home_page
 from tests.test_ui_behavior import FakeStreamlit
@@ -57,6 +60,8 @@ def _patch_st(monkeypatch, fake):
     # l922-130：AI 档位的 warning 不再由页面直调，改走 components.render_notice，
     # 那条 st.warning 落在 ui.components 的模块名上 ⇒ 必须同时把 components.st 换成
     # 同一个录制桩，否则本档 warning 断言全部失明（真实 streamlit 调用不报错也不留痕）。
+    # l923-21 起 info／success 两档同理（render_info_notice / render_success_notice），
+    # 故本文件所有页面级通知断言都依赖这一行双侧接线。
     monkeypatch.setattr(components, "st", fake)
     # load_all_paths 在 _detect_pulse_event 里是函数内局部 import（from core.paths import …），
     # 必须 patch 源模块 core.paths；空路径让事件检测循环零迭代。
@@ -143,3 +148,71 @@ def test_ai_pulse档位走统一组件render_notice(monkeypatch):
         off_tier = [c for c in fake.calls
                     if c[0] in {"error", "info", "success"} and needle in str(c[1][0])]
         assert not off_tier, (needle, off_tier)
+
+
+# ---------------------------------------------------------------------------
+# l923-21：info／success 两档新增 helper 的收口面（组件面缺口由 l922-130 登记）
+#   三例分别钉：① 新 helper 自身的档位与文案（组件级）；② 首个调用点＝home 安全提示；
+#   ③ 事件提示与「已跟上」倒计时（页面级，含跨档不误用）。
+#   全部依赖 _patch_st 的双侧接线（components.st 同桩）——只 patch 页面模块时
+#   这些通知一条都录不到，而真实 streamlit 也不报错＝绿灯零覆盖（l922-130 失明面）。
+# ---------------------------------------------------------------------------
+
+def test_新helper档位与文案单点收口(monkeypatch):
+    """组件级：render_info_notice→info 档、render_success_notice→success 档，消息原样透传。
+
+    钉的是「形参风格与 render_notice 一致（单 message）」＋「档位没串」：
+    两者若互换或都塌到 warning，本例会当场红。
+    """
+    fake = PulseFake()
+    monkeypatch.setattr(components, "st", fake)  # 用 monkeypatch 而非裸赋值：必须自动还原
+    components.render_info_notice("信息档文案")
+    components.render_success_notice("确认档文案")
+    assert _texts(fake, "info") == ["信息档文案"], fake.calls
+    assert _texts(fake, "success") == ["确认档文案"], fake.calls
+    assert not [c for c in fake.calls if c[0] in {"warning", "error"}], fake.calls
+
+
+def test_安全提示走统一组件render_info_notice(monkeypatch):
+    """home:48 首次启动安全提示：页面不再裸调信息档，须经 components.render_info_notice。
+
+    spy 拦页面名（证明调用点真的经过组件）＋ 转发真身（证明档位在组件里没变），
+    两路与 l922-130 的 render_notice 例同型。
+    """
+    import core.config as cfg
+    monkeypatch.setattr(cfg, "is_public_deploy", lambda: False)
+    real = components.render_info_notice
+    passed = []
+    monkeypatch.setattr(home_page, "render_info_notice", lambda msg: (passed.append(msg), real(msg)))
+    fake = _patch_st(monkeypatch, PulseFake())  # 无按钮 ⇒ 不触发 dismiss 分支
+    # _dao 的 get_meta_ts 只认 ai_pulse 两键 ⇒ security_notice_seen 落 None＝首次启动
+    home_page._render_security_notice(_dao(None, None))
+    assert any("安全提示（仅显示一次）" in m for m in passed), passed
+    infos = _texts(fake, "info")
+    assert any("subprocess 隔离" in t for t in infos), infos
+    assert not [c for c in fake.calls if c[0] in {"warning", "success", "error"}], fake.calls
+
+
+def test_事件提示走统一组件render_info_notice(monkeypatch):
+    """home:183 事件档（里程碑/回归/错题全清）：与「已跟上」倒计时同屏时不串档。"""
+    real = components.render_info_notice
+    passed = []
+    monkeypatch.setattr(home_page, "render_info_notice", lambda msg: (passed.append(msg), real(msg)))
+    fake = _patch_st(monkeypatch, PulseFake())
+    monkeypatch.setattr(home_page, "_detect_pulse_event", lambda dao, d: "👋 欢迎回来！")
+    home_page._render_ai_pulse(_dao(_ts(10), _ts(40)))
+    assert passed == ["👋 欢迎回来！"], passed
+    assert _texts(fake, "info") == ["👋 欢迎回来！"], fake.calls
+    assert any("AI 进展已跟上" in s for s in _texts(fake, "success")), fake.calls
+
+
+def test_跟上档倒计时走统一组件render_success_notice(monkeypatch):
+    """home:208「已跟上」档：数字仍是真算的倒计时量（30−10／90−40），且不误用信息档。"""
+    real = components.render_success_notice
+    passed = []
+    monkeypatch.setattr(home_page, "render_success_notice", lambda msg: (passed.append(msg), real(msg)))
+    fake = _patch_st(monkeypatch, PulseFake())
+    home_page._render_ai_pulse(_dao(_ts(10), _ts(40)))
+    assert any("月度浅扫还有 20 天" in m and "季度深查还有 50 天" in m for m in passed), passed
+    assert any("AI 进展已跟上" in s for s in _texts(fake, "success")), fake.calls
+    assert _texts(fake, "info") == [], "倒计时档不得同时出信息档"

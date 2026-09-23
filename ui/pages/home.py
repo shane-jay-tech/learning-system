@@ -10,7 +10,7 @@ from core.loader import load_language
 from core.paths import load_all_paths
 from core.progress import ProgressDAO
 from core.recommend import recommend
-from ui.components import render_empty_state,  ALL_LANGS, LANG_META, hero, lang_card_html, metric_tile, navigate_to_problem, section_title, render_notice
+from ui.components import render_empty_state,  ALL_LANGS, LANG_META, hero, lang_card_html, metric_tile, navigate_to_problem, section_title, render_notice, render_info_notice, render_success_notice
 
 
 @st.cache_data(ttl=300)  # 题库 5 分钟缓存——首次扫 5 个 lang 后续秒响应
@@ -42,7 +42,10 @@ def _render_security_notice(dao):
     seen = dao.get_meta_ts("security_notice_seen")
     if not seen:
         with st.container(border=True):
-            st.info(
+            # l923-21：info 档收口到 components.render_info_notice（页面不再裸调该档原语）。
+            # 文案逐字未动；告警迁到公共组件后测试必须双侧接线（components.st 同桩），
+            # 否则这条通知在测试里录不到——见 docs/insights/learn-home-notice-migrate-20260922.md。
+            render_info_notice(
                 "**安全提示（仅显示一次）**\n\n"
                 "本系统的代码执行器使用 subprocess 隔离，适合本机单人学习。\n"
                 "- 不要暴露到公网或校园网共享服务器\n"
@@ -176,15 +179,17 @@ def _render_ai_pulse(dao):
     # 事件触发：里程碑刚完成 / 连续学习恢复 / 错题全清
     event_msg = _detect_pulse_event(dao, days_monthly)
     if event_msg:
-        st.info(event_msg)
+        # l923-21：info 档收口（原为页面内裸信息档调用），文案与事件判据逐字未动。
+        render_info_notice(event_msg)
 
     def _label(days: int) -> str:
         return "从未做过" if days >= 9999 else f"距上次 {days} 天"
 
     if days_quarterly >= 90:
         # l919-03：notice 档位统一——提醒类降档 error→warning（与月度浅扫同形态）。
-        # l922-130：档位文案改由 components.render_notice 单点收口（同页错题通知 :107
-        # 早已在册走它），页面不再自己直调告警档原语；文案与档位判据逐字未动，见
+        # l922-130：档位文案改由 components.render_notice 单点收口（同页错题通知 :110
+        # 早已在册走它；:110 是 l923-21 加 3 行收口注释后的现值，原写作 :107），
+        # 页面不再自己直调告警档原语；文案与档位判据逐字未动，见
         # docs/insights/learn-home-notice-migrate-20260922.md。
         render_notice(
             f"⏰ **该做季度深查了**（{_label(days_quarterly)}）"
@@ -198,7 +203,9 @@ def _render_ai_pulse(dao):
     else:
         next_monthly = max(0, 30 - days_monthly)
         next_quarterly = max(0, 90 - days_quarterly)
-        st.success(
+        # l923-21：success 档收口（原为页面内裸确认档调用）。文案里的两个天数是**真算出来的**
+        # 倒计时量、非新加的装饰，故未改动 —— 判据见 tests/test_home_ai_pulse.py。
+        render_success_notice(
             f"✓ AI 进展已跟上。下次月度浅扫还有 {next_monthly} 天，季度深查还有 {next_quarterly} 天。"
         )
 

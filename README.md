@@ -11,7 +11,7 @@
 - DeepSeek 兼容的 OpenAI API 用于 AI 讲解、点评与开放题评分
 - `scripts/` 提供健康检查、备份、审计、性能基线与冒烟测试工具
 
-学习数据默认保存在本机数据目录；数据库、环境文件、日志和虚拟环境均被 Git 忽略，不会上传到 GitHub。
+学习数据默认保存在本机数据目录；数据库、环境文件、日志和虚拟环境均被 Git 忽略，不会上传到 GitHub。日志靠 `.gitignore` 的 `*.log` 规则兜住，实际写在 `data/`（`launcher.log` 与 `streamlit.log`，跑过桌面入口后才有）；仓库根的 `logs/` 是**无写入方的空目录**，`.gitignore` 里并没有 `logs/` 这条规则。
 
 ## 环境要求
 
@@ -37,7 +37,7 @@ python scripts/health_check.py                 # 首次检查环境
 powershell -ExecutionPolicy Bypass -File scripts/create_shortcut.ps1
 ```
 
-然后双击桌面「编程学习平台」快捷方式即可；独立窗口、自定义图标、紫色启动画面、关窗口干净退出。
+然后双击桌面「编程学习平台」快捷方式即可；独立窗口、自定义图标、紫色启动画面、关窗口干净退出。入口链（l923-22 按磁盘实况补登，与 `scripts/create_shortcut.ps1:5/:7`、`launcher.pyw:108-122`、`start.bat:19-27` 逐字相符）：`scripts/create_shortcut.ps1` → 生成的快捷方式指向仓库根 `launcher.pyw`（解释器优先 `.venv\Scripts\pythonw.exe`，图标 `assets\app.ico`）→ `launcher.pyw` 自己 spawn `streamlit run app.py` 并开 PyWebView 窗口。`start.bat` 是**另一条独立入口**（建 venv → `scripts/find_port.py` 探空闲端口 → 直接起 streamlit），不被 `launcher.pyw` 调用，只在缺 pywebview 的报错提示里被点名（`launcher.pyw:265`）。
 
 ### 方式 B — 开发模式（改代码热重载）
 
@@ -80,13 +80,27 @@ python scripts/generate_system_report.py # 系统报告
 ## 目录
 
 ```text
-app.py                Streamlit 入口
-core/                 判题、AI、进度、成就、推荐、报告等核心模块
-core/runners/         Python / SQL / C++ / R 沙箱运行器
-ui/                   Streamlit 页面与组件
-content/              python / cpp / r / sql / agent_dev 题库与知识点
-scripts/              健康检查、备份、审计、性能与维护脚本
-tests/                测试套件
-docs/                 系统报告与巡检留痕 insights/
-data/                 本地学习数据（不进入 Git）
+app.py                     Streamlit 入口
+launcher.pyw               桌面 app 启动器（PyWebView 套壳，被桌面快捷方式调用）
+start.bat                  浏览器模式启动脚本（建 venv → 探端口 → streamlit，独立于 launcher）
+requirements.txt           运行依赖清单
+requirements-freeze.txt    实测锁定版本快照
+pytest.ini                 pytest 配置（testpaths / python_files / -ra）
+.coveragerc                覆盖率统计口径（branch=True，omit .venv/tests/datasets）
+.gitignore                 忽略规则（进度库、*.log、.venv 等；**没有** logs/ 这条）
+plan.md                    前端人体工学改造计划（固化目标与内容口径的在册依据）
+README.md                  本文件
+.streamlit/                Streamlit 运行时配置（config.toml：回环绑定、极简工具栏）
+assets/                    图标与启动画面（app.ico / app.png）
+core/                      判题、AI、进度、成就、推荐、报告等核心模块
+core/runners/              Python / SQL / C++ / R 沙箱运行器
+ui/                        Streamlit 页面与组件
+content/                   python / cpp / r / sql / agent_dev 题库与知识点
+content/paths/             学习路径定义（YAML，与 README「学习闭环」的路径数同源）
+content/datasets/          SQL / R 练习用的示例数据（CSV ＋ 生成脚本）
+scripts/                   健康检查、备份、审计、性能与维护脚本（含 1 个 PowerShell 件）
+tests/                     测试套件
+docs/                      系统报告与巡检留痕 insights/
+data/                      本地学习数据（不进入 Git，`.gitkeep` 占位除外；日志也落这里）
+logs/                      空目录，全仓零写方（来历未考；日志实际写在 data/*.log）
 ```

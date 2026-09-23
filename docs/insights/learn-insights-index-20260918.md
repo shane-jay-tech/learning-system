@@ -69,6 +69,7 @@
 | docs/insights/learn-sidebar-218-20260915.md | 20260915 | learning 侧栏 218px 降级验收余项核验（n915-66，只读） | 已入库 | 0 |
 | docs/insights/learn-skipped-audit-20260916.md | 20260916 | learning 7 个 skipped 测试核查与分类（l916-01，只读） | 已入库 | 0 |
 | docs/insights/learn-sql-roworder-census-20260922.md | 20260922 | learning SQL 多行题行序判读普查（l922-129，2026-09-22，只读零改动） | 已入库 | 1 |
+| docs/insights/learn-sql-roworder-design-20260923.md | 20260923 | SQL 排序语义题处置设计稿（l923-23，出口次序改推 C→A→B；expected_rows 为 sql 独占） | 已入库 | 0 |
 | docs/insights/learn-test-baseline-20260921.md | 20260921 | learning 测试资产基线（l922-03，2026-09-21） | 已入库 | 0 |
 | docs/insights/learn-tests-baseline-20260915.md | 20260915 | learning 仓 unittest 发现计数基线（n915-77，只读） | 已入库 | 0 |
 | docs/insights/learn-thin-thick-topics-20260921.md | 20260921 | learning 薄/厚 topic 比例失衡分析与增题优先级（l922-07，2026-09-21） | 已入库 | 0 |

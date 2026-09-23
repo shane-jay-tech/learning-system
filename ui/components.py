@@ -253,3 +253,23 @@ def render_notice(message: str):
     带动态枚举清单）仍留页面内联，见各调用点注释。文案语义由调用方保留。
     """
     st.warning(message)
+
+
+def render_info_notice(message: str):
+    """统一信息条（l923-21，循 d914-21 render_notice 范式）：st.info 单形态收口。
+
+    补的是 l922-130 登记的组件面缺口——本仓此前只有 warning/error/空态三档 helper，
+    info 档散在各页面裸调。注意与 render_empty_state(compact=False) 的分工：
+    那条承载的是「这里没有数据」的空态语义并自带「下一步：」拼接，本函数只承载
+    「一条纯信息提示」（安全须知、事件播报），形参风格与 render_notice 逐字对齐。
+    """
+    st.info(message)
+
+
+def render_success_notice(message: str):
+    """统一成功条（l923-21，循 d914-21 render_notice 范式）：st.success 单形态收口。
+
+    只收口「无事可做/已跟上」这类纯确认文案；判题通过的即时反馈走
+    `verdict_banner`（它是 HTML 卡片不是 streamlit 通知块），两者不得混用。
+    """
+    st.success(message)
