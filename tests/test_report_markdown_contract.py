@@ -166,14 +166,41 @@ def test_注记只随导出件不随report字典():
         assert forbidden not in md, "新增注记引入了连续空行（段落契约破裂）"
 
 
-def test_面板caption与导出注记同句():
-    """面板 caption（完成标准③要求保留不删）与导出注记必须同句，否则两处口径会各自漂移。"""
+def test_面板caption与导出注记同句(monkeypatch):
+    """面板 caption 与导出注记同句——**l923-10 起由单源构造保证**，本例改为钉「没有第二份字面」。
+
+    改造依据（l923-10，主班派单：dashboard 口径 caption 接 CALIBER_NOTE 单源）：
+    l922-106 落这一例时面板是**内联字面量**，只能靠正则比"两处同句"——那是文本契约，
+    改文案时漏改一处、要跑到本例才发现。面板改成 `st.caption(CALIBER_NOTE)` 之后同句成了
+    构造性事实，于是本例换钉三件更硬的东西：
+      ① 面板那一行确实还在（l922-106 完成标准③「caption 保留不删」继续成立）；
+      ② `ui/` 整棵树下不得再出现这句文案的字面副本（双源漂移面复活即红）；
+      ③ **渲染产物**里那条 caption 的实参逐字节等于 CALIBER_NOTE（行为面，FakeStreamlit 录 call）。
+    """
     import pathlib
     import re
+
     from core.report import CALIBER_NOTE
-    src = pathlib.Path(__file__).resolve().parents[1] / "ui" / "pages" / "dashboard.py"
-    text = src.read_text(encoding="utf-8")
-    hit = re.search(r'st\.caption\("([^"]*口径[^"]*)"\)', text)
-    assert hit is not None, "面板 caption 口径提示被删（本单完成标准③要求保留）"
-    assert hit.group(1) == CALIBER_NOTE, (
-        f"面板 caption 与导出注记不同句\ncaption={hit.group(1)}\nCALIBER_NOTE={CALIBER_NOTE}")
+    root = pathlib.Path(__file__).resolve().parents[1]
+    text = (root / "ui" / "pages" / "dashboard.py").read_text(encoding="utf-8")
+
+    assert re.search(r"from core\.report import [^\n]*\bCALIBER_NOTE\b", text), \
+        "面板没接 CALIBER_NOTE 单源（import 行缺失）"
+    assert re.search(r"st\.caption\(CALIBER_NOTE\)", text), \
+        "面板 caption 口径提示被删或形态漂移（应为 st.caption(CALIBER_NOTE)，l922-106 的③要求它保留）"
+
+    probe = CALIBER_NOTE[:12]           # 取常量前缀当探针：测试里不重抄文案，又能动辄抓到副本
+    dupes = sorted(str(p.relative_to(root)) for p in (root / "ui").rglob("*.py")
+                   if probe in p.read_text(encoding="utf-8"))
+    assert dupes == [], f"ui/ 下仍有口径文案的字面副本（双源漂移面复活）：{dupes}"
+
+    # ③ 行为面：整块面板渲染一次，录到的 caption 必须与单源逐字节相同
+    #    （`_wire` 已把 dashboard_page.st 与 components.st **同时**指到同一个 fake，
+    #     正是 §十二 要求的"双侧接线"，不存在只 patch 页面侧的静默失明）
+    from tests.test_dashboard_import_feedback import _wire
+    from tests.test_dashboard_page_render import _dao
+
+    fake, render, _notices = _wire(monkeypatch, _dao())
+    render()
+    caps = [str(c[1][0]) for c in fake.calls if c[0] == "caption" and "口径" in str(c[1][0])]
+    assert caps == [CALIBER_NOTE], f"面板渲染出的 caption 与单源不同句：{caps}"

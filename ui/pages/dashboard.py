@@ -1,3 +1,4 @@
+import hashlib
 import html
 import logging
 from datetime import date, timedelta
@@ -10,9 +11,9 @@ logger = logging.getLogger(__name__)
 from core.achievements import check_achievements, get_all_earned, get_all_with_state, get_progress_summary, get_achievement
 from core.loader import find_problem
 from core.progress import ProgressDAO, format_local_ts
-from ui.components import render_empty_state, render_error_notice
+from ui.components import render_empty_state, render_error_notice, render_notice
 from core.recommend import cross_recommend, recommend
-from core.report import generate_report, report_to_html, report_to_markdown
+from core.report import CALIBER_NOTE, generate_report, report_to_html, report_to_markdown
 from ui.components import ALL_LANGS, LANG_META, hero, metric_tile, navigate_to_problem, section_title
 
 
@@ -60,6 +61,17 @@ def _import_feedback_text(stats: dict) -> str:
     return (f"导入完成：答题 {stats['attempts']} 条 · 事件 {stats['learning_events']} 条 · "
             f"状态 {stats['problems_status']} 题 · 复习 {stats['review_state']} 题 · "
             f"元数据 {stats['meta']} 项")
+
+
+def _report_file_tag(days: int) -> str:
+    """下载文件名的期别标记（l923-11：消化 l922-121 登记的 :244 死局部量 `days`）。
+
+    面板只有两个生成入口，写进 session_state 的 days 只可能是 7（:242）或 30（:251），
+    映射成 week/month 让用户在下载目录里一眼分得清周报还是月报；
+    其它值（未来若加「自定义区间」，或脚本直接调 generate_report）退回 `d<days>` 原样标数，
+    **不静默归类**——把 14 天叫 week 会比不标更坏。
+    """
+    return {7: "week", 30: "month"}.get(days, f"d{days}")
 
 
 # 「各语言通过情况」的分行参数（l922-120）：每行最多 3 张卡。
@@ -214,7 +226,10 @@ def _render_dashboard_body(dao):
 
     section_title("📄 学习报告导出")
     # a-47/c-04：周报卡常驻口径提示（纯文案；p912-40 遗留——任务条数口径随阅读合并规则变更，跨期直比会失真）
-    st.caption("口径提示：任务条数口径随阅读合并规则变更，不同期的周报/月报条数不可直接纵向比较。")
+    # l923-10：文案改引 core.report.CALIBER_NOTE 单源（与 .md/.html 导出注记同一常量），
+    #          面板这一行的字面副本被消灭——两处各写一遍时改一处就漂移（l922-106 当初就是靠
+    #          tests/test_report_markdown_contract.py 的正则比同句兜住，现由构造保证）。
+    st.caption(CALIBER_NOTE)
     rpt_col1, rpt_col2, _ = st.columns([1, 1, 3])
     with rpt_col1:
         if st.button("生成周报", use_container_width=True, key="gen_weekly"):
@@ -238,11 +253,16 @@ def _render_dashboard_body(dao):
     if st.session_state.get("last_report_md"):
         dl_col1, dl_col2, _ = st.columns([1, 1, 3])
         days = st.session_state.get("last_report_days", 7)
+        # l923-11：上面这行读到的 days 原本整块再没被引用（l922-121 登记的死局部量），
+        # 于是周报与月报的下载区四项（文案/文件名/mime/help）逐项相等、用户分不出拿的是哪期。
+        # 现把期别并进**文件名**（另一条出口「下载区加 caption 标近 N 天」未选：
+        # 文件名会落盘、跨机器跨时间都留痕，caption 只在面板那一帧有效）。
+        period_tag = _report_file_tag(days)
         with dl_col1:
             st.download_button(
                 "⬇️ 下载报告 (.md)",
                 data=st.session_state["last_report_md"],
-                file_name=f"learning_report_{date.today().isoformat()}.md",
+                file_name=f"learning_report_{period_tag}_{date.today().isoformat()}.md",
                 mime="text/markdown",
                 use_container_width=True,
             )
@@ -250,7 +270,7 @@ def _render_dashboard_body(dao):
             st.download_button(
                 "🖨️ 打印版 (.html)",
                 data=st.session_state.get("last_report_html", ""),
-                file_name=f"learning_report_{date.today().isoformat()}.html",
+                file_name=f"learning_report_{period_tag}_{date.today().isoformat()}.html",
                 mime="text/html",
                 use_container_width=True,
                 help="下载后用浏览器打开，Ctrl+P 即可打印或另存为 PDF",
@@ -292,17 +312,36 @@ def _render_dashboard_body(dao):
                 if st.button("确认导入", type="primary", key="data_import_confirm"):
                     from core.data_portability import import_json
                     try:
-                        raw = uploaded.getvalue().decode("utf-8")
-                        stats = import_json(dao, raw)
-                        # 当场 st.success 会被紧接着的 st.rerun() 整帧丢掉，用户只看到页面闪回
-                        # 上传态、五项统计一个字都不露（l922-105）：写进 session_state，
-                        # 由下一次渲染首行回显一次。
-                        st.session_state["_import_feedback"] = stats
-                        dao._clear_memo()
-                        # 合并式导入会覆盖同键旧值而**不改任何表的行数**，上面的行数键抓不到这种情形：
-                        # 显式作废缓存，rerun 后那次渲染必然重新序列化（l922-104）。
-                        st.session_state["_export_cache_key"] = None
-                        st.rerun()
+                        blob = uploaded.getvalue()
+                        raw = blob.decode("utf-8")
+                        # l923-09 防重（同一份字节在一次会话里只真正合并一次）：
+                        # 导入成功后 file_uploader 的控件态由 key 持久化，那个文件仍在原处，
+                        # 「确认导入」还能再按一次；而 attempts / learning_events / rubric_scores
+                        # 是只追加表（import_all 对它们不去重，见 test_data_portability.py:46 的
+                        # by-design 断言），第二下会把同一批数据原样翻倍（l922-105 遗留问题）。
+                        # ⚠️ 任务书首选的「清 uploader 相关键」在 streamlit 里做不到无痕：控件实例化后
+                        #    pop/赋值它的 key 会抛 StreamlitAPIException，换 key 重建又会每次导入留下
+                        #    一个陈旧 session_state 键（同 §十二 点名的 editor_* 无界增长那类），
+                        #    故这里按内容指纹收口，副作用面更小。
+                        fp = hashlib.sha256(blob).hexdigest()
+                        if st.session_state.get("_import_consumed_fp") == fp:
+                            render_notice(
+                                "这份文件本次会话已经导入过了，**已跳过重复导入**："
+                                "答题记录、学习事件与评分明细是只追加表，再确认一次会把它们原样翻倍。"
+                                "确需重导请重新导出一份内容不同的文件（或换一台机器操作）。",
+                            )
+                        else:
+                            stats = import_json(dao, raw)
+                            st.session_state["_import_consumed_fp"] = fp
+                            # 当场 st.success 会被紧接着的 st.rerun() 整帧丢掉，用户只看到页面闪回
+                            # 上传态、五项统计一个字都不露（l922-105）：写进 session_state，
+                            # 由下一次渲染首行回显一次。
+                            st.session_state["_import_feedback"] = stats
+                            dao._clear_memo()
+                            # 合并式导入会覆盖同键旧值而**不改任何表的行数**，上面的行数键抓不到这种情形：
+                            # 显式作废缓存，rerun 后那次渲染必然重新序列化（l922-104）。
+                            st.session_state["_export_cache_key"] = None
+                            st.rerun()
                     except Exception as exc:
                         render_error_notice(
                             "导入失败",

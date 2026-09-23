@@ -26,6 +26,13 @@ per-item try ＋ 点击侧文案订正为「跨路径推荐点击上报异常」
 断言（不再故意红），例 A 的日志文案常量换成新增的 CROSS_CLICK_MSG。
 本单**未**动写序（本地先记账、emit 在后）⇒ "失败一条曝光永久丢失"仍在，由例 B 的第 ④ 条断言
 继续钉着；解它要走 A2 方案，见 docs/insights/learn-shown-writeorder-design-20260923.md。
+
+追加（l923-08，2026-09-23）：第六节 3 例，把失败注入打在**第三条上报路径的点击侧**
+（`dao.emit_event("recommendation_clicked", …)`，现值 `ui/pages/dashboard.py:387`；except 在 :394、
+`navigate_to_problem` 在 :398）。l922-101 遗留问题 3 说"这条路径本次未注入失败"，l922-103 已把它
+的主面（全条失败 → 渲染/记账/跳转三件不丢）钉成例 A；本节补的是例 A 覆盖不到的三格：
+归因链正向面、**部分失败**（第 2 条炸不连坐第 1 条）、以及 impressions 查不到时写空
+`recommendation_id`/`rank=0` 的脏事件。仍零改动源码。
 """
 import logging
 
@@ -478,3 +485,154 @@ def test_cross_shown_event_failure_no_longer_takes_down_the_sections_below(wire,
     assert em.sent_of("recommendation_shown") == []
     clicks = em.sent_of("recommendation_clicked")
     assert len(clicks) == 1 and clicks[0][1]["payload"]["recommendation_id"]
+
+
+# ---------------------------------------------------------------------------
+# 六、l923-08：第三条上报路径**点击侧**的失败注入补面
+#     站点现值（本文件只用符号常量，不锁行号）：
+#       emit  `ui/pages/dashboard.py:387`  dao.emit_event("recommendation_clicked", …, surface="cross_path")
+#       except :394  logger.debug("dashboard: 跨路径推荐点击上报异常", exc_info=True)
+#       跳转   :398  navigate_to_problem(...)  ← 在 try 之外
+#     为什么还要加例（l922-103 例 A 已注入过 clicked 失败，但它是 fail-all 型）：
+#       1) 归因链正向面（clicked 的 recommendation_id/rank 是不是展示时写进 impressions 的那一份）
+#          在 dashboard 侧有 `test_click_report_reuses_the_impression_id_written_at_shown_time`，
+#          跨路径侧此前**只有**例 C 那句"非空"顺手扫过，没有逐字段对齐；
+#       2) 部分失败面：例 A 两条全炸 ⇒ 看不见"第 2 条炸会不会连坐第 1 条的送达"；
+#       3) 空归因面：`imp.get("recommendation_id", "")` / `imp.get("rank", 0)` 的回退分支
+#          此前零覆盖（dashboard 侧由 l922-101 钉过，跨路径侧没有对应例）。
+#     🔴 现状与 l922-101 遗留问题 1 同型（写序 add→impressions→emit 未动），解法属
+#        l923-06 的设计稿裁决：docs/insights/learn-shown-writeorder-design-20260923.md（A2 方案）。
+#        例 3/例 4 钉的"空 recommendation_id 进事件库"在 l923-07 之后**单次渲染内构造不出来**
+#        （per-item try 保证 impressions 先写），但 A2 一旦落地就会变成常态路径 ⇒ 这两例是留给
+#        那单的靶子，不是可删的样板断言。
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_cross_click_report_reuses_the_impression_written_at_shown_time(wire, monkeypatch, fake_st):
+    """跨路径侧的归因链对照例（l922-101 同名例的跨路径孪生）：无故障时 clicked 的
+    recommendation_id / rank / surface 必须逐字段等于展示时写进 `_rec_impressions` 的那一份。
+
+    这条是"上报口径没串号"的正向契约：一旦有人把 impressions 的键从
+    (lang, pid, "cross_path") 改成不带 surface 的形态，dashboard 与 cross 两条路径就会互相
+    覆盖归因，而本例会当场红。
+    """
+    items = _cross(2)
+    em = _Emitter()
+    dao = _cross_setup(monkeypatch, items, em)
+
+    dashboard_page._render_cross_recommend(dao)          # 不外窜＝渲染完成
+
+    assert em.kinds() == ["recommendation_shown"] * 2 + ["recommendation_clicked"] * 2
+    shown = em.sent_of("recommendation_shown")
+    clicks = em.sent_of("recommendation_clicked")
+    impr = fake_st.session_state[IMPR_KEY]
+    for idx, it in enumerate(items):
+        c_pay = clicks[idx][1]["payload"]
+        s_pay = shown[idx][1]["payload"]
+        local = impr[(it["lang"], it["problem_id"], "cross_path")]
+        assert c_pay["recommendation_id"] == s_pay["recommendation_id"] == local["recommendation_id"]
+        assert c_pay["rank"] == s_pay["rank"] == local["rank"] == idx + 1
+        assert c_pay["surface"] == c_pay["reason_code"] == "cross_path"
+        assert clicks[idx][1]["lang"] == it["lang"] and clicks[idx][1]["problem_id"] == it["problem_id"]
+    assert len(em.sent_of("recommendation_clicked")) == 2
+
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_second_cross_click_failure_does_not_take_down_the_first_click_report(
+        wire, monkeypatch, fake_st, caplog):
+    """部分失败面：只有**第 2 条** clicked 抛 RuntimeError ⇒ 第 1 条照样送达、两条照样跳转。
+
+    这是例 A（fail-all 型）看不见的一格：跨路径点击的 try 收在单条 `if st.button` 体内
+    （与 dashboard 区 :169 那个"try 包整个 for"不同型），所以连带半径必须是零。
+    断言 ①：渲染完成、两张卡全在；②：第 1 条 clicked 落库且归因正确；③：失败那条按钮
+    仍完成跳转（rerun 2 次、selection 落在第 2 张卡）；④：日志恰 1 条点击侧文案、
+    DEBUG 带栈，且不误报"展示异常"；⑤：本地比事件库多 1 条 clicked（悬空账，A2 才归零）。
+    """
+    items = _cross(2)
+    calls, sent = [], []
+
+    def emit(kind, **kw):
+        calls.append(kind)
+        if kind == "recommendation_clicked" and calls.count("recommendation_clicked") == 2:
+            raise RuntimeError("第 2 条点击上报炸")
+        sent.append((kind, kw))
+
+    dao = _cross_setup(monkeypatch, items, emit)
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        dashboard_page._render_cross_recommend(dao)      # 不外窜＝异常收在单条体内
+
+    assert calls == ["recommendation_shown"] * 2 + ["recommendation_clicked"] * 2
+    # 展示侧零连坐
+    assert [(k, kw["problem_id"]) for k, kw in sent if k == "recommendation_shown"] == \
+        [("recommendation_shown", it["problem_id"]) for it in items]
+    # 第 1 条 clicked 完整送达、归因取展示时那份
+    landed = [kw for k, kw in sent if k == "recommendation_clicked"]
+    assert len(landed) == 1, "第 2 条失败不该把第 1 条一起吞掉"
+    assert landed[0]["problem_id"] == items[0]["problem_id"]
+    assert landed[0]["payload"]["recommendation_id"] == \
+        fake_st.session_state[IMPR_KEY][(items[0]["lang"], items[0]["problem_id"], "cross_path")]["recommendation_id"]
+    assert len(fake_st.session_state[IMPR_KEY]) == 2, "本地记 2 / 事件库到 1 ⇒ 差 1 条悬空账"
+    # 失败那条不是死键
+    assert fake_st.rerun_count == 2
+    assert fake_st.session_state.selection["problem_id"] == items[1]["problem_id"]
+    assert _cards_rendered(fake_st, items) == [it["title"] for it in items]
+    hits = [r for r in caplog.records if r.getMessage() == CROSS_CLICK_MSG]
+    assert len(hits) == 1 and hits[0].levelno == logging.DEBUG and hits[0].exc_info[0] is RuntimeError
+    assert [r for r in caplog.records if r.getMessage() == CROSS_MSG] == []
+
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_cross_click_with_no_impression_records_empty_id_and_failure_is_swallowed(
+        wire, monkeypatch, fake_st, caplog):
+    """现状桩（失败注入版）：impressions 里没有该条时，clicked 写
+    `recommendation_id=""` + `rank=0`，注入 emit_event 抛 RuntimeError 后被 :394 吞掉、
+    渲染与跳转均不受影响。
+
+    构造方式：预先把 `_cross_rec_shown_ids` 填满 ⇒ 展示循环被门控整批跳过（顺带钉住
+    "门控只看 shown 集合、不看 impressions 是否真的落库"这条写序缺陷），
+    `_rec_impressions` 留空 ⇒ 点击侧回退分支生效。
+    与 l922-101 遗留问题 1 同型；解法待 l923-06 设计稿（A2）裁决，本例只钉现状。
+    """
+    items = _cross(2)
+    fake_st.session_state[CROSS_SHOWN_KEY] = {(it["lang"], it["problem_id"]) for it in items}
+    em = _Emitter(fail_on=("recommendation_clicked",))
+    dao = _cross_setup(monkeypatch, items, em)
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        dashboard_page._render_cross_recommend(dao)      # 断言 ①：渲染仍完成
+
+    assert em.kinds() == ["recommendation_clicked"] * 2, "shown 被门控整批跳过 ⇒ 一条曝光也补不回来"
+    assert em.sent == []
+    for idx, (_k, kw) in enumerate(em.attempts):
+        pay = kw["payload"]
+        assert pay["recommendation_id"] == "" and pay["rank"] == 0, \
+            "impressions 缺条时点击归因退化成空串/0（脏事件的本体）"
+        assert pay["surface"] == "cross_path" and pay["reason_code"] == "cross_path"
+        assert kw["problem_id"] == items[idx]["problem_id"]
+    assert fake_st.rerun_count == 2, "上报失败不得把「去做 →」变成死键"
+    assert fake_st.session_state.selection["problem_id"] == items[-1]["problem_id"]
+    assert _cards_rendered(fake_st, items) == [it["title"] for it in items]
+    hits = [r for r in caplog.records if r.getMessage() == CROSS_CLICK_MSG]
+    assert len(hits) == 2 and all(r.exc_info[0] is RuntimeError for r in hits)
+
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_cross_click_with_no_impression_still_lands_an_unattributable_event(wire, monkeypatch, fake_st):
+    """现状桩（无故障版）：同一状态下上报正常时，**空 recommendation_id 的事件会真的进事件库**
+    ——漏斗于是收到一条 `clicked` 却查不到对应 `shown`（`clicked > shown` 的产生机制之一）。
+
+    只钉现状、不判对错：修它要动写序/门控（l923-06 设计稿 A2/A3，其中 A3 改漏斗口径属停手项），
+    超出执行班授权。本例与上一条配对，是为了让 A2 落地时**两条一起转红**、提醒改桩人
+    归因语义已变。
+    """
+    items = _cross(1)
+    fake_st.session_state[CROSS_SHOWN_KEY] = {(it["lang"], it["problem_id"]) for it in items}
+    em = _Emitter()
+    dao = _cross_setup(monkeypatch, items, em)
+
+    dashboard_page._render_cross_recommend(dao)
+
+    assert em.kinds() == ["recommendation_clicked"] * 1
+    assert len(em.sent_of("recommendation_shown")) == 0
+    pay = em.sent_of("recommendation_clicked")[0][1]["payload"]
+    assert pay["recommendation_id"] == "" and pay["rank"] == 0
+    assert pay["surface"] == "cross_path"
