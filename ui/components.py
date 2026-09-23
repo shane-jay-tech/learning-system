@@ -35,6 +35,35 @@ LANG_META = {
 ALL_LANGS = list(LANG_META.keys())
 
 
+# 「某道题的最近评判结果」在 session_state 里的键前缀（l923-16）。
+# 键名跨 ui/components 与 ui/pages/language 两个模块读写，字面量只能有这一处。
+JUDGE_RESULT_PREFIX = "last_judge_result::"
+
+
+def judge_result_key(pid: str) -> str:
+    """某道题（含 AI 变式题）的「最近评判结果」缓存键。
+
+    这以前是一个**裸全局键** `last_judge_result`：容量 1，任何一道题触发重置／
+    切专题／切题目／生成变式，pop 的都是同一格，于是 A 题的动作会把 B 题刚拿到的
+    结果一起抹掉（l922-114 遗留问题 1）。改成 per-pid 后每道题各占一格，
+    pop 只作用于自己那一格——「A 的动作销毁 B 的结果」在数据模型上不再可能。
+    """
+    return JUDGE_RESULT_PREFIX + pid
+
+
+def drop_shown_judge_result() -> None:
+    """清掉「当前展示中的那一份」评判结果。
+
+    切专题／切题目／跨页导航这些调用点手上没有 active_id（要清的是**正要离开**
+    的那道题），承载者是 `last_judge_pid`——每次判题都会和结果一起写，故按它定位。
+    拿得到 active_id 的站点（重置／生成变式／回到原题）请直接
+    `pop(judge_result_key(active_id), None)`，别绕这一圈。
+    """
+    owner = st.session_state.get("last_judge_pid")
+    if owner:
+        st.session_state.pop(judge_result_key(owner), None)
+
+
 def navigate_to_problem(lang: str, topic_slug: str | None = None, problem_id: str | None = None):
     """Unified navigation helper — all pages use this to jump to a problem.
 
@@ -57,7 +86,7 @@ def navigate_to_problem(lang: str, topic_slug: str | None = None, problem_id: st
         "topic_slug": topic_slug,
         "problem_id": problem_id,
     }
-    st.session_state.pop("last_judge_result", None)
+    drop_shown_judge_result()
     st.rerun()
 
 

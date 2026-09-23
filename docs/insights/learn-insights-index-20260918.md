@@ -14,6 +14,7 @@
 > - 本次落笔读数（2026-09-22 04:02 建档＝l922-127／04:2x 追加 1 份＝l922-129／04:4x 追加 1 份＝l922-130／04:5x 追加 1 份＝l922-131，后三份同处 HEAD `1831cc7` 的在途批；末次复算时刻 2026-09-22T04:52+08:00）：**A=62、B=62、C=空、重复=0 ⇒ 等式闭合**。
 > - 重建前读数（同一组命令）：**A=59、B=37、C=22 行、重复=0 ⇒ 不闭合**，缺的 22 行即 09-19 之后各浪新档。
 > - 2026-09-23 追加 1 份＝l923-06（写序缺陷设计稿 `learn-shown-writeorder-design-20260923.md`，登记时未跟踪）：复算 **A=63、B=63、C=空、重复=0 ⇒ 等式闭合**；哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed。
+> - 2026-09-23 再追加 1 份＝l923-17（F-1 outline 复位静态普查 `learn-focus-f1-outline-static-20260923.md`，登记时未跟踪）：复算 **A=64、B=64、C=空、重复=0 ⇒ 等式闭合**；同批哨兵复跑见 result（3 passed）。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
 > - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
@@ -40,6 +41,7 @@
 | docs/insights/learn-dashboard-coverage-20260917.md | 20260917 | dashboard.py 渲染主路径补测（916p-a3-015，2026-09-17，只增测试） | 已入库 | 0 |
 | docs/insights/learn-deps-suspects-20260918.md | 20260918 | pywebview / streamlit-ace 疑点依赖只读核报（2026-09-19 晨间执行班，任务 l918-08，零改动） | 已入库 | 0 |
 | docs/insights/learn-difficulty-histogram-20260921.md | 20260921 | learning 难度分布第三轮：末档空洞普查与判定（l922-06，2026-09-21） | 已入库 | 1 |
+| docs/insights/learn-focus-f1-outline-static-20260923.md | 20260923 | learning F-1 上行风险排查：Streamlit 1.58 自带样式里的 outline 复位普查（l923-17，2026-09-23，只读零源码改动） | 未跟踪 | 0 |
 | docs/insights/learn-focus-surface-audit-20260922.md | 20260922 | learning 键盘焦点覆盖面静态审计（unsafe_allow_html 面，l922-118，2026-09-22） | 已入库 | 0 |
 | docs/insights/learn-home-notice-migrate-20260922.md | 20260922 | home AI 档位 st.warning → render_notice 统一收口（l922-130 双形态并档） | 未跟踪 | 1 |
 | docs/insights/learn-insights-index-20260918.md | 20260918 | learning insights 索引（l918-12 建档 2026-09-19；l922-127 于 2026-09-22 04:02 按磁盘实况重建，本文件为当前权威索引） | 已入库 | 0 |

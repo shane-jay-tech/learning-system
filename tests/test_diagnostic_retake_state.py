@@ -182,13 +182,14 @@ class TestRetakeButton:
 
     def test_every_question_key_is_popped(self, monkeypatch):
         preset = {_key(i): i for i in range(len(DIAGNOSTIC_QUESTIONS))}
-        preset["last_judge_result"] = "keepme"      # 非 diag_ 前缀，不该被牵连
+        # l923-16：评判结果缓存已改 per-pid 命名空间，这里仍取「非 diag_ 前缀」的真实键形
+        preset["last_judge_result::python/t/p1"] = "keepme"   # 非 diag_ 前缀，不该被牵连
         fake = self._click(monkeypatch, **preset)
 
         left = [k for k in fake.session_state if k.startswith("diag_")]
         assert left == [], f"重测后仍残留旧答案键：{left}"
         _assert_active_intent(fake)
-        assert fake.session_state["last_judge_result"] == "keepme", "清理范围越界"
+        assert fake.session_state["last_judge_result::python/t/p1"] == "keepme", "清理范围越界"
         assert fake.rerun_count == 1
 
     def test_pop_is_tolerant_when_no_stale_answers(self, monkeypatch):

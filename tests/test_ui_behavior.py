@@ -72,13 +72,16 @@ class FakeStreamlit:
 
 def test_navigation_and_language_helpers(monkeypatch):
     fake = FakeStreamlit()
-    fake.session_state["last_judge_result"] = "old"
+    # l923-16：最近评判结果改 per-pid 命名空间，导航清的是「当前展示中」那一格，
+    # 承载者是 last_judge_pid（切题点手上没有 active_id）。
+    fake.session_state["last_judge_result::python/loops/p9"] = "old"
+    fake.session_state["last_judge_pid"] = "python/loops/p9"
     monkeypatch.setattr(components, "st", fake)
     components.navigate_to_problem("python", "loops", "p1")
     assert fake.session_state.route == "language"
     assert fake.session_state.selected_lang == "python"
     assert fake.session_state.selection == {"lang": "python", "topic_slug": "loops", "problem_id": "p1"}
-    assert "last_judge_result" not in fake.session_state
+    assert "last_judge_result::python/loops/p9" not in fake.session_state
     assert fake.rerun_count == 1
 
     assert components.code_highlight_lang("cpp") == "cpp"

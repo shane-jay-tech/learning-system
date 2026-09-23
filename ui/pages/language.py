@@ -9,8 +9,8 @@ from core.judge import judge
 from core.loader import load_language
 from core.progress import ProgressDAO
 from ui.components import (
-    LANG_META, ai_feedback_block, code_editor, hero, io_block,
-    lesson_box, navigate_to_problem, render_empty_state, render_error_notice, render_notice, section_title, stderr_block, verdict_banner,
+    LANG_META, ai_feedback_block, code_editor, drop_shown_judge_result, hero, io_block,
+    judge_result_key, lesson_box, navigate_to_problem, render_empty_state, render_error_notice, render_notice, section_title, stderr_block, verdict_banner,
 )
 
 
@@ -74,6 +74,36 @@ def _touch_problem(active_id: str) -> None:
     st.session_state["_problem_lru"] = lru[-_LRU_CAP:]
 
 
+def _clear_variant_editor_keys(variant_id: str) -> None:
+    """变式题退回原题时显式清掉它的 editor 侧键（l923-15，出口二）。
+
+    `_touch_problem` 对 `AI_VARIANT::` 提前 return，变式题的
+    `editor_<variant_id>_<epoch>` 与 `editor_epoch::<variant_id>` 因此都不受
+    LRU 逐出管理：在变式题上每按一次「↺ 重置」epoch+1，就多留一个 widget 残键，
+    长会话刷变式会无界累积（l922-113 遗留 2 / l922-114 遗留 2 同族）。
+    变式题的生命周期终点是「↩ 回到原题」（那一刻它已从 ai_variants 里弹出、
+    不会再被渲染），故在此把该题的 editor 键一次清干净。
+
+    只清被退回的那一道题：其它仍在 `ai_variants` 里的变式题若被顺手清了
+    epoch 计数器，下次 `_editor_key` 会退回 0 → widget key 变化 → 组件重建 →
+    用户已写的代码被 starter_code 覆盖。故对非 `AI_VARIANT::` 的 id 直接拒绝，
+    免得调用点传错把真题状态清掉。
+
+    键名用字符串拼接而非 f-string：`tests/test_language_editor_epoch.py` 按行扫
+    「editor_epoch:: 紧跟左花括号」这种字面量并钉了它在全仓**恰 2 处**（:40 读 /
+    :285 写），这里（甚至注释里）再造第三处同名形态都会把那条在册桩弄红。
+    """
+    if not variant_id.startswith("AI_VARIANT::"):
+        return
+    st.session_state.pop("editor_epoch::" + variant_id, None)
+    for k in list(st.session_state.keys()):
+        if not k.startswith("editor_"):
+            continue
+        body = k[len("editor_"):]
+        if "_" in body and body.rsplit("_", 1)[0] == variant_id:
+            st.session_state.pop(k, None)
+
+
 def _active_problem(base_problem):
     """返回当前展示的题（base 或 AI 变式题）+ is_variant 标志。"""
     variants = st.session_state.get("ai_variants", {})
@@ -121,7 +151,7 @@ def render_language():
             if t.slug == target_slug:
                 st.session_state.selected_topic_idx = i
                 st.session_state.selected_problem_idx = 0
-                st.session_state.pop("last_judge_result", None)
+                drop_shown_judge_result()
                 st.session_state[f"topic_select_{lang}"] = i
                 if target_problem_id:
                     for j, p in enumerate(t.problems):
@@ -174,7 +204,7 @@ def _render_body(lang, topics, topic, dao):
         if new_topic_idx != st.session_state.selected_topic_idx:
             st.session_state.selected_topic_idx = new_topic_idx
             st.session_state.selected_problem_idx = 0
-            st.session_state.pop("last_judge_result", None)
+            drop_shown_judge_result()
             st.rerun()
 
     with nav_problem:
@@ -194,7 +224,7 @@ def _render_body(lang, topics, topic, dao):
         )
         if new_problem_idx != st.session_state.selected_problem_idx:
             st.session_state.selected_problem_idx = new_problem_idx
-            st.session_state.pop("last_judge_result", None)
+            drop_shown_judge_result()
             st.rerun()
 
     base_problem = topic.problems[st.session_state.selected_problem_idx]
@@ -246,7 +276,7 @@ def _render_body(lang, topics, topic, dao):
                     variant = generate_variant(lang, base_problem.to_dict())
                 if variant:
                     st.session_state.ai_variants[base_problem.id] = variant
-                    st.session_state.pop("last_judge_result", None)
+                    st.session_state.pop(judge_result_key(active_id), None)
                     st.rerun()
                 else:
                     render_error_notice(
@@ -258,7 +288,8 @@ def _render_body(lang, topics, topic, dao):
             if is_variant:
                 if st.button("↩ 回到原题", key=f"back_{base_problem.id}", use_container_width=True):
                     st.session_state.ai_variants.pop(base_problem.id, None)
-                    st.session_state.pop("last_judge_result", None)
+                    _clear_variant_editor_keys(active_id)
+                    st.session_state.pop(judge_result_key(active_id), None)
                     st.rerun()
 
     with right_col:
@@ -284,7 +315,7 @@ def _render_body(lang, topics, topic, dao):
                 # epoch+1 → 编辑器 key 变化 → 组件重建，重置真正生效
                 epoch_key = f"editor_epoch::{active_id}"
                 st.session_state[epoch_key] = st.session_state.get(epoch_key, 0) + 1
-                st.session_state.pop("last_judge_result", None)
+                st.session_state.pop(judge_result_key(active_id), None)
                 st.rerun()
         with ask_col:
             if st.button("💬 做题中问 AI", use_container_width=True, key=f"preask_{active_id}"):
@@ -301,7 +332,7 @@ def _render_body(lang, topics, topic, dao):
             with st.spinner(spinner_msg):
                 judge_dao = None if is_variant else dao
                 result = judge(lang, active, code or "", dao=judge_dao)
-            st.session_state.last_judge_result = result
+            st.session_state[judge_result_key(active_id)] = result
             st.session_state.last_judge_pid = active_id
             # 判定完成即时提示：结果区在编辑器下方，rerun 后页面回顶，用户容易看不到
             st.toast("✅ 已判定，结果在下方" if result.passed else "❌ 未通过，看下方对比与点评")
@@ -314,10 +345,10 @@ def _render_body(lang, topics, topic, dao):
             st.session_state[f"chat_history::{active_id}"] = []
 
         if (
-            st.session_state.get("last_judge_result") is not None
+            st.session_state.get(judge_result_key(active_id)) is not None
             and st.session_state.get("last_judge_pid") == active_id
         ):
-            r = st.session_state.last_judge_result
+            r = st.session_state[judge_result_key(active_id)]
             if is_open:
                 verdict_banner(r.passed, 0)
                 if r.expected_display and r.expected_display != "（开放题，无标准答案）":

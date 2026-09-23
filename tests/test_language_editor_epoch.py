@@ -106,7 +106,7 @@ class TestResetKeyContract:
             'st.session_state[key] = active.get("starter_code", "")',
             'epoch_key = f"editor_epoch::{active_id}"',
             'st.session_state[epoch_key] = st.session_state.get(epoch_key, 0) + 1',
-            'st.session_state.pop("last_judge_result", None)',
+            'st.session_state.pop(judge_result_key(active_id), None)',
             "st.rerun()",
         ]
         for frag in order:
