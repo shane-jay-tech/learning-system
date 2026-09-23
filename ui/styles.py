@@ -216,6 +216,14 @@ a:focus-visible, [data-testid="stSidebar"] a:focus-visible,
   outline: 3px solid rgba(91, 91, 214, .28) !important; outline-offset: 2px;
   border-radius: 6px;
 }
+/* l923-18 F-1 实装：展开区标题行纳入同一品牌焦点描边。此前本仓 12 处展开器
+   拿的是 streamlit 自带的 0.2rem 半透明阴影环（与本文件上两组描边不同源）；
+   streamlit 对该元素另有 outline 复位，故本声明带 !important 才能压住它。
+   静态普查依据见 docs/insights/ 里的 learn-focus-f1-outline-static 档；
+   浏览器 Tab 目检 12 处展开头留日间批（见 l923-18 result）。 */
+[data-testid="stExpander"] summary:focus-visible {
+  outline: 3px solid rgba(91, 91, 214, .28) !important; outline-offset: 2px;
+}
 [data-baseweb="select"] > div, .stTextInput input, .stTextArea textarea {
   min-height: 42px; border-color: var(--border-strong) !important; border-radius: 10px !important;
 }

@@ -1,35 +1,44 @@
 # -*- coding: utf-8 -*-
-"""错题本 _lookup_problem 模块级缓存桩的语义钉（l922-119）。
+"""错题本 _lookup_problem 模块级缓存桩的语义钉（l922-119 立桩，l923-19 随 mtime 失效改版）。
 
-钉两条此前无测试、但确实是 :10/:16 那 5 行存在理由的语义：
-1. **命中不重扫**：同 (lang, pid) 的第二次调用不再触发 find_problem——这是「100 道错题
-   从 O(M×P) 降为 O(M+P)」的全部依据；若哪天有人把 :15 的 `if key not in
+钉两条此前无测试、但确实是 :17/:54 那几行存在理由的语义：
+1. **命中不重扫**：同 (lang, pid, mtime) 的第二次调用不再触发 find_problem——这是「100 道错题
+   从 O(M×P) 降为 O(M+P)」的全部依据；若哪天有人把 :53 的 `if key not in
    _problem_lookup_cache` 改成真值判断，本文件立刻红。
 2. **负结论同样进缓存**：find_problem 查无此题返回 (None, None)，该假值元组照样被存进
    字典并复用（判据是 `key not in`，不是 `not cached_value`），所以 missing 题也只扫
-   一遍；页面侧 :72/:100 再用 `problem_obj.title if problem_obj else <problem_id>`
+   一遍；页面侧 :115/:143 再用 `problem_obj.title if problem_obj else <problem_id>`
    回退成「拿题号当标题」。missing 回退展示这条一并钉住。
 
-失效边界（**已知限制，本单只钉现状语义、不改 ui/**）：
-- `_problem_lookup_cache` 是进程级可变全局，**没有任何失效通道**：既不看 content/ 下
-  yaml 的 mtime，也不随 st.rerun() 清（rerun 只重跑脚本体，Python 模块对象不销毁）。
-  ⇒ 开发模式下改了题面/题号/题目顺序，页面仍拿旧对象，**必须重启 streamlit 进程**才生效。
-  test_已知限制_改题库后仍拿旧对象_需重启进程 就是这条限制的可执行说明书。
-  加失效（mtime 进键／暴露 clear 入口）属实现变更，需拍板，本单不动 ui/。
-- 缓存无上限：键数量级 = 题库题目总数，只存引用不存副本，不构成泄漏面。
+失效边界（**l923-19 已按「键里并 mtime」实装，本节从「无失效通道」改写为新语义**）：
+- `_problem_lookup_cache` 仍是进程级可变全局，但键的**第三元是题面 yaml 的 mtime**
+  （`_problem_yaml_mtime`）⇒ 改了 content/ 下那道题的 yaml，mtime 变、键 miss、
+  **下一帧就拿到新对象，不必重启 streamlit 进程**。写新格时顺手剪掉同题的旧 mtime 格
+  （`_drop_stale_entries`），字典不随改题次数无界增长。
+- 两个**刻意保留**的退化面，各由一条例钉住：
+  ① mtime 取不到（题面文件已删／pid 不是 `<lang>/<slug>/<stem>` 三段式／内容根目录缺失）
+     时键退化为 `(lang, pid, None)`，语义回到旧版「一次写入、进程内不失效」，且**不抛错**；
+  ② 本层 miss 之后还要过 `core/loader.py` 的签名 memo（`_SIG_TTL_SEC = 2.0`），
+     故端到端陈旧窗口是「至多 2 秒」而不是 0。本文件把 find_problem 整体打桩，
+     因此 ② 不在本层的断言范围内（要钉它得去 loader 侧，属另一单）。
+- 若将来再改成「暴露 clear_lookup_cache() 给热重载钩子」，本文件的 mtime 例应随之改写。
+- 缓存无上限这条已收窄：同一题至多留 1 格（旧格被剪），键数量级仍 = 题库题目总数。
 
 测试间隔离（完成标准 ③）：autouse fixture 每例前后清空 `_problem_lookup_cache`。
 它是模块级全局，本文件内例与例之间必然互相污染；tests/test_mistakes_edges.py 走的是
 打桩 `_lookup_problem`（不碰这个字典），故本 fixture 对那 3 例无副作用。
 """
+import os
+
 import pytest
 
+import core.loader as content_loader
 import ui.pages.mistakes as mistakes_page
 from tests.test_ui_behavior import FakeStreamlit
 
 
 class _Problem:
-    """替身题目对象：页面只读 .title（:100），不碰别的属性。"""
+    """替身题目对象：页面只读 .title（现读 :115/:143），不碰别的属性。"""
 
     def __init__(self, title):
         self.title = title
@@ -96,7 +105,8 @@ def test_命中路径_同键二次调用不再触发_find_problem(monkeypatch):
 
     assert calls == [("python", "p1")], f"命中路径不该重扫，实际调用 {calls}"
     assert first == second == (topic, problem)
-    assert mistakes_page._problem_lookup_cache[("python", "p1")] == (topic, problem)
+    # 键的第三元是题面 yaml 的 mtime；"p1" 不是三段式 pid ⇒ 取不到 mtime，退化为 None。
+    assert mistakes_page._problem_lookup_cache[("python", "p1", None)] == (topic, problem)
 
 
 def test_复杂度承诺_M道错题各扫一次_三遍渲染只扫M次(monkeypatch):
@@ -141,7 +151,7 @@ def test_missing负结论也进缓存_二次调用不重扫(monkeypatch):
     assert calls == [("python", "p_gone")], (
         "missing 必须走缓存：若 :15 被改成真值判断，这里会重扫，复杂度承诺被打回 O(M×P)"
     )
-    assert ("python", "p_gone") in mistakes_page._problem_lookup_cache
+    assert ("python", "p_gone", None) in mistakes_page._problem_lookup_cache
 
 
 # ---------- 语义 2b：missing 回退 pid 展示（完成标准 ① 的第二例） ----------
@@ -181,30 +191,111 @@ def test_暖过缓存后渲染全程零find_problem调用(monkeypatch):
     assert any("热重载前题面" in m for m in markdowns), markdowns
 
 
-# ---------- 已知限制：进程级缓存无失效通道 ----------
+# ---------- l923-19：mtime 进键 ⇒ 改题面即失效（本节原名「已知限制：无失效通道」） ----------
 
-def test_已知限制_改题库后仍拿旧对象_需重启进程(monkeypatch):
-    """开发模式改 content/ 下 yaml 后页面看不到新值——本例把该限制钉成可执行说明书。
+def _content_root(monkeypatch, tmp_path):
+    """把内容根指到 tmp_path，并造一道真实的 `<lang>/<slug>/<stem>.yaml`。
 
-    若将来给缓存加了失效（mtime 进键、或暴露 clear_* 入口），本例会红，
-    届时请同步删掉/改写本文件 docstring 的「失效边界」一节。
+    返回 (yaml 路径, 三段式 pid)。mtime 由实现自己 stat 真文件得来，夹具不伪装时间戳。
+    ⚠️ 这里只把 `core.loader._DEFAULT_CONTENT` 换掉：`_problem_yaml_mtime` 每次调用都现取
+    该属性，所以补丁必须打在 loader 模块上而不是 mistakes_page 上（本仓内容根是单源）。
     """
+    yaml_path = tmp_path / "python" / "01_x" / "01_p.yaml"
+    yaml_path.parent.mkdir(parents=True)
+    yaml_path.write_text("title: 旧题面\n", encoding="utf-8")
+    monkeypatch.setattr(content_loader, "_DEFAULT_CONTENT", str(tmp_path))
+    return yaml_path, "python/01_x/01_p"
+
+
+def _bump_mtime(path, delta: float = 1.0) -> None:
+    """显式把 mtime 前进 delta 秒：不靠"改内容顺带改时间戳"，避开文件系统时间粒度撞车。"""
+    st = path.stat()
+    os.utime(path, (st.st_atime + delta, st.st_mtime + delta))
+
+
+def test_mtime辅助_三段式pid映射到题面yaml_其余三类取不到(monkeypatch, tmp_path):
+    """mtime 来源自身的边界：能算的算、不能算的返回 None（这是「退化」的入口条件）。"""
+    yaml_path, pid = _content_root(monkeypatch, tmp_path)
+    assert mistakes_page._problem_yaml_mtime("python", pid) == yaml_path.stat().st_mtime
+    assert mistakes_page._problem_yaml_mtime("python", "p1") is None, "非三段式 pid 无从定位文件"
+    assert mistakes_page._problem_yaml_mtime("sql", pid) is None, "lang 与 pid 首段不符 ⇒ 不猜路径"
+    yaml_path.unlink()
+    assert mistakes_page._problem_yaml_mtime("python", pid) is None, "文件已删 ⇒ OSError 被吞成 None"
+
+
+def test_mtime进键_改题面yaml后下一帧取新值(monkeypatch, tmp_path):
+    """l922-119 预告的那条例（原名 `test_已知限制_改题库后仍拿旧对象_需重启进程`）。
+
+    该例当时钉的是「缓存没有任何失效通道，开发模式改题面必须重启进程」，并写明
+    「若将来实装了 mtime 进键，本例会红，届时同步删改 docstring 的失效边界节」。
+    l923-19 落地的正是 mtime 进键 ⇒ 本例按预告**翻转成新语义**并改名，docstring 已同步。
+    """
+    yaml_path, pid = _content_root(monkeypatch, tmp_path)
     old = _Problem("旧题面")
-    fake_find_old, _ = _fake_find_problem({("python", "p1"): (object(), old)})
+    fake_find_old, calls_old = _fake_find_problem({("python", pid): (object(), old)})
     monkeypatch.setattr(mistakes_page, "find_problem", fake_find_old)
-    assert mistakes_page._lookup_problem("python", "p1")[1] is old
 
-    # 模拟开发者改完 yaml：换成返回新对象的实现
+    assert mistakes_page._lookup_problem("python", pid)[1] is old
+    assert calls_old == [("python", pid)], "首帧必扫一次"
+    assert ("python", pid, yaml_path.stat().st_mtime) in mistakes_page._problem_lookup_cache
+
+    # 开发者改完题面：实现换成返回新对象，并把 yaml 的 mtime 前进 1 秒
     new = _Problem("改过的题面")
-    fake_find_new, calls_new = _fake_find_problem({("python", "p1"): (object(), new)})
+    fake_find_new, calls_new = _fake_find_problem({("python", pid): (object(), new)})
     monkeypatch.setattr(mistakes_page, "find_problem", fake_find_new)
+    _bump_mtime(yaml_path)
 
-    stale = mistakes_page._lookup_problem("python", "p1")[1]
-    assert stale is old, "现状：缓存不失效，热重载后仍拿到旧题目对象"
-    assert calls_new == [], "仍无任何调用 ⇒ 实现侧没有重载感知（要感知就得先失效）"
-    assert not hasattr(mistakes_page, "clear_lookup_cache"), (
-        "若新增了显式失效入口，请连同本文件 docstring 的失效边界一起更新"
-    )
+    assert mistakes_page._lookup_problem("python", pid)[1] is new, (
+        "mtime 变了还拿旧对象 ⇒ 键里没并上 mtime，失效通道没接上")
+    assert calls_new == [("python", pid)], "mtime 变更后应重扫恰好一次"
+
+
+def test_mtime未变_同键仍命中缓存不重扫(monkeypatch, tmp_path):
+    """反向守卫（变异有牙用）：mtime 没动就不该重扫——否则「每次都扫表」也能让上一条绿。"""
+    _yaml_path, pid = _content_root(monkeypatch, tmp_path)
+    fake_find, calls = _fake_find_problem({("python", pid): (object(), _Problem("题面"))})
+    monkeypatch.setattr(mistakes_page, "find_problem", fake_find)
+
+    first = mistakes_page._lookup_problem("python", pid)
+    for _ in range(5):
+        assert mistakes_page._lookup_problem("python", pid) == first
+
+    assert calls == [("python", pid)], f"mtime 未变仍重扫，复杂度承诺被打回 O(M×P)：{calls}"
+
+
+def test_mtime进键后旧格被剪_反复改题不让字典无界增长(monkeypatch, tmp_path):
+    """mtime 进键的副作用收口：同题只留最新那一格（每改一次题就多一格的写法等于漏）。"""
+    yaml_path, pid = _content_root(monkeypatch, tmp_path)
+    for round_no in range(4):
+        fake_find, _ = _fake_find_problem(
+            {("python", pid): (object(), _Problem(f"第{round_no}版"))})
+        monkeypatch.setattr(mistakes_page, "find_problem", fake_find)
+        _bump_mtime(yaml_path, 1.0)
+        mistakes_page._lookup_problem("python", pid)
+
+    same_pid = [k for k in mistakes_page._problem_lookup_cache if k[1] == pid]
+    assert len(same_pid) == 1, f"同题残留 {len(same_pid)} 格（应为 1）：{same_pid}"
+    assert len(mistakes_page._problem_lookup_cache) == 1, mistakes_page._problem_lookup_cache
+
+
+def test_退化路径_题面yaml不存在时行为回到旧版且不抛错(monkeypatch, tmp_path):
+    """完成标准 ②：拿不到 mtime ⇒ 键退化为 `(lang, pid, None)`，仍是「一次写入、进程内不失效」。
+
+    这条不是"顺手加的"：题被删掉但错题表里还留着 problem_id 是真实场景（页面 :115/:143
+    正是为此才写 `problem_obj.title if problem_obj else problem_id` 的回退）。
+    若把 None 当成"永远 miss"，每次渲染都会重扫全表 ⇒ O(M×P) 回归。
+    """
+    yaml_path, pid = _content_root(monkeypatch, tmp_path)
+    yaml_path.unlink()
+    fake_find, calls = _fake_find_problem({("python", pid): (object(), _Problem("孤儿题"))})
+    monkeypatch.setattr(mistakes_page, "find_problem", fake_find)
+
+    r1 = mistakes_page._lookup_problem("python", pid)
+    r2 = mistakes_page._lookup_problem("python", pid)
+
+    assert r1 == r2, "退化路径应稳定复用同一结果"
+    assert calls == [("python", pid)], "mtime 取不到时不得每次重扫（那会把复杂度打回 O(M×P)）"
+    assert ("python", pid, None) in mistakes_page._problem_lookup_cache
 
 
 def test_缓存对象是模块级全局且跨调用保持同一实例(monkeypatch):
@@ -216,4 +307,4 @@ def test_缓存对象是模块级全局且跨调用保持同一实例(monkeypatc
     mistakes_page._lookup_problem("python", "p1")
 
     assert mistakes_page._problem_lookup_cache is cache_before, "必须是原地写入，不该整体替换"
-    assert ("python", "p1") in mistakes_page._problem_lookup_cache
+    assert ("python", "p1", None) in mistakes_page._problem_lookup_cache

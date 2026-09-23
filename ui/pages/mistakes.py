@@ -1,5 +1,8 @@
+import os
+
 import streamlit as st
 
+from core import loader as content_loader
 from core.loader import find_problem, load_language
 from core.progress import ProgressDAO, format_local_ts
 from ui.components import render_empty_state
@@ -7,13 +10,49 @@ from ui.components import ALL_LANGS, LANG_META, ai_feedback_block, code_highligh
 
 # find_problem 每次全量线性扫描该语言题库；错题本里每道错题都会调一次。
 # 缓存查找结果：100 道错题从 O(M×P) 降为 O(M+P)。
+# l923-19：缓存键第三元是题面 yaml 的 mtime ⇒ 改了题面、下一帧就取新值，
+# 不必重启进程；mtime 取不到（题已删、pid 形态不符）时该格退化成旧语义
+# （一次写入、进程内不再失效）。陈旧窗口由 2 秒（core/loader 的签名 memo
+# TTL）封顶，不再是「进程级永不失效」。详见 tests/test_mistakes_lookup_cache.py。
 _problem_lookup_cache: dict = {}
 
 
+def _problem_yaml_mtime(lang: str, pid: str):
+    """题面 yaml 的 mtime；任何一环取不到都返回 None（退化，不抛错）。
+
+    pid 形如 `<lang>/<slug>/<stem>`（core/loader.py 的 `_build_problem` 是单源），
+    故题面文件 = 内容根/<lang>/<slug>/<stem>.yaml，直接 stat、不扫全表。
+    内容根单源取 core.loader 的默认目录，避免本文件再硬编码一份 content/ 路径。
+    """
+    parts = pid.split("/")
+    if len(parts) != 3 or parts[0] != lang:
+        return None
+    base = getattr(content_loader, "_DEFAULT_CONTENT", None)
+    if not base:
+        return None
+    try:
+        return os.path.getmtime(os.path.join(base, *parts) + ".yaml")
+    except OSError:
+        return None
+
+
+def _drop_stale_entries(key) -> None:
+    """同题只留最新 mtime 那一格。
+
+    mtime 进键后若不剪旧格，每改一次题就多一格，开发模式反复改题会让字典
+    无界增长。剪完之后仍是「每题至多一次扫表」，O(M+P) 的复杂度承诺不变。
+    """
+    lang, pid = key[0], key[1]
+    for stale in [k for k in _problem_lookup_cache
+                  if k[0] == lang and k[1] == pid and k != key]:
+        del _problem_lookup_cache[stale]
+
+
 def _lookup_problem(lang: str, pid: str):
-    key = (lang, pid)
+    key = (lang, pid, _problem_yaml_mtime(lang, pid))
     if key not in _problem_lookup_cache:
         _problem_lookup_cache[key] = find_problem(lang, pid)
+        _drop_stale_entries(key)
     return _problem_lookup_cache[key]
 
 
@@ -29,11 +68,15 @@ def render_mistakes():
 
 def _render_mistakes_body(dao: ProgressDAO):
     mistakes = dao.list_mistakes()
+    # limit=50 ⇒ 到期侧拿到的是**页内条数**（core/progress.py 的那条 SQL 带 LIMIT，
+    # 真数在库侧就被丢掉），错题侧 list_mistakes() 无 LIMIT ⇒ 全量真数。
+    # 汇总行文案按这个不对称标出下限语义（l923-20）；另一条出口「加 COUNT(*) 伴生
+    # 查询」属实现改动，未实装、仍待裁决（l922-123 遗留问题原文）。
     due_reviews = dao.get_due_reviews(limit=50)
     overdue_count = len(due_reviews)
     wrong_count = len(mistakes)
 
-    st.markdown(f"**错题 {wrong_count} 道 · 到期复习 {overdue_count} 道**")
+    st.markdown(f"**错题 {wrong_count} 道 · 最近 50 条内到期复习 {overdue_count} 道**")
 
     if wrong_count == 0 and overdue_count == 0:
         st.success("没有错题也没有到期复习，做得不错！")
