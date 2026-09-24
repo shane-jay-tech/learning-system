@@ -66,7 +66,7 @@ def get_paths_detail():
     return result
 
 
-_SKIP_DIRS = {".venv", "__pycache__", "node_modules", ".git", ".pytest_cache"}
+_SKIP_DIRS = {".venv", "__pycache__", "node_modules", ".git", ".pytest_cache", "tmp"}  # tmp 是各班探针的落地处：计入会让"代码行数"测一次随探针涨一次，不可复算（l923-25 在册，l924-13 收口）
 
 
 def count_source_lines():
