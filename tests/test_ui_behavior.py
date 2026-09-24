@@ -434,9 +434,21 @@ def test_home_wrapper_security_notice_and_body(monkeypatch):
 
     public_fake = FakeStreamlit()
     monkeypatch.setattr(home_page, "st", public_fake)
+    # l924-10 双侧接线：公开部署提示改经 components.render_error_notice 发出，档位落在
+    # components.st 上。不接这一侧本例**当场红**（N1 变异实测）；同类迁移里若断言只查文案不查
+    # 档位，就会退化成"录不到却全绿"的静默失明——l923-21 的告诫按本 site 实况收窄。
+    # 手法照本函数 :393 d914-21 那条 info 档同型（仓内另有 l922-130 的 `_patch_st` 助手，见 test_home_ai_pulse）。
+    monkeypatch.setattr(components, "st", public_fake)
     monkeypatch.setattr("core.config.is_public_deploy", lambda: True)
     home_page._render_security_notice(dao)
-    assert any(call[0] == "error" for call in public_fake.calls)
+    errors = [call[1][0] for call in public_fake.calls if call[0] == "error"]
+    assert len(errors) == 1, f"公开部署提示应恰好一条，实为 {errors}"
+    text = errors[0]
+    # 三要素**按段**钉（不是"整串里找得到词"）：把 reason 与 next_action 互换内容也必须红。
+    assert text.startswith("**当前为公开部署模式**"), f"title 要素丢了或位置变了：{text!r}"
+    head, _, tail = text.partition("下一步：")
+    assert "原因：" in head and "代码执行已禁用" in head, f"reason 段不齐：{text!r}"
+    assert "RUNNER_SECURITY_MODE=public" in tail and "后重启" in tail, f"next_action 段不齐：{text!r}"
 
 
 def test_language_render_guardrails_and_selection(monkeypatch):

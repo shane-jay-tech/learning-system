@@ -10,7 +10,7 @@ from core.loader import load_language
 from core.paths import load_all_paths
 from core.progress import ProgressDAO
 from core.recommend import recommend
-from ui.components import render_empty_state,  ALL_LANGS, LANG_META, hero, lang_card_html, metric_tile, navigate_to_problem, section_title, render_notice, render_info_notice, render_success_notice
+from ui.components import render_empty_state,  ALL_LANGS, LANG_META, hero, lang_card_html, metric_tile, navigate_to_problem, section_title, render_notice, render_info_notice, render_success_notice, render_error_notice
 
 
 @st.cache_data(ttl=300)  # 题库 5 分钟缓存——首次扫 5 个 lang 后续秒响应
@@ -33,9 +33,16 @@ def _render_security_notice(dao):
     from core.config import is_public_deploy
 
     if is_public_deploy():
-        st.error(
-            "**当前为公开部署模式** — 代码执行已禁用。\n\n"
-            "如需在本机单人使用，请移除环境变量 `RUNNER_SECURITY_MODE=public` 后重启。"
+        # l924-10：公开部署提示收口到 components.render_error_notice——这是全站页面级最后一处
+        # 裸档位调用（其余四处见 dashboard.py:356 / language.py:146,156,304 / path.py:87）。
+        # 三要素重排属**文案改动**，授权链条：l923-21 遗留 1 → 主班裁成 l924-10。
+        # 原句的三件事实一字不丢：公开部署模式／代码执行已禁用／移除 RUNNER_SECURITY_MODE=public 后重启。
+        # ⚠ 告警自本笔起落在 components.st 上：测试必须**双侧接线**（页面名＋components 同桩），
+        #   否则这条通知在测试里根本录不到——同 :44 那处 info 档 l923-21 撞过的坑。
+        render_error_notice(
+            "当前为公开部署模式",
+            reason="代码执行已禁用",
+            next_action="如需在本机单人使用，请移除环境变量 `RUNNER_SECURITY_MODE=public` 后重启",
         )
         return
 
