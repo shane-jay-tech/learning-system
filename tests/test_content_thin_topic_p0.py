@@ -6,7 +6,13 @@
 `python/21_datetime_ts` 3→5；净增 9 题，399→408）。
 
 **本单没有补题**：题面与 `expected_output` 属新增教学内容，执行班没有权威素材来源时不得代造
-（内容正确性红线；缺什么素材、三处口径联动清单见 `zcode-bridge/outbox/l922-128-thin-topics-fill.result.md`）。
+（内容正确性红线；缺什么素材、联动清单见 `zcode-bridge/outbox/l922-128-thin-topics-fill.result.md`）。
+联动口径与下方 `P0_SNAPSHOT` 头的同步清单**同一条**：2026-09-24 磁盘实取 = **等值点 4 处 + 精确桩 2 件**
+（原头注的旧计数系上游笔误，与下方同步清单任何一条都对不上；自引用只写常量名不写行号，避免本文件增删行时自己漂）：
+复算 `rg -n "^    assert.*== 403" tests/`(2，只取真断言行、自动排除清单注释里的同字样行) ＋
+`rg -n "^PINNED_HIST" tests/`(1) ＋ `rg -n "403 题" README.md`(1) ＝ 等值点 4；
+精确桩 2 件 = `tests/test_content_census_python.py` ＋ 本文件 `P0_SNAPSHOT`
+（另随 `docs/insights/learn-thin-thick-topics-20260921.md` §四落点表同步）。
 本文件补的是 l922-07 遗留 2 点名的结构缺口——「现 `tests/test_content_census.py` 只在**题**级断言，
 无 topic 级」，把「补题这件事发生时哪些口径必须同步」变成可 diff 的红。
 
