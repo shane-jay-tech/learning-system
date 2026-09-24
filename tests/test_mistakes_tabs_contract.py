@@ -16,6 +16,11 @@ l923-19 在同文件上方插入了缓存 mtime 助手、l923-20 又加了 4 行
 DAO 与 `_lookup_problem` 全部打桩，**不触真实题库**（`_problem_lookup_cache` 的失效通道
 已由 l923-19 实装为「键里并 yaml mtime」，本单也不依赖它）。
 本文件的例只加测试；**页面侧那一行文案改动属 l923-20 的授权范围**（零行为变更，`limit=50` 未动）。
+
+l924-08 续笔：l923-20 留给裁量的「标签要不要一起标」已采纳，页面侧仍只改 `mistakes.py:87` 一行
+（`到期复习 (N)` → `到期复习 (N · 至多)`），本文件随之同步 3 处标签字面断言＋联动契约例里的
+标签解析式。**汇总行三组数、`page_cap == 50` 跨源断言、`limit=50` 调用实参一律未动**——
+本单动的是字面，不是计数口径。
 """
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -117,13 +122,13 @@ def test_只有错题_标签两级且无到期复习项(monkeypatch):
 
 def test_双有_到期复习在前错题在后弱项收尾(monkeypatch):
     _, summary, labels = _body(monkeypatch, _mk(3, "wrong"), _mk(5, "due"))
-    assert labels == ["到期复习 (5)", "错题重做 (3)", "弱项专练"], labels
+    assert labels == ["到期复习 (5 · 至多)", "错题重做 (3)", "弱项专练"], labels
     assert summary == "**错题 3 道 · 最近 50 条内到期复习 5 道**", summary
 
 
 def test_只有到期_标签两级且无错题项(monkeypatch):
     _, summary, labels = _body(monkeypatch, [], _mk(4, "due"))
-    assert labels == ["到期复习 (4)", "弱项专练"], labels
+    assert labels == ["到期复习 (4 · 至多)", "弱项专练"], labels
     assert summary == "**错题 0 道 · 最近 50 条内到期复习 4 道**", summary
 
 
@@ -138,6 +143,11 @@ def test_汇总行数字与tab标签数字逐值相等(monkeypatch, n_wrong, n_d
     现改成整条形态匹配：三组数各归各位（错题数／标记里的页大小／到期数），
     并**新增**一条"标记里的 50 必须等于页面写死的 limit=50"的跨源断言——
     即文案与查询参数不同源时本例主动红。判据没放宽，是收紧。
+
+    l924-08 起标签侧也带了一段字面下限标记（`到期复习 (5 · 至多)`），标签解析式
+    因此加了一个**可选**捕获组去接它：计数位仍只认 `\((\d+)…\)$`，没退化成
+    `\d+.*`（那样"数字被文案挤走"也会被读成合法）。同时新增两条"标记只准出现在
+    到期侧"的双向断言 ⇒ 这一例对本单是**收紧**，不是为了让它绿而放宽。
     """
     import re
     fake, summary, labels = _body(monkeypatch, _mk(n_wrong, "wrong"), _mk(n_due, "due"))
@@ -147,17 +157,23 @@ def test_汇总行数字与tab标签数字逐值相等(monkeypatch, n_wrong, n_d
     assert page_cap == 50, f"文案标的页大小与页面 limit=50 不同源：{page_cap}"
     assert (s_wrong, s_due) == (n_wrong, n_due), summary
     tag = {}
+    mark = {}
     for lb in labels:
-        m = re.match(r"(.+) \((\d+)\)$", lb)
+        m = re.match(r"(.+) \((\d+)( · 至多)?\)$", lb)
         if m is None:
             assert lb == "弱项专练", f"唯一不带计数的标签应是弱项专练，实为 {lb}"
             continue
         tag[m.group(1)] = int(m.group(2))
+        mark[m.group(1)] = m.group(3)
     assert tag.get("错题重做", 0) == s_wrong, (tag, summary)
     assert tag.get("到期复习", 0) == s_due, (tag, summary)
     # 汇总为 0 的那一侧，标签里就不该出现同名项（条件追加语义）
     assert ("错题重做" in tag) == (s_wrong > 0), (tag, summary)
     assert ("到期复习" in tag) == (s_due > 0), (tag, summary)
+    # l924-08：下限标记只准挂在到期侧。错题侧 list_mistakes() 无 LIMIT 是全量真数，
+    # 它若也带上「· 至多」就是说谎文案；到期侧一旦建标签就必须带 —— 双向都钉。
+    assert mark.get("到期复习") == (" · 至多" if s_due > 0 else None), (mark, summary)
+    assert mark.get("错题重做") is None, (mark, summary)
     assert labels[-1] == "弱项专练", f"弱项专练须恒在且收尾：{labels}"
     assert labels.count("弱项专练") == 1, labels
     assert not [c for c in fake.calls if c[0] == "success"], "非双零场景不应出整页空态"
@@ -184,8 +200,9 @@ def test_下限语义已标出_到期侧仍是页内条数而错题侧是全量�
     assert summary == "**错题 60 道 · 最近 50 条内到期复习 50 道**", summary
     assert "最近 50 条" in summary, "下限语义标记被摘掉了：50 会被读成到期总量"
     assert "错题 60 道" in summary, "错题侧是真值，不该带上下限字样"
-    # 标签侧（:85-90）本轮**未**加标记——见 l923-20 result 遗留问题 1，此处按现状钉住。
-    assert labels == ["到期复习 (50)", "错题重做 (60)", "弱项专练"], labels
+    # 标签侧（:85-90）自 l924-08 起也带下限标记：到期侧「· 至多」、错题侧无。
+    # （l923-20 把这一处留给文案裁量，本单采纳"标"那条出口；page_cap==50 跨源断言未动。）
+    assert labels == ["到期复习 (50 · 至多)", "错题重做 (60)", "弱项专练"], labels
     dao = fake.dao
     assert dao.get_due_reviews.call_args.kwargs == {"limit": 50}, dao.get_due_reviews.call_args
     assert dao.list_mistakes.call_args.kwargs == {}, dao.list_mistakes.call_args

@@ -84,7 +84,7 @@ def _render_mistakes_body(dao: ProgressDAO):
 
     tab_labels = []
     if overdue_count:
-        tab_labels.append(f"到期复习 ({overdue_count})")
+        tab_labels.append(f"到期复习 ({overdue_count} · 至多)")
     if wrong_count:
         tab_labels.append(f"错题重做 ({wrong_count})")
     tab_labels.append("弱项专练")
