@@ -465,13 +465,14 @@ def _render_achievements(dao):
         render_empty_state("还没有解锁任何成就", "开始做题即可获得第一枚徽章")
 
     cols_per_row = 4
-    for i in range(0, len(all_states), cols_per_row):
-        cols = st.columns(cols_per_row)
-        for j, item in enumerate(all_states[i:i + cols_per_row]):
+    # 末行居中：复用 _lang_card_rows（l922-120 语言卡同款修法），余数行左右各补等宽空槽 ⇒ 整行居中且每卡仍 1/4 行宽
+    for spec, offset, chunk in _lang_card_rows(all_states, cols_per_row):
+        cols = st.columns(spec)
+        for j, item in enumerate(chunk):
             a = item["achievement"]
             state = item["state"]
             pct = item["progress"]
-            with cols[j]:
+            with cols[j + offset]:
                 if state == "earned":
                     bg = "#FAFAFA"
                     border = "#5B5BD6"
