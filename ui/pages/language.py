@@ -74,34 +74,56 @@ def _touch_problem(active_id: str) -> None:
     st.session_state["_problem_lru"] = lru[-_LRU_CAP:]
 
 
-def _clear_variant_editor_keys(variant_id: str) -> None:
-    """变式题退回原题时显式清掉它的 editor 侧键（l923-15，出口二）。
+def _retire_variant(variant_id: str) -> None:
+    """变式题生命周期终点：六族题目状态键 + editor widget 残键一次清净（l924-03）。
 
-    `_touch_problem` 对 `AI_VARIANT::` 提前 return，变式题的
-    `editor_<variant_id>_<epoch>` 与 `editor_epoch::<variant_id>` 因此都不受
-    LRU 逐出管理：在变式题上每按一次「↺ 重置」epoch+1，就多留一个 widget 残键，
-    长会话刷变式会无界累积（l922-113 遗留 2 / l922-114 遗留 2 同族）。
-    变式题的生命周期终点是「↩ 回到原题」（那一刻它已从 ai_variants 里弹出、
-    不会再被渲染），故在此把该题的 editor 键一次清干净。
+    `_touch_problem` 对 `AI_VARIANT::` 提前 return（:55），所以
+    `_PROBLEM_STATE_PREFIXES` 那六族键与 `editor_<vid>_<epoch>` widget 键
+    都不受 LRU 逐出管理。l923-15 在「↩ 回到原题」只认领了前缀表里 editor 计数器
+    那一族 + widget 残键，另外五族（code / chat_ctx / chat_history /
+    preask_hist / show_preask）对变式题仍旧无界增长（l923-15 遗留 2），
+    本函数把那半边补齐。
 
-    只清被退回的那一道题：其它仍在 `ai_variants` 里的变式题若被顺手清了
-    epoch 计数器，下次 `_editor_key` 会退回 0 → widget key 变化 → 组件重建 →
-    用户已写的代码被 starter_code 覆盖。故对非 `AI_VARIANT::` 的 id 直接拒绝，
-    免得调用点传错把真题状态清掉。
+    为什么「退回原题」是唯一终点：`core/ai_generate.py:105` 把变式题 id 拼成
+    确定性的 `AI_VARIANT::<原题 id>`，一旦从 `ai_variants` 弹出就再也不会被渲染；
+    重刷变式拿到的还是同一个 id，题面、代码、对话历史若留着反而会串到下一道
+    变式上（用户看到的是旧代码/旧聊天记录，而题面是新的）。
 
-    键名用字符串拼接而非 f-string：`tests/test_language_editor_epoch.py` 按行扫
-    「editor_epoch:: 紧跟左花括号」这种字面量并钉了它在全仓**恰 2 处**（:40 读 /
-    :285 写），这里（甚至注释里）再造第三处同名形态都会把那条在册桩弄红。
+    只清被退回的那一道题：作用域按 `prefix + variant_id` **精确拼键**，不用
+    startswith —— 变式题 id 之间互为前缀（`AI_VARIANT::p1` 与 `AI_VARIANT::p1_deep`），
+    粗匹配会把仍开着的兄弟变式的用户代码连同 epoch 计数器一起抹掉，下次
+    `_editor_key` 退回 0 → widget key 变化 → 组件重建 → 用户已写代码被 starter_code
+    覆盖，那是比泄漏更重的用户可见缺陷。同理，对非 `AI_VARIANT::` 的 id 直接拒绝。
+
+    键名一律用「表项 + variant_id」拼接，本函数体内（连注释与 docstring）都不出现
+    「epoch 计数器前缀紧跟左花括号」那种字面量形态 —— 它的站点数被
+    `tests/test_language_editor_epoch.py` 钉成恰 2 处（读侧 :40 / 写侧自增处），
+    造出第三处就会把那条在册桩弄红（l923-15 实测踩过）。
     """
     if not variant_id.startswith("AI_VARIANT::"):
         return
-    st.session_state.pop("editor_epoch::" + variant_id, None)
+    for prefix in _PROBLEM_STATE_PREFIXES:
+        st.session_state.pop(prefix + variant_id, None)
+    # 编辑器 widget 状态 key：editor_<pid>_<epoch>（pid 自身可能含下划线，
+    # 故去掉前缀后按最后一个 _ 切分来精确匹配 pid —— 与 _touch_problem 同一判据）
     for k in list(st.session_state.keys()):
         if not k.startswith("editor_"):
             continue
         body = k[len("editor_"):]
         if "_" in body and body.rsplit("_", 1)[0] == variant_id:
             st.session_state.pop(k, None)
+
+
+def _clear_variant_editor_keys(variant_id: str) -> None:
+    """薄壳：职责已全部下沉到 `_retire_variant`（l924-03 同批改法）。
+
+    保留这个名字是因为 l923-15 的在册桩按**源文本字面量**钉了「↩ 回到原题」
+    分支里的调用式与顺序（`tests/test_editor_variant_keys.py` 的
+    `test_clear_called_once_in_back_branch` / `test_clear_order_retire_then_clear_then_rerun`
+    各数一次 `_clear_variant_editor_keys(active_id)`），改名会让那两条红——
+    而那属别的单的账。故此处只做转调，清键面由「editor 两族」扩到「六族 + widget」。
+    """
+    _retire_variant(variant_id)
 
 
 def _active_problem(base_problem):
