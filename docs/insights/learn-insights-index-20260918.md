@@ -28,6 +28,7 @@
 > - 2026-09-25 出档班自登 1 份＝l924-21（`test_count_is_22` 字面量桩处置**裁决材料** `learn-achievements-count-verdict-20260924.md`，登记时未跟踪；`tests/`／`core/`／`README.md`／`plan.md` 零改动，只跑完成标准点名的定向基线）：复算 **A=77、B=77、C=空、重复=0 ⇒ 等式闭合**；同批哨兵复跑 3 passed。否证两条：白名单 `_NON_ID_LITERALS` 实为 **14** 条（在册注释与派单都写 15）／所谓"两侧同步"实测是 **4 处必改＋2 处条件性**。
 > - 2026-09-25 出档班自登 1 份＝l924-22（换 widget key ＋ 陈旧键有界回收**裁决稿** `learn-uploader-key-recycle-design-20260924.md`，登记时未跟踪；零生产码改动，盘态实验全在 `tmp/l924-22/` 探针内，不连库不启服务）：复算哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed、A==B 且 C 空 ⇒ 等式闭合（本行不写绝对条目数，避免下一份档又把它漂成假数）。否证两条在册自述：① 「陈旧键在 `session_state` 无界增长」——可见键实测有界（脚本外恒 1／脚本内当帧 2），真线性增长的是 Streamlit 内部 `KeyIdMapper` 与 `widget_metadata` 两张表；② 「pop/赋值已实例化控件的 key 会抛 `StreamlitAPIException`」——本机 streamlit 1.58.0 下两种写法均未抛。
 > - 2026-09-25 出档班自登 1 份＝l924-23（core/ 函数级零测终扫**台账** `learn-core-final-scan-20260924.md`，登记时未跟踪；同批新增在册测试件 `tests/test_format_local_ts.py`，生产码零改动）：复算哨兵 `tests/test_insights_index_closure.py` 同批 3 passed、A==B 且 C 空 ⇒ 等式闭合（本行同样不写绝对条目数）。否证卷宗两条：① 「唯一漏网 format_local_ts」实为 **4 个零名**（core 2＋runners 2）；② 「15 模块」按盘上是 16 份 .py，而 `rg -c` 只回 14 行（零命中文件被静默省略）。
+> - 2026-09-25 出档班自登 1 份＝l924-24（content tags 词表普查＋消费面双轨取证**三案建议稿** `learn-content-tags-census-20260924.md`，登记时未跟踪；只读普查，探针在 gitignore 的 `tmp/l924-24/`，`content/` 与 `core/` 与 `ui/` 零改动、三案一律未选）：复算哨兵 `tests/test_insights_index_closure.py` 同批 3 passed、A==B 且 C 空 ⇒ 等式闭合（本行不写绝对条目数）。否证／订正卷宗三条口径：① 「6 件无 tags」的 6 件全部是 `content/paths/*.yaml`（题以外件型，**补标才是错**），真分母 403 题件覆盖率 100%；② 「唯一值 416／单例 265」现值经三轨对平**成立**（旧口径 343/220 作废）；③ 「mark_r_judge_plain 写侧」不确——它把顶层 `tags:` **行**当插入锚点（`:275/:279/:281/:289`），是词表唯一真实生产依赖，属读位置不读值。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
 > - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
@@ -51,6 +52,7 @@
 | docs/insights/learn-bank-cadence-20260915.md | 20260915 | verify-question-bank 纳入例行方案（n915-65，只出设计） | 已入库 | 0 |
 | docs/insights/learn-caliber-note-premise-20260923.md | 20260923 | CALIBER_NOTE「阅读合并」前提交叉取证＋learning_events 账本重建量化：注记因果前提在全量 git 历史不成立（l923-24，纯只读，三选一待裁决） | 已入库 | 0 |
 | docs/insights/learn-compare-inventory-20260916.md | 20260916 | learning 全仓同族比较逻辑清点（n916x-40，_cell_eq 语义校正后横向核验，只读） | 已入库 | 0 |
+| docs/insights/learn-content-tags-census-20260924.md | 20260924 | learning content tags 词表普查（l924-24，409 件三轨对平＋416/265 现值＋消费面 rg/AST 双轨 ＋ 三案建议未选案） | 未跟踪 | 0 |
 | docs/insights/learn-core-final-scan-20260924.md | 20260924 | learning core/ 函数级零测终扫台账（l924-23，双轨计数表＋终扫命令 ＋ `format_local_ts` 收口） | 未跟踪 | 0 |
 | docs/insights/learn-coverage-reconcile-20260917.md | 20260917 | learning 覆盖率三口径对账（916p-a3-014，2026-09-17，只读） | 已入库 | 0 |
 | docs/insights/learn-d5d6-review-fix-20260920.md | 20260920 | D5/D6 处置记录：agent_mastery 时数、judge_mode 等价性证明、迁移脚本加固 | 已入库 | 0 |
