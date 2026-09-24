@@ -70,13 +70,21 @@ def _render_mistakes_body(dao: ProgressDAO):
     mistakes = dao.list_mistakes()
     # limit=50 ⇒ 到期侧拿到的是**页内条数**（core/progress.py 的那条 SQL 带 LIMIT，
     # 真数在库侧就被丢掉），错题侧 list_mistakes() 无 LIMIT ⇒ 全量真数。
-    # 汇总行文案按这个不对称标出下限语义（l923-20）；另一条出口「加 COUNT(*) 伴生
-    # 查询」属实现改动，未实装、仍待裁决（l922-123 遗留问题原文）。
+    # 汇总行文案按这个不对称标出下限语义（l923-20）；「加 COUNT(*) 伴生查询」出口 l924-09
+    # 已实装为**下方净新增的一行**（get_due_reviews_total），汇总行与 limit=50 未换口径。
     due_reviews = dao.get_due_reviews(limit=50)
     overdue_count = len(due_reviews)
     wrong_count = len(mistakes)
 
     st.markdown(f"**错题 {wrong_count} 道 · 最近 50 条内到期复习 {overdue_count} 道**")
+    # l924-09：上面那句的 COUNT(*) 伴生出口落地（l922-123 遗留 / l923-20 在册的第二条出口）。
+    # 只在「页打满」时才多问一次真数——未打满时真数恒等于页内条数，那一行纯属重复。
+    # 真数确实更大才提示；相等时不提示（此时「最近 50 条内」已是完整事实）。
+    # 汇总行的文案与 :75 的 limit=50 实参一律未动：这一行是**净新增**，不改任何既有读数。
+    if overdue_count == 50:  # 50 与 :75 的 limit 同源，跨源一致性由 test_mistakes_tabs_contract 钉
+        due_total = dao.get_due_reviews_total()
+        if due_total > overdue_count:
+            st.caption(f"实际到期共 {due_total} 道 · 上面只列出最先到期的 {overdue_count} 道")
 
     if wrong_count == 0 and overdue_count == 0:
         st.success("没有错题也没有到期复习，做得不错！")

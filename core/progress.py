@@ -609,6 +609,26 @@ class ProgressDAO:
                 result[rc]["completed"] = cnt
         return result
 
+    def get_due_reviews_total(self) -> int:
+        """到期复习的**真总数**（COUNT 无 LIMIT）—— :397 `get_due_reviews` 的伴生查询（l924-09）。
+
+        落地 l922-123 遗留 / l923-20 在册的第二条出口：页侧 `limit=50` 拿到的是页内条数，
+        真数在库侧被丢掉 ⇒ 到期 >50 时用户看不到总量。谓词与 get_due_reviews **逐字同源**
+        （同 `date.today().isoformat()`、同 `next_due_date <= ?`），只把投影换成 COUNT(*)、
+        去掉 ORDER BY/LIMIT ⇒ 两侧不会因口径漂移而不等；`get_due_reviews` 一行未动。
+
+        ⚠ 位置刻意落在类尾（`checkpoint_wal` 之前）：仓内在册锚点最多指到 `progress.py:610`
+        （`tests/test_recommend_review_state.py:226` 钉 :418、docs 若干钉 :525-:610），
+        插进中段会让那些行号集体失真。找它请按名字，别按 :413。
+        """
+        from datetime import date
+        today = date.today().isoformat()
+        row = self.conn.execute(
+            "SELECT COUNT(*) FROM review_state WHERE next_due_date <= ?",
+            (today,),
+        ).fetchone()
+        return row[0] if row else 0
+
     def checkpoint_wal(self, mode: str = "TRUNCATE") -> int:
         """把 WAL 里未合并的数据落盘并截断 WAL 文件。
 
