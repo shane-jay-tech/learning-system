@@ -22,6 +22,10 @@
 > - 2026-09-24 出档班自登 1 份＝l924-05（判题结论保留行为改动裁决稿 `learn-judge-result-keep-design-20260924.md`，登记时未跟踪）：复算 **A=70、B=70、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。与上一条（l924-04）同班同波，仍是单路写位，故继续自登。
 > - 2026-09-24 出档班自登 1 份＝l924-04（`editor_*` 键规范设计稿 `learn-editor-key-spec-20260924.md`，登记时未跟踪）：复算 **A=69、B=69、C=空、重复=0 ⇒ 等式闭合**；哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed。本波 learning 分区只有一路子班在跑（索引件非并发写），故按「同班追加规则」由出档班自登而非主班代登。
 > - 2026-09-24 出档班自登 1 份＝l924-17（权威索引「我是权威」frontmatter 标记**设计稿** `learn-index-authority-mark-design-20260924.md`，登记时未跟踪；本单零生产码改动，哨兵判据一行未动）：复算 **A=73、B=73、C=空、重复=0 ⇒ 等式闭合**；同批哨兵 `tests/test_insights_index_closure.py` 复跑 3 passed。同批实测新发现：本表 `| 未跟踪 |` 9 行经 `git ls-files` 逐行复验**已全部入库**，该列整体过期（哨兵不读此列，故不拦）。
+> - 2026-09-25 出档班自登 1 份＝l924-18（achievements 存量逗号格式一次性迁移**设计稿** `learn-achievements-migration-design-20260924.md`，登记时未跟踪；本单零生产码改动、零写库，盘态实验全在 `tmp/l924-18/` 副本上）：复算 **A=74、B=74、C=空、重复=0 ⇒ 等式闭合**；同批哨兵 `tests/test_insights_index_closure.py` 复跑 3 passed。本波 learning 分区仍只一路（文档位），继续按「同班追加规则」自登。
+> - 2026-09-25 出档班自登 1 份＝l924-19（path 文案 ⇄ 磁盘题数过期自述普查 `learn-path-claim-audit-20260924.md`，登记时未跟踪；只读普查，`content/` 与生产码零改动）：复算 **A=75、B=75、C=空、重复=0 ⇒ 等式闭合**；同批哨兵复跑 3 passed。否证卷宗两条口径（"7 文件"实为 6 份 path yaml／"16+ 处"无对应口径，实值 82·129·12 三档）。
+> - 2026-09-25 出档班自登 1 份＝l924-20（点评缓存 FIFO→LRU 与分池两案**裁决材料** `learn-review-cache-lru-verdict-20260924.md`，登记时未跟踪；判据全部出自 `tmp/l924-20/` 内存假件，零生产码改动、零 LLM 调用、未放宽断言）：复算 **A=76、B=76、C=空、重复=0 ⇒ 等式闭合**；同批哨兵复跑 3 passed。否证一条在册自述：`core/ai_review.py:45`「改一个字再跑一次」与全码 sha1 键形矛盾（且与 :44 自相矛盾）。
+> - 2026-09-25 出档班自登 1 份＝l924-21（`test_count_is_22` 字面量桩处置**裁决材料** `learn-achievements-count-verdict-20260924.md`，登记时未跟踪；`tests/`／`core/`／`README.md`／`plan.md` 零改动，只跑完成标准点名的定向基线）：复算 **A=77、B=77、C=空、重复=0 ⇒ 等式闭合**；同批哨兵复跑 3 passed。否证两条：白名单 `_NON_ID_LITERALS` 实为 **14** 条（在册注释与派单都写 15）／所谓"两侧同步"实测是 **4 处必改＋2 处条件性**。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
 > - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
@@ -40,6 +44,8 @@
 | docs/insights/content-id-conflict-04-functions-20260919.md | 20260919 | 跨语言 slug 冲突 04_functions —— 用户拍板维持（2026-09-19） | 已入库 | 0 |
 | docs/insights/content-quality-sample-20260905.md | 20260905 | 编程题库抽样质量评审（seed=20260905，psy-C…/learning 100c） | 已入库 | 1 |
 | docs/insights/learn-384-7-caliber-20260918.md | 20260918 | learning pytest「384/7」口径澄清留档（2026-09-19 晨间执行班，任务 l918-01，零改动） | 已入库 | 0 |
+| docs/insights/learn-achievements-count-verdict-20260924.md | 20260924 | learning `test_count_is_22` 字面量桩处置裁决材料（l924-21，只出稿＋案序 · 零生产码改动） | 未跟踪 | 0 |
+| docs/insights/learn-achievements-migration-design-20260924.md | 20260924 | learning achievements 存量逗号格式一次性迁移设计稿（l924-18，只出设计 · 零生产码改动） | 未跟踪 | 0 |
 | docs/insights/learn-bank-cadence-20260915.md | 20260915 | verify-question-bank 纳入例行方案（n915-65，只出设计） | 已入库 | 0 |
 | docs/insights/learn-caliber-note-premise-20260923.md | 20260923 | CALIBER_NOTE「阅读合并」前提交叉取证＋learning_events 账本重建量化：注记因果前提在全量 git 历史不成立（l923-24，纯只读，三选一待裁决） | 已入库 | 0 |
 | docs/insights/learn-compare-inventory-20260916.md | 20260916 | learning 全仓同族比较逻辑清点（n916x-40，_cell_eq 语义校正后横向核验，只读） | 已入库 | 0 |
@@ -66,6 +72,7 @@
 | docs/insights/learn-mtime-size-key-design-20260924.md | 20260924 | learning 错题本缓存键 mtime 单因子加强为 (mtime_ns,size) 设计稿：撞键场景实测（现状吞新题面／草案取新值，等长改写仍撞＝残留面）、11 行 diff 草案、在册影响实测红名集恰好 2 条（`test_mistakes_lookup_cache.py:219/:240`）、md5 成本 25.1× 故不顺手外扩（l924-07，只出设计零改码，收口 l923-19 登记项） | 未跟踪 | 0 |
 | docs/insights/learn-notice-census-20260918.md | 20260918 | learning 散落 st.warning/info/error/success 裸用普查（2026-09-19 日间续班，任务 l918-26，只读零改动） | 已入库 | 0 |
 | docs/insights/learn-pages-coverage-20260918.md | 20260918 | ui/pages 各页覆盖率缺口盘点（2026-09-19 晨间执行班，任务 l918-13，只读） | 已入库 | 0 |
+| docs/insights/learn-path-claim-audit-20260924.md | 20260924 | learning path 文案 ⇄ 磁盘题数过期自述普查（l924-19，只读 · 零内容改动） | 未跟踪 | 0 |
 | docs/insights/learn-path-coverage-fill-20260920.md | 20260920 | learning 补学习路径：42 个未引用 topic 全部进线（D5 落地） | 已入库 | 1 |
 | docs/insights/learn-paths-order-consistency-20260922.md | 20260922 | learning path 双顺序通道一致性实测（l922-126，2026-09-22） | 已入库 | 1 |
 | docs/insights/learn-paths-prereq-20260919.md | 20260919 | learning 五语言 lessons 与 paths prereqs 引用一致性（l920-08） | 已入库 | 1 |
@@ -78,6 +85,7 @@
 | docs/insights/learn-readme-tree-20260922.md | 20260922 | README 目录树 vs 磁盘清单核对（l922-131，2026-09-22） | 未跟踪 | 0 |
 | docs/insights/learn-report-v065-reconcile-20260917.md | 20260917 | learning v0.6.5 报告指标对账（916p-a3-012，2026-09-17） | 已入库 | 0 |
 | docs/insights/learn-requirements-reconcile-20260917.md | 20260917 | learning requirements.txt 与 freeze 口径核验（916p-a3-018，2026-09-17，只读） | 已入库 | 0 |
+| docs/insights/learn-review-cache-lru-verdict-20260924.md | 20260924 | learning 点评缓存 FIFO→LRU 与分池两案裁决材料（l924-20，只出稿＋案序 · 零生产码改动） | 未跟踪 | 0 |
 | docs/insights/learn-rubric-r1r3-20260918.md | 20260918 | agent_dev 48 道 rubric 题 R1-R3 规范对账（2026-09-19 晨间执行班，任务 l918-17，只读） | 已入库 | 0 |
 | docs/insights/learn-shown-writeorder-design-20260923.md | 20260923 | dashboard 推荐曝光写序缺陷修法设计稿：emit 前 vs emit 后 ＋ 幂等键（l923-06，只出设计零改码） | 未跟踪 | 0 |
 | docs/insights/learn-sidebar-218-20260915.md | 20260915 | learning 侧栏 218px 降级验收余项核验（n915-66，只读） | 已入库 | 0 |
