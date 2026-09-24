@@ -21,6 +21,7 @@
 > - 2026-09-24 出档班自登 1 份＝l924-06（焦点环对比度静态实算 `learn-focusring-contrast-20260924.md`，登记时未跟踪）：复算 **A=71、B=71、C=空、重复=0 ⇒ 等式闭合**；哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed。本波 learning 分区仍只一路写位，继续按「同班追加规则」自登而非主班代登。
 > - 2026-09-24 出档班自登 1 份＝l924-05（判题结论保留行为改动裁决稿 `learn-judge-result-keep-design-20260924.md`，登记时未跟踪）：复算 **A=70、B=70、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。与上一条（l924-04）同班同波，仍是单路写位，故继续自登。
 > - 2026-09-24 出档班自登 1 份＝l924-04（`editor_*` 键规范设计稿 `learn-editor-key-spec-20260924.md`，登记时未跟踪）：复算 **A=69、B=69、C=空、重复=0 ⇒ 等式闭合**；哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed。本波 learning 分区只有一路子班在跑（索引件非并发写），故按「同班追加规则」由出档班自登而非主班代登。
+> - 2026-09-24 出档班自登 1 份＝l924-17（权威索引「我是权威」frontmatter 标记**设计稿** `learn-index-authority-mark-design-20260924.md`，登记时未跟踪；本单零生产码改动，哨兵判据一行未动）：复算 **A=73、B=73、C=空、重复=0 ⇒ 等式闭合**；同批哨兵 `tests/test_insights_index_closure.py` 复跑 3 passed。同批实测新发现：本表 `| 未跟踪 |` 9 行经 `git ls-files` 逐行复验**已全部入库**，该列整体过期（哨兵不读此列，故不拦）。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
 > - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
@@ -54,6 +55,7 @@
 | docs/insights/learn-focus-surface-audit-20260922.md | 20260922 | learning 键盘焦点覆盖面静态审计（unsafe_allow_html 面，l922-118，2026-09-22） | 已入库 | 0 |
 | docs/insights/learn-focusring-contrast-20260924.md | 20260924 | learning 焦点环对比度静态实算：`styles.py:209/:216/:225` 三组 rgba(#5B5BD6,.28) 对全部在册浅面色仅 1.45–1.49，WCAG 1.4.11 的 3:1 三组全不达标（α_min=0.70–0.745；streamlit 自带 .5 亦仅 2.06–2.11）；改色三档含复算值＋在册注释引错判据（2.4.7 无门槛）（l924-06，只读零改码，收口 l923-18 R-1） | 未跟踪 | 0 |
 | docs/insights/learn-home-notice-migrate-20260922.md | 20260922 | home AI 档位 st.warning → render_notice 统一收口（l922-130 双形态并档） | 未跟踪 | 1 |
+| docs/insights/learn-index-authority-mark-design-20260924.md | 20260924 | learning 权威索引「我是权威」标记设计稿：frontmatter role 取代靠文件名日期挑档（l924-17，只出稿、零生产码改动） | 未跟踪 | 0 |
 | docs/insights/learn-insights-index-20260918.md | 20260918 | learning insights 索引（l918-12 建档 2026-09-19；l922-127 于 2026-09-22 04:02 按磁盘实况重建，本文件为当前权威索引） | 已入库 | 0 |
 | docs/insights/learn-insights-intake-20260917.md | 20260917 | learning docs/insights 未入库报告收口（916p-a3-017，2026-09-17） | 已入库 | 0 |
 | docs/insights/learn-judge-edges-20260916.md | 20260916 | learning judge 三函数反例边界补测（l916-02） | 已入库 | 0 |
