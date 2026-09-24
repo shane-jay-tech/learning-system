@@ -309,7 +309,16 @@ def test_system_metrics_cover_repository_shape():
     # 同步下调护栏：题库总数 400 -> 399。
     assert metrics["total_problems"] >= 399
     assert metrics["total_topics"] > 50
-    assert metrics["paths"] >= 3
+    # l924-14 收口（2026-09-24）：此处原为 `>= 3` 松下界，钉成磁盘实值 6。
+    # 为什么这行钉等值、上面两行留下界：total_problems/total_topics 是题库体量，
+    # 加题是常态，钉快照会天天误红（:310 的下界是 9/5 授权去重时刻意下调的护栏）；
+    # paths 是"仓库形态"快照，钉死才拦得住整目录改名/丢失/漏读——同族先例见
+    # tests/test_paths.py 的 test_all_paths_load（l923-12 同源收口）。
+    # 复算：ls content/paths/*.yaml | wc -l  → 6；增删主线 yaml 时同步改这里
+    # + tests/test_paths.py + README 路径条数（对账见 tests/test_readme_reconcile.py）。
+    assert metrics["paths"] == 6, (
+        f"paths 计数漂移（本桩钉 6，现值 {metrics['paths']}）"
+        "—— 有意变更请同步改这里 + tests/test_paths.py + README")
     assert metrics["lessons"] > 50
     assert metrics["tests"] >= 1
     assert metrics["lines"]["core"] > 0
