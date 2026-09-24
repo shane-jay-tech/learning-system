@@ -18,6 +18,8 @@
 > - 2026-09-23 主班代登 1 份＝l923-24（CALIBER_NOTE 前提取证 `learn-caliber-note-premise-20260923.md`，登记时未跟踪）：复算 **A=65、B=65、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。登记人＝主班而非出档班，原因见本仓并行纪律：多路子班同时改本表会互相覆盖，故索引件由主班单点写。
 > - 2026-09-23 主班代登 1 份＝l923-28（cpp／sql／r 末档难度上抬设计稿 `learn-tail-difficulty-design-20260923.md`，登记时未跟踪）：复算 **A=67、B=67、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。
 > - 2026-09-23 主班代登 1 份＝l923-30（事件型普查 `learn-eventtypes-census-20260923.md`）：复算 **A=68、B=68、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。同时把 l923-24 那行的 git 状态列由「未跟踪」更正为「已入库」（该档已随 `e8447b7` 入库；此列不参与哨兵断言，只影响人读准确性）。
+> - 2026-09-24 出档班自登 1 份＝l924-05（判题结论保留行为改动裁决稿 `learn-judge-result-keep-design-20260924.md`，登记时未跟踪）：复算 **A=70、B=70、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。与上一条（l924-04）同班同波，仍是单路写位，故继续自登。
+> - 2026-09-24 出档班自登 1 份＝l924-04（`editor_*` 键规范设计稿 `learn-editor-key-spec-20260924.md`，登记时未跟踪）：复算 **A=69、B=69、C=空、重复=0 ⇒ 等式闭合**；哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed。本波 learning 分区只有一路子班在跑（索引件非并发写），故按「同班追加规则」由出档班自登而非主班代登。
 > - 同班追加规则（l922-129 起生效）：**新增 insights 档必须与索引件同单登记**，否则本表读数当场失效；改完请重跑上面三条并回填本节。
 > - 作废口径：旧版档头自述「36 份既有＋本文件=37」是 2026-09-19 建档时点快照，**不得再当现值引用**。
 > - 盘上另有 2026-09-17 旧索引 `learning-insights-index-20260917.md`（r917-20），按历史快照原则原样保留并已列入本表；**当前权威索引是本文件**。
@@ -45,6 +47,7 @@
 | docs/insights/learn-dashboard-coverage-20260917.md | 20260917 | dashboard.py 渲染主路径补测（916p-a3-015，2026-09-17，只增测试） | 已入库 | 0 |
 | docs/insights/learn-deps-suspects-20260918.md | 20260918 | pywebview / streamlit-ace 疑点依赖只读核报（2026-09-19 晨间执行班，任务 l918-08，零改动） | 已入库 | 0 |
 | docs/insights/learn-difficulty-histogram-20260921.md | 20260921 | learning 难度分布第三轮：末档空洞普查与判定（l922-06，2026-09-21） | 已入库 | 1 |
+| docs/insights/learn-editor-key-spec-20260924.md | 20260924 | learning `editor_*` 键规范设计稿：全局 UI 键 vs 题态键 vs 变体残键（l924-04，只读，零生产码改动） | 未跟踪 | 0 |
 | docs/insights/learn-eventtypes-census-20260923.md | 20260923 | learning 事件型 emit_event 普查：11 类／12 写点、5 类零行、heatmap 读侧不存在（progress.py:538 events_by_date() 生产零调用方）（l923-30，只读零改动） | 已入库 | 0 |
 | docs/insights/learn-focus-f1-outline-static-20260923.md | 20260923 | learning F-1 上行风险排查：Streamlit 1.58 自带样式里的 outline 复位普查（l923-17，2026-09-23，只读零源码改动） | 未跟踪 | 0 |
 | docs/insights/learn-focus-surface-audit-20260922.md | 20260922 | learning 键盘焦点覆盖面静态审计（unsafe_allow_html 面，l922-118，2026-09-22） | 已入库 | 0 |
@@ -53,6 +56,7 @@
 | docs/insights/learn-insights-intake-20260917.md | 20260917 | learning docs/insights 未入库报告收口（916p-a3-017，2026-09-17） | 已入库 | 0 |
 | docs/insights/learn-judge-edges-20260916.md | 20260916 | learning judge 三函数反例边界补测（l916-02） | 已入库 | 0 |
 | docs/insights/learn-judge-mode-census-20260922.md | 20260922 | judge_mode 显式化只读普查：全库 399 题的显式/默认切面（l922-116） | 已入库 | 0 |
+| docs/insights/learn-judge-result-keep-design-20260924.md | 20260924 | learning「回访上一题保留判题结论」行为改动裁决稿（l924-05，只读，零生产码改动） | 未跟踪 | 0 |
 | docs/insights/learn-lang-cards-layout-20260922.md | 20260922 | learning「各语言通过情况」5 卡断行均衡复核（l922-120，2026-09-22） | 已入库 | 0 |
 | docs/insights/learn-metrics-dual-20260918.md | 20260918 | generate_metrics 归仓＋183/399 题量双口径对账（2026-09-19 晨间执行班，任务 l918-07） | 已入库 | 0 |
 | docs/insights/learn-notice-census-20260918.md | 20260918 | learning 散落 st.warning/info/error/success 裸用普查（2026-09-19 日间续班，任务 l918-26，只读零改动） | 已入库 | 0 |
