@@ -61,6 +61,7 @@
 | docs/insights/learn-content-tags-census-20260924.md | 20260924 | learning content tags 词表普查（l924-24，409 件三轨对平＋416/265 现值＋消费面 rg/AST 双轨 ＋ 三案建议未选案） | 未跟踪 | 0 |
 | docs/insights/learn-core-final-scan-20260924.md | 20260924 | learning core/ 函数级零测终扫台账（l924-23，双轨计数表＋终扫命令 ＋ `format_local_ts` 收口） | 未跟踪 | 0 |
 | docs/insights/learn-coverage-reconcile-20260917.md | 20260917 | learning 覆盖率三口径对账（916p-a3-014，2026-09-17，只读） | 已入库 | 0 |
+| docs/insights/learn-crlf-portrait-20260924.md | 20260924 | learning CRLF 逐目录×类型透视＋四类风险分类＋`core/achievements.py` 逐行实测＋≤3 批迁移建议（l924-30，只读 · n924-32 的增量档） | 未跟踪 | 0 |
 | docs/insights/learn-d5d6-review-fix-20260920.md | 20260920 | D5/D6 处置记录：agent_mastery 时数、judge_mode 等价性证明、迁移脚本加固 | 已入库 | 0 |
 | docs/insights/learn-dashboard-768-fold-budget-20260922.md | 20260922 | dashboard 首屏 768 纵向预算静态推演（1366×768，l922-117） | 已入库 | 0 |
 | docs/insights/learn-dashboard-coverage-20260917.md | 20260917 | dashboard.py 渲染主路径补测（916p-a3-015，2026-09-17，只增测试） | 已入库 | 0 |
