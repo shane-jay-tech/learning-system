@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 from core.runners.base import BaseRunner, RunResult
+from core.runners.error_feedback import PREAMBLE as _PREAMBLE, timeout_message
 
 
 # 沙箱限制
@@ -92,16 +93,10 @@ class PythonRunner(BaseRunner):
             return blocked
         with tempfile.TemporaryDirectory(prefix="ls_py_", ignore_cleanup_errors=True) as tmpdir:
             src = os.path.join(tmpdir, "main.py")
-            preamble = (
-                "import sys\n"
-                "try:\n"
-                "    sys.stdout.reconfigure(encoding='utf-8')\n"
-                "    sys.stderr.reconfigure(encoding='utf-8')\n"
-                "except Exception:\n"
-                "    pass\n"
-            )
+            # 引导段常量来自 core.runners.error_feedback（单一来源）——
+            # 它同时是学生行号折算的偏移量，写在这里会让行级反馈打歪。
             with open(src, "w", encoding="utf-8", newline="\n") as f:
-                f.write(preamble + code)
+                f.write(_PREAMBLE + code)
 
             t0 = time.time()
             proc = subprocess.Popen(
@@ -126,7 +121,8 @@ class PythonRunner(BaseRunner):
                 return RunResult(
                     ok=False,
                     stdout=_truncate(out_b or b"", MAX_STDOUT_BYTES).decode("utf-8", errors="replace"),
-                    stderr="代码运行超过 5 秒，已强制终止（可能存在死循环）。",
+                    stderr=timeout_message("代码运行", self.timeout_sec,
+                                           "已强制终止，可能存在死循环"),
                     timed_out=True,
                     exit_code=None,
                     error_kind="timeout",

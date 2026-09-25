@@ -6,6 +6,7 @@ import time
 from typing import Optional
 
 from core.runners.base import BaseRunner, RunResult
+from core.runners.error_feedback import timeout_message
 from core.runners.python_runner import (_safe_env, _truncate, _kill_tree, _safe_stdin,
                                         MAX_STDOUT_BYTES, MAX_STDERR_BYTES)
 
@@ -111,7 +112,7 @@ class RRunner(BaseRunner):
                 return RunResult(
                     ok=False,
                     stdout=_truncate(out_b or b"", MAX_STDOUT_BYTES).decode("utf-8", errors="replace"),
-                    stderr="R 脚本运行超过 5 秒。",
+                    stderr=timeout_message("R 脚本运行", self.timeout_sec),
                     timed_out=True,
                     exit_code=None,
                     error_kind="timeout",

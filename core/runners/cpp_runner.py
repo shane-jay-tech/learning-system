@@ -6,28 +6,18 @@ import time
 from typing import Optional
 
 from core.runners.base import BaseRunner, RunResult
+from core.runners.error_feedback import friendly_hint, timeout_message
 from core.runners.python_runner import (_safe_env, _truncate, _kill_tree, _safe_stdin,
                                         MAX_STDOUT_BYTES, MAX_STDERR_BYTES)
 
-_CPP_FRIENDLY_HINTS = [
-    (r"error: expected ';'", "漏了分号 ;（看报错指出的行）"),
-    (r"error: expected '}'", "少了一个 }（检查大括号配对）"),
-    (r"error: '(\w+)' was not declared in this scope", "「{0}」未定义——检查拼写与作用域"),
-    (r"undefined reference", "函数只有声明没有定义（或没把对应源文件一起编译）"),
-    (r"error: no match for 'operator", "运算符不匹配——检查操作数类型"),
-    (r"error: '([^']+)' undeclared", "「{0}」未声明——是否漏了头文件 #include？"),
-]
-
 
 def _cpp_friendly_error(stderr_text: str) -> str:
-    """g++ 报错是英文原文，给零基础学生附一句中文提示（LLM 离线时也有兜底）。"""
-    import re
-    for pat, tmpl in _CPP_FRIENDLY_HINTS:
-        m = re.search(pat, stderr_text)
-        if m:
-            hint = tmpl.format(*m.groups()) if m.groups() else tmpl
-            return f"{stderr_text}\n\n💡 中文提示：{hint}"
-    return stderr_text
+    """g++ 报错是英文原文，给零基础学生附一句中文提示（LLM 离线时也有兜底）。
+
+    词表与匹配口径已收进 `core/runners/error_feedback`（四语言共用一张表，
+    统一大小写不敏感）——这里只保留 SQL/C++ 的既有调用面与既有输出形态。
+    """
+    return friendly_hint("cpp", stderr_text)
 
 
 class CppRunner(BaseRunner):
@@ -129,7 +119,7 @@ class CppRunner(BaseRunner):
                 except subprocess.TimeoutExpired:
                     comp_out, comp_err = b"", b""
                 return RunResult(
-                    ok=False, stdout="", stderr="编译超时（>7 秒）。",
+                    ok=False, stdout="", stderr=timeout_message("编译", self.compile_timeout_sec),
                     timed_out=True, exit_code=None, error_kind="timeout",
                     elapsed_ms=int((time.time() - t0) * 1000),
                 )
@@ -166,7 +156,8 @@ class CppRunner(BaseRunner):
                 return RunResult(
                     ok=False,
                     stdout=_truncate(out_b or b"", MAX_STDOUT_BYTES).decode("utf-8", errors="replace"),
-                    stderr="程序运行超时。",
+                    stderr=timeout_message("程序运行", remaining,
+                                           "编译通过后运行超时，检查循环与输入规模"),
                     timed_out=True,
                     exit_code=None,
                     error_kind="timeout",

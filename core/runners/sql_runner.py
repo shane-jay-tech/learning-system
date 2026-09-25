@@ -98,24 +98,18 @@ _AUTHORIZER_DENY_MSG = (
 )
 
 # SQLite 英文报错 → 中文提示（LLM 离线时的兜底，SQL/C++ 此前只有英文原文）
-_SQL_FRIENDLY_HINTS = [
-    (r"no such table: (\S+)", "表「{0}」不存在——检查表名拼写（题目 setup 建了哪些表？）"),
-    (r"no such column: (\S+)", "列「{0}」不存在——检查字段名拼写。"),
-    (r"no such function: (\S+)", "函数「{0}」不存在——SQLite 内置函数有限，检查拼写。"),
-    (r'near "(\S+)"', "「{0}」附近有语法错误——检查关键字、逗号与括号。"),
-    (r"syntax error", "语法错误——检查关键字、逗号与括号是否配对。"),
-    (r"ambiguous column name", "列名有歧义——多表查询时给列名加表名前缀（如 t.id）。"),
-]
+# 词表已收进 core/runners/error_feedback（四语言共用一张表、统一大小写不敏感）；
+# 本处保留 _SQL_FRIENDLY_HINTS 这个名字与同型文案，供既有引用面读取。
+from core.runners.error_feedback import HINTS, friendly_hint, timeout_message
+
+_SQL_FRIENDLY_HINTS = tuple(
+    (pattern, tmpl) for pattern, tmpl, langs in HINTS
+    if langs is None or "sql" in langs
+)
 
 
 def _friendly_sql_error(msg: str) -> str:
-    import re
-    for pat, tmpl in _SQL_FRIENDLY_HINTS:
-        m = re.search(pat, msg, re.IGNORECASE)
-        if m:
-            hint = tmpl.format(*m.groups()) if m.groups() else tmpl
-            return f"{msg}\n\n💡 中文提示：{hint}"
-    return msg
+    return friendly_hint("sql", msg)
 
 
 class SQLRunner(BaseRunner):
@@ -226,7 +220,7 @@ class SQLRunner(BaseRunner):
             msg = str(e)
             if "interrupt" in msg.lower():
                 return RunResult(
-                    ok=False, stdout="", stderr="SQL 执行超过 2 秒，已中断。",
+                    ok=False, stdout="", stderr=timeout_message("SQL 执行", self.timeout_sec, "已中断"),
                     timed_out=True, exit_code=None, error_kind="timeout",
                     elapsed_ms=int((time.time() - t0) * 1000),
                 )

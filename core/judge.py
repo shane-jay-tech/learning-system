@@ -5,6 +5,7 @@ from typing import Any, Optional
 from core.ai_review import review, grade_open_answer
 from core.progress import ProgressDAO
 from core.runners.cpp_runner import CppRunner
+from core.runners import error_feedback
 from core.runners.python_runner import PythonRunner
 from core.runners.r_runner import RRunner
 from core.runners.sql_runner import SQLRunner
@@ -139,6 +140,26 @@ def _error_summary(stderr: str) -> str:
     return lines[-1][:120]
 
 
+def _row_feedback(lang: str, run_result, detail: Optional[str] = None) -> str:
+    """执行器错误 → 学生可读的**行级**反馈：「第 N 行：<要点>——<中文提示>」。
+
+    只做映射，**不改判题**：不读也不写 `ok`/`passed`/`exit_code`/`error_kind`。
+    原始诊断仍由 `run_result.stderr` 逐字呈现（UI 的「错误信息」块），这里只补两件事：
+      · 行号折算——Python 的 traceback 行号含 runner 注入的引导段，直接报给学生
+        会指着编辑器里不存在的行（`core/runners/error_feedback` 统一折算）；
+      · 四语言共用一张提示表——同一类错误不再一个有中文兜底、一个只有英文原文。
+    提示与要点重复时只留一份（SQL 侧 runner 已把提示写进 stderr）。
+    """
+    stderr = getattr(run_result, "stderr", "") or ""
+    base = detail if detail is not None else _error_summary(stderr)
+    where = error_feedback.where_phrase(lang, stderr)
+    hint = error_feedback.hint_only(lang, stderr)
+    out = f"{where}{base}" if where else base
+    if hint and hint not in out:
+        out = f"{out}——{hint}"
+    return out
+
+
 def _check_recommendation_completed(d: ProgressDAO, lang: str, pid: str) -> None:
     """If this problem was previously recommended, emit recommendation_completed with full attribution."""
     try:
@@ -227,7 +248,7 @@ def _run_test_cases(runner, lang: str, code: str, pdict: dict) -> tuple:
                     break
             else:
                 passed = False
-                diff_hint = "SQL 执行失败：" + _error_summary(case_run.stderr)
+                diff_hint = "SQL 执行失败：" + _row_feedback(lang, case_run)
                 break
         else:
             # 期望输出可能合法为空串：必须用 is not None，不能 or（空串会误回退到题目级期望）
@@ -241,7 +262,7 @@ def _run_test_cases(runner, lang: str, code: str, pdict: dict) -> tuple:
                 if case_run.ok:
                     diff_hint = "输出与期望不一致，注意空格、大小写、标点和换行。"
                 else:
-                    diff_hint = f"运行错误：{_error_summary(case_run.stderr)}"
+                    diff_hint = f"运行错误：{_row_feedback(lang, case_run)}"
                 if len(test_cases) > 1:
                     diff_hint = f"第 {ti+1} 组测试未通过——" + diff_hint
                 break
