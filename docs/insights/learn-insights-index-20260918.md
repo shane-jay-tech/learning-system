@@ -132,3 +132,4 @@
 | docs/insights/learning-nav-current-item-20260913.md | 20260913 | learning 导航当前项高亮单源化（d913c-09，2026-09-13） | 已入库 | 0 |
 | docs/insights/silent-except-batch2-20260913.md | 20260913 | learning 静默 except 续清批次（c-03，2026-09-13） | 已入库 | 0 |
 | docs/insights/weekly-card-note-20260913.md | 20260913 | learning 周报卡口径提示落地（a-47/c-04，2026-09-13） | 已入库 | 0 |
+| docs/insights/learn-tag-vocab-spec-20260925.md | 20260925 | 五轴标签规范与三清单（重复 / 大小写 / 未知）（120546-361f，2026-09-25） | 已入库 | 0 |
