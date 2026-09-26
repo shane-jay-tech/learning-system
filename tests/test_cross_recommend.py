@@ -114,7 +114,12 @@ def test_cross_recommend_skips_already_solved(dao):
         assert r["topic_slug"] not in ("07_dicts_sets", "08_files_exceptions")
 
 
-def test_cross_recommend_default_dao_no_crash():
-    """Default call (no dao arg) must not raise closed-database error."""
+def test_cross_recommend_default_dao_no_crash(monkeypatch, tmp_path):
+    """Default call (no dao arg) must not raise closed-database error.
+
+    A5①（2026-09-27）：默认库在 pytest 进程内已由 `ProgressDAO` 的守卫拒开 ⇒ 本例把
+    `LS_PROGRESS_DB` 指进 tmp_path——仍是"不传 dao"的那条真实分支，只是不落生产库。
+    """
+    monkeypatch.setenv("LS_PROGRESS_DB", str(tmp_path / "cross-default.db"))
     result = cross_recommend(n=1)
     assert isinstance(result, list)

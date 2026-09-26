@@ -10,6 +10,30 @@ logger = logging.getLogger(__name__)
 _DEFAULT_DB = str(Path(__file__).resolve().parent.parent / "data" / "progress.db")
 
 
+def _guard_default_db_in_tests(db_path: Optional[str], env_override: Optional[str]) -> None:
+    """A5①（2026-09-27 用户授权）：测试态禁开**默认生产库**。
+
+    由来：波次 15 `learn36` 首版测试传 `dao=None`，`core/judge.py:_record_attempt`
+    在该分支自开默认路径＝`data/progress.db`，往生产库写出 14 行合成数据
+    （事后经用户批准按四条 DELETE 定点清除，现库 sha8 `46647128`→`cd2dbce4`）。
+    此前这条防线只写在派单横幅与个别测试文件头（"绝不能传 None"），属**人工约定**；
+    本闸把它变成机制：pytest 进程内 + 没有显式 db_path／`LS_PROGRESS_DB` 覆盖时直接拒开。
+
+    例外出口＝`LS_ALLOW_DEFAULT_DB_IN_TESTS=1`（需在档内写明理由）。
+    """
+    if db_path is not None or env_override:
+        return
+    if not os.environ.get("PYTEST_CURRENT_TEST"):
+        return
+    if os.environ.get("LS_ALLOW_DEFAULT_DB_IN_TESTS") == "1":
+        return
+    raise RuntimeError(
+        "测试态禁开默认生产库（A5①闸）：ProgressDAO() 不接受在 pytest 里自开 "
+        f"{_DEFAULT_DB}；请显式传 db_path=tmp_path/... 或设 LS_PROGRESS_DB 指向沙盒；"
+        "确需例外设 LS_ALLOW_DEFAULT_DB_IN_TESTS=1 并在档内写明理由"
+    )
+
+
 def format_local_ts(ts_str: Optional[str]) -> str:
     """把库里存的 UTC 时间戳转成本地 'YYYY-MM-DD HH:MM'（解析失败原样返回）。
 
@@ -29,7 +53,9 @@ def format_local_ts(ts_str: Optional[str]) -> str:
 class ProgressDAO:
     def __init__(self, db_path: Optional[str] = None):
         # LS_PROGRESS_DB 环境变量覆盖默认库路径——AppTest 等集成测试用它隔离真实数据
-        self.db_path = db_path or os.environ.get("LS_PROGRESS_DB") or _DEFAULT_DB
+        env_override = os.environ.get("LS_PROGRESS_DB")
+        _guard_default_db_in_tests(db_path, env_override)
+        self.db_path = db_path or env_override or _DEFAULT_DB
         parent = os.path.dirname(os.path.abspath(self.db_path))
         if parent:
             os.makedirs(parent, exist_ok=True)
