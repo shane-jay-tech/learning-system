@@ -9,10 +9,14 @@ def test_hello_world():
     assert not r.timed_out
 
 
-def test_runtime_error():
+def test_syntax_error_kind():
+    """r5 B3（2026-09-27 用户裁决）：未闭合括号＝**编译期**错误 ⇒ error_kind='syntax'。
+
+    改前一律 'runtime'（词表里没有 syntax），判分反馈看不出是"解释器拒收"还是"跑起来才炸"。
+    """
     r = PythonRunner().run("print('oops'")
     assert not r.ok
-    assert r.error_kind == "runtime"
+    assert r.error_kind == "syntax"
     assert "SyntaxError" in r.stderr or "EOF" in r.stderr
 
 

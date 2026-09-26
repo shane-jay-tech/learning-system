@@ -13,11 +13,10 @@
   （`SyntaxError: 'await' outside function`，解释器在**编译期**拒收），不造 JS 概念。
 - 「编译阶段」在 Python 侧＝解释器把 `main.py` compile 掉的阶段（早于任何一行执行）。
 
-**否证到的卷宗前提**：「每种错误可区分编译与运行阶段」——
-在**判题返回值层面不可区分**：`python_runner` 只写 `error_kind = None | "runtime" | "timeout"`，
-语法错（编译期）与除零（运行期）落进**同一个** `"runtime"` ⇒ 登记为 **D-14**。
-真正有区分度的是**另一层** `error_feedback.classify()`（返回 syntax／runtime／none／timeout），
-它不在 `RunResult` 上。本班按纪律**只登记不改口径**（改 `error_kind` 词表＝改判分可见面）。
+✅ **D-14 已修（r5 B3，2026-09-27 用户裁决）**：`error_kind` 词表加入 **`"syntax"`**——
+`python_runner` 现在把失败分支交给本仓既有的 `error_feedback.classify()`，语法错（编译期）
+与除零（运行期）不再落进同一个 `"runtime"`。**判题结论一字未改**（`ok`／`exit_code` 照旧），
+变的只有这一列的分类。改前的那批"不可区分"钉子在本文件里按新口径逐条翻转。
 
 覆盖面自证：每条"不可区分"的负向钉子都配一条"classify 层可区分"的正向对照；
 每条结构断言都跑遍四类结局（成功／编译期错／运行期错／非零退出／超时／公开模式拒绝）。
@@ -37,8 +36,8 @@ from core.runners.python_runner import PythonRunner
 RESULT_FIELDS = ["ok", "stdout", "stderr", "timed_out", "exit_code",
                  "error_kind", "rows", "elapsed_ms"]
 
-#: `python_runner` 实际会写出的 `error_kind` 词表（实况，不含 syntax）
-OBSERVED_ERROR_KINDS = {None, "runtime", "timeout", "sandbox"}
+#: `python_runner` 实际会写出的 `error_kind` 词表（r5 B3 起含 syntax）
+OBSERVED_ERROR_KINDS = {None, "runtime", "syntax", "timeout", "sandbox"}
 
 
 @pytest.fixture(scope="module")
@@ -109,7 +108,7 @@ class TestCompileStageIsReal:
 
 
 # ---------------------------------------------------------------------------
-# 2) 卷宗主判据：`error_kind` 层面编译/运行**不可**区分（缺陷登记 D-14）
+# 2) D-14 已修：`error_kind` 层面编译期(syntax)／运行期(runtime) 现在可区分
 # ---------------------------------------------------------------------------
 
 COMPILE_CASES = {
@@ -127,12 +126,11 @@ RUNTIME_CASES = {
 
 class TestStageBlendInErrorKind:
     @pytest.mark.parametrize("case", sorted(COMPILE_CASES))
-    def test_compile_errors_are_labelled_runtime(self, runner, case):
-        """**D-14**：编译期错误的 `error_kind` 也是 `"runtime"`（词表里没有 syntax）。"""
+    def test_compile_errors_are_labelled_syntax(self, runner, case):
+        """**D-14 修复后**：编译期错误的 `error_kind` 是 `"syntax"`，与运行期错分列。"""
         r = runner.run(COMPILE_CASES[case])
-        assert r.error_kind == "runtime", case
-        assert "syntax" not in (r.error_kind or "")
-        assert classify("python", r.stderr) == "syntax", "同一串在 classify 层是 syntax"
+        assert r.error_kind == "syntax", case
+        assert classify("python", r.stderr) == "syntax", "同源：classify 层也是 syntax"
 
     @pytest.mark.parametrize("case", sorted(RUNTIME_CASES))
     def test_runtime_errors_are_labelled_runtime(self, runner, case):
@@ -140,27 +138,27 @@ class TestStageBlendInErrorKind:
         assert r.error_kind == "runtime", case
         assert classify("python", r.stderr) in {"runtime", "undefined_name"}, case
 
-    def test_two_stages_collapse_into_one_label(self, runner):
-        """把两阶段各跑一次，`error_kind` **逐字相同** ⇒ 判题返回值上无从分辨。"""
+    def test_two_stages_are_now_distinguishable(self, runner):
+        """把两阶段各跑一次：**判题结论仍相同**（ok=False、exit_code=1），但分类不再塌成一格。"""
         comp = runner.run(COMPILE_CASES["unclosed-paren"])
         run = runner.run(RUNTIME_CASES["zero-division"])
-        assert comp.error_kind == run.error_kind == "runtime"
+        assert (comp.error_kind, run.error_kind) == ("syntax", "runtime")
         assert comp.exit_code == run.exit_code == 1
-        # 唯一的分辨手段是去读 stderr 原文（或走 classify），不是结构字段
         assert classify("python", comp.stderr) != classify("python", run.stderr)
 
-    def test_error_kind_vocabulary_never_emits_syntax(self, runner):
-        """词表钉子：跑遍四类结局后出现的 `error_kind` 只可能是这四种（含成功时的 None）。"""
+    def test_error_kind_vocabulary_emits_syntax_for_compile_stage(self, runner):
+        """词表钉子（r5 B3 起）：编译期案例只出 syntax、运行期案例只出 runtime，成功为 None。"""
         seen = set()
         for code in list(COMPILE_CASES.values()) + list(RUNTIME_CASES.values()) + ["print(1)\n"]:
             seen.add(runner.run(code).error_kind)
-        assert seen == {"runtime", None}
+        assert seen == {"syntax", "runtime", None}
         assert seen <= OBSERVED_ERROR_KINDS
 
     def test_syntax_error_can_surface_during_runtime_via_import(self, runner, tmp_path):
         """阶段与错误类**不能互推**：运行期 `import` 一个坏模块 ⇒ 运行期抛"编译期"错误。
 
-        这条同时是"别用出现阶段反推错误类"的反例（也是 D-14 为什么值得修的实证）。
+        这条同时是"别用出现阶段反推错误类"的反例（也说明 `error_kind` 表述的是**错误类**、
+        不是**出现阶段**：`syntax` 可以在运行期由 import 触发）。
         """
         r = runner.run(
             "import pathlib, sys\n"
@@ -169,7 +167,9 @@ class TestStageBlendInErrorKind:
             "import badmod\n"
         )
         assert r.exit_code == 1
-        assert r.error_kind == "runtime"
+        # r5 B3：error_kind 表述**错误类**（此处确为 SyntaxError）⇒ 记 syntax，不记 runtime；
+        # 出现阶段（运行期）不在这个字段里，别拿它当阶段判据。
+        assert r.error_kind == "syntax"
         assert classify("python", r.stderr) == "syntax"
         assert locate("python", r.stderr) == 4, "行号应指向 import 那一行，不是坏模块里的第 1 行"
 

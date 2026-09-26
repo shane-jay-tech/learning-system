@@ -7,7 +7,23 @@ import logging
 from typing import Optional
 
 from core.runners.base import BaseRunner, RunResult
-from core.runners.error_feedback import PREAMBLE as _PREAMBLE, timeout_message
+from core.runners.error_feedback import (
+    PREAMBLE as _PREAMBLE,
+    classify as _classify_error,
+    timeout_message,
+)
+
+
+def _error_kind_for(stderr: str) -> str:
+    """r5 B3（2026-09-27 用户裁决）：把编译期错误从"一律 runtime"里分出来。
+
+    复用本仓既有的 `error_feedback.classify` 词表（syntax／runtime／none／timeout），
+    不另造第二套判据。**判题结论一字不改**（`ok`／`exit_code` 与有无 preamble 的判定
+    全部照旧），只让 `error_kind` 这一列如实区分"解释器拒收"与"跑起来才炸"。
+    非 syntax／runtime 的返回值退化为 runtime——超时另有更早的返回分支。
+    """
+    kind = _classify_error("python", stderr)
+    return kind if kind in ("syntax", "runtime") else "runtime"
 
 
 # 沙箱限制
@@ -138,6 +154,6 @@ class PythonRunner(BaseRunner):
                 stderr=stderr,
                 timed_out=False,
                 exit_code=proc.returncode,
-                error_kind=None if ok else "runtime",
+                error_kind=None if ok else _error_kind_for(stderr),
                 elapsed_ms=int((time.time() - t0) * 1000),
             )
