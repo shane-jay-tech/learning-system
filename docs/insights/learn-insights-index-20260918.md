@@ -142,3 +142,6 @@
 | docs/insights/l927-09-copy-audit.md | 20260927 | 全量反馈文案普查（101 条，A62/B3/C36）与 14 条问题清单（零文案改动）（l927-09，2026-09-27） | 已入库 | 0 |
 | docs/insights/l927-10-deps-health.md | 20260927 | 依赖钉死面对账：freeze 钉错对象（195/195 系统等、仅 50/195 等 .venv）＋两解释器各缺一包（l927-10，2026-09-27） | 已入库 | 0 |
 | docs/insights/l927-11-fs-constraint-adjudication.md | 20260927 | F-1 越界读写复核（写句柄被接受、主库三点取样不变）＋三案代价矩阵（l927-11，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-14-pause-adjudication.md | 20260927 | 暂停甲案等价性否证（生产面无 `review_state` 写入口、错题通道不看日期）＋两案代价（l927-14，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-17-canonical-tag-design.md | 20260927 | canonical_tag() 别名层设计四要素＋26 点（实为并集）影响面对照（l927-17，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-18-case-mismatch.md | 20260927 | 期望答案大小写／同义异形对账；🔴 A 类＝题面写"也接受"而 `judge.py:259` 精确串比（l927-18，2026-09-27） | 已入库 | 0 |
