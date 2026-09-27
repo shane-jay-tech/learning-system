@@ -133,3 +133,9 @@
 | docs/insights/silent-except-batch2-20260913.md | 20260913 | learning 静默 except 续清批次（c-03，2026-09-13） | 已入库 | 0 |
 | docs/insights/weekly-card-note-20260913.md | 20260913 | learning 周报卡口径提示落地（a-47/c-04，2026-09-13） | 已入库 | 0 |
 | docs/insights/learn-tag-vocab-spec-20260925.md | 20260925 | 五轴标签规范与三清单（重复 / 大小写 / 未知）（120546-361f，2026-09-25） | 已入库 | 0 |
+| docs/insights/l927-03-baseline.md | 20260927 | learning 测试基线复测：全量现值与 384→622→1162 漂移表（l927-03，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-04-ergonomics-status.md | 20260927 | plan.md 目标面对照＋浏览器实测前置否证（playwright 在环境、tests 零用）（l927-04，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-05-judge-security-review.md | 20260927 | 判题安全边界现状与 G1–G11 缺口清单（只读巡检）（l927-05，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-06-sampling.md | 20260927 | seed=20260927 抽 10 题核验＋全库重复直扫（l927-06，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-07-dashboard-regression.md | 20260927 | dashboard 1366 断点修复在位核对（blob 等值自证）＋定向 UI 子集（l927-07，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-08-crossrepo-boundary.md | 20260927 | learning×kaoyan 英语功能面跨仓对账：本仓 0 命中、该模块从未存在（l927-08，2026-09-27） | 已入库 | 0 |
