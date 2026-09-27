@@ -139,3 +139,6 @@
 | docs/insights/l927-06-sampling.md | 20260927 | seed=20260927 抽 10 题核验＋全库重复直扫（l927-06，2026-09-27） | 已入库 | 0 |
 | docs/insights/l927-07-dashboard-regression.md | 20260927 | dashboard 1366 断点修复在位核对（blob 等值自证）＋定向 UI 子集（l927-07，2026-09-27） | 已入库 | 0 |
 | docs/insights/l927-08-crossrepo-boundary.md | 20260927 | learning×kaoyan 英语功能面跨仓对账：本仓 0 命中、该模块从未存在（l927-08，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-09-copy-audit.md | 20260927 | 全量反馈文案普查（101 条，A62/B3/C36）与 14 条问题清单（零文案改动）（l927-09，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-10-deps-health.md | 20260927 | 依赖钉死面对账：freeze 钉错对象（195/195 系统等、仅 50/195 等 .venv）＋两解释器各缺一包（l927-10，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-11-fs-constraint-adjudication.md | 20260927 | F-1 越界读写复核（写句柄被接受、主库三点取样不变）＋三案代价矩阵（l927-11，2026-09-27） | 已入库 | 0 |
