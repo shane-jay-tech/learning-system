@@ -116,3 +116,6 @@ int arr[square(3)];              // arr[9]，编译期常量
 ## 现在做练习
 
 5 道题：函数模板 max、类模板 Box、Pair 多参数、求和模板、模板特化（高级）。
+
+- `std::max(a, b)`：返回两者较大值。
+- `std::pair<K, V>`：二元组，.first/.second。

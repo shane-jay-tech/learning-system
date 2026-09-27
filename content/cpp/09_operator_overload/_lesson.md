@@ -136,3 +136,5 @@ cout << add5(3);   // 8 —— 像函数一样调用
 ## 现在做练习
 
 5 道题：Money + 重载、Vec ==、operator<<、operator[]、operator()。
+
+- `boolalpha`：cout 输出 bool 为 true/false。

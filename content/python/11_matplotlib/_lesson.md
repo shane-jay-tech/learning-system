@@ -92,3 +92,5 @@ plt.savefig("scores.png")
 ## 现在做练习
 
 5 道题：折线 + 输出 max、柱状 + 输出 sum、散点 + 输出 mean、多线图 + 输出差值、柱状排序 + 输出最大类。
+
+- `plt.legend()`：给带 label 的线画出图例。

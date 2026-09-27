@@ -89,3 +89,5 @@ t, p = stats.ttest_1samp(scores, 80)
 ## 现在做练习
 
 5 道题：单样本 t、独立样本 t、配对 t、卡方、相关系数。
+
+- `stats.f_oneway(a, b, c)`：多组均值方差分析。

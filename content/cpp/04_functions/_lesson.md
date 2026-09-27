@@ -139,3 +139,5 @@ double max3(double a, double b, double c) { ... }
 ## 现在做练习
 
 5 道题：写 add、写 max_of_three、阶乘（递归）、判断质数、用引用交换两数。
+
+- `boolalpha`：cout 输出 bool 为 true/false。

@@ -121,3 +121,5 @@ string t = std::move(s);
 ## 现在做练习
 
 5 道题：std::move 把字符串搬给 vector、识别左值右值、移动 vs 拷贝计数、移动后对象、emplace_back vs push_back。
+
+- `boolalpha`：cout 输出 bool 为 true/false。

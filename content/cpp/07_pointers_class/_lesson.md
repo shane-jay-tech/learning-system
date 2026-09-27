@@ -119,3 +119,6 @@ shared_ptr<int> s2 = s;     // 引用计数 +1
 ## 现在做练习
 
 5 道题：指针交换、动态数组求和、定义类 + 构造函数、unique_ptr、shared_ptr 引用计数。
+
+- `boolalpha`：cout 输出 bool 为 true/false。
+- `use_count()`：返回 shared_ptr 的引用计数。
