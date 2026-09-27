@@ -145,3 +145,6 @@
 | docs/insights/l927-14-pause-adjudication.md | 20260927 | 暂停甲案等价性否证（生产面无 `review_state` 写入口、错题通道不看日期）＋两案代价（l927-14，2026-09-27） | 已入库 | 0 |
 | docs/insights/l927-17-canonical-tag-design.md | 20260927 | canonical_tag() 别名层设计四要素＋26 点（实为并集）影响面对照（l927-17，2026-09-27） | 已入库 | 0 |
 | docs/insights/l927-18-case-mismatch.md | 20260927 | 期望答案大小写／同义异形对账；🔴 A 类＝题面写"也接受"而 `judge.py:259` 精确串比（l927-18，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-20-similar-design.md | 20260927 | 相似题互链两形态十二维对比＋loader 接入面 6 点（推荐 B 作证据层，未落字段）（l927-20，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-21-ai-echo-risk.md | 20260927 | AI 回显风险可归因池由 148 收窄到 36 道；两案判断题（补禁令 vs 零调用阶段 0）（l927-21，2026-09-27） | 已入库 | 0 |
+| docs/insights/l927-22-handoff.md | 20260927 | 日间人工窗取证交接：两读数方法-命令-判据-安全注意；回环性全押 config.toml 一行（l927-22，2026-09-27） | 已入库 | 0 |
