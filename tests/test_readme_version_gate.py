@@ -22,6 +22,12 @@
 与单源一致；l924-11 已把该桩从"字面行号快照"改成"二次实取判等"，故首行补串不会误红它）。
 
 复跑：PYTHONIOENCODING=utf-8 python -m pytest tests/test_readme_version_gate.py -q
+
+l927-46 收口（2026-09-28，README 首行已补裸版本串，上述修复出口按预述兑现）：
+第 1 例的 xfail 桩已删 ⇒ 本档转为常驻绿门禁；第 2 例翻正并更名
+`test_现状红的成因恰为标题版本一条` → `test_真README过门且FAIL清单为空`；第 3 例反向自证翻正并更名
+`test_修好后门禁真的会绿` → `test_抹掉首行版本串门禁必判红`。旧名在册档（l924-12／l927-46 note）
+按其当时盘态留痕，不回改。
 """
 from pathlib import Path
 
@@ -43,50 +49,44 @@ def metrics():
     return generate_system_report.generate_metrics()
 
 
-@pytest.mark.xfail(strict=True, reason=f"{_TITLE_ERROR}……（HEAD 长期红，l923-25 遗留；修复出口见模块 docstring）")
 def test_真README必须过check_readme(capsys, metrics):
-    """显性化的就是这条红：`check_readme` 判真 README 不过。"""
+    """l927-46 起常驻绿：README 首行含版本串 ⇒ `check_readme` 必须判真 README 通过。"""
     ok = generate_system_report.check_readme(README, metrics)
     capsys.readouterr()
-    assert ok is True, "README 首行仍缺版本串，门禁判红——本例应维持 XFAIL"
+    assert ok is True, "README 首行缺版本串（或被改写），门禁判红"
 
 
-def test_现状红的成因恰为标题版本一条(capsys, metrics):
-    """把 XFAIL 的成因钉死：有且只有"首行无版本串"这一条，别的一律不许藏进 XFAIL。
+def test_真README过门且FAIL清单为空(capsys, metrics):
+    """翻正版（原名 `test_现状红的成因恰为标题版本一条`）：钉"过门 ＋ FAIL 清单为空"。
 
     本例转红只有两种可能，都该有人来看：
-    ① README 首行已补版本串 ⇒ 上一条 xfail 桩该删（见 docstring 修复出口）；
-    ② 又长出一条新的失败原因（如题量/知识点数与 README 脱钩）⇒ 那是真缺陷，不是本档的债。
+    ① README 首行的版本串被抹掉或改写 ⇒ 与上一条同因，先看首行；
+    ② 长出别的失败原因（如题量/知识点数与 README 脱钩）⇒ 那是真缺陷，不是本档的债，
+       FAIL 清单会把它的条数与文案直接钉在这里。
     """
     ok = generate_system_report.check_readme(README, metrics)
     out = capsys.readouterr().out
-    first_line = README.read_text(encoding='utf-8').split(chr(10), 1)[0].strip()
-    assert ok is False, (
-        'check_readme 已判真 README 通过，但本例还钉着「现状红」——README 首行补过版本串了，'
-        '请删掉 test_真README必须过check_readme 的 xfail 桩并把本例翻正'
-    )
+    assert ok is True, f"门禁判红（README 首行或别的面）：{out}"
     causes = [ln.strip()[2:] for ln in out.splitlines() if ln.strip().startswith('- ')]
-    assert len(causes) == 1, f'长期红的成因应当只有一条，实测 {len(causes)} 条：{causes}'
-    assert causes[0].startswith(_TITLE_ERROR), f'成因换人了（不是标题版本）：{causes}'
-    assert first_line and first_line in causes[0], (
-        f'成因文案里没引用到 README 首行（{first_line!r}）：{causes}'
-    )
+    assert len(causes) == 0, f"过门却仍有 FAIL 清单 {len(causes)} 条：{causes}"
+    assert "PASS" in out, out
+    head = README.read_text(encoding='utf-8').split(chr(10), 1)[0]
+    assert VERSION in head, f"README 首行不含单源版本 {VERSION}：{head!r}"
 
 
-def test_修好后门禁真的会绿(tmp_path, capsys, metrics):
-    """反向自证：这条 xfail 不是恒假门——首行补上版本串做成副本后 `check_readme` 必须判 True。
-
-    副本只写在 `tmp_path`，README 本体零改动。
+def test_抹掉首行版本串门禁必判红(tmp_path, capsys, metrics):
+    """反向自证（原名 `test_修好后门禁真的会绿`）：牙还在——把首行的版本串抹掉做成 tmp 副本，
+    `check_readme` 必须判 False 且 FAIL 文案点名标题版本。副本只写在 `tmp_path`，README 本体零改动。
     """
     text = README.read_text(encoding="utf-8")
     head, _, rest = text.partition("\n")
-    assert VERSION not in head, "README 首行已含版本串，本例的夹具前提失效，请连同 xfail 桩一起收口"
-    patched = f"{head} v{VERSION}\n{rest}"
-    copy = tmp_path / "README.patched.md"
-    copy.write_text(patched, encoding="utf-8")
-    assert copy.read_text(encoding="utf-8") == patched, "副本落盘后读回不一致"
+    assert VERSION in head, "README 首行已不含版本串，本例的夹具前提失效，先看上一条"
+    stripped = head.replace(VERSION, "").strip()
+    copy = tmp_path / "README.stripped.md"
+    copy.write_text(f"{stripped}\n{rest}", encoding="utf-8")
+    assert copy.read_text(encoding="utf-8").split(chr(10), 1)[0] == stripped, "副本落盘后读回不一致"
     ok = generate_system_report.check_readme(copy, metrics)
     out = capsys.readouterr().out
-    assert ok is True, f"补了版本串仍判不过 ⇒ 门禁还有别的红没被成因桩显性化：{out}"
-    assert "PASS" in out, out
+    assert ok is False, f"抹掉版本串仍判通过 ⇒ 该子判据是恒真门：{out}"
+    assert _TITLE_ERROR in out, f"FAIL 文案没点名标题版本：{out}"
     assert README.read_text(encoding="utf-8") == text, "README 本体被污染"

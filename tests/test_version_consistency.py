@@ -7,7 +7,7 @@
 - `app.py:28` 侧栏 `v{APP_VERSION}` —— **这一处是推导的，不算副本**；
   但同一行里的「5 门课程」是硬编码，`LANG_META` 现值也是 5 —— 第四处副本
 
-门数副本最阴：新增第 6 门语言时 README:3 的语言名列表、app.py:28 的「5 门课程」
+门数副本最阴：新增第 6 门语言时 README 首屏简介行的语言名列表、app.py:28 的「5 门课程」
 都不会自动跟着变，且 `LANG_META` 与 README 语言名是**两条独立的人肉清单**。
 
 本桩把「副本数 == 实测值」与「推导处不含裸字面量」钉成机械断言：
@@ -52,6 +52,30 @@ def _readme_semver_lines(text=None):
     """
     text = README if text is None else text
     return sorted({text.count("\n", 0, m.start()) + 1 for m in SEMVER_IN_MD.finditer(text)})
+
+
+# 首屏简介行的**标记**：首个 `# ` 一级标题之后的第一段非空文本（l927-47 加固）。
+HEAD_MARK = "# "
+
+
+def _readme_head_paragraph(text=None):
+    """提取器 C（l927-47）：按标记取 README 的「首屏简介行」，替代固定下标 `splitlines()[2]`。
+
+    为什么必须换：`README.splitlines()[2]` 靠「首屏前面恰好两行」这一事实成立，
+    README **前**多一个空行、标题前加一段 front matter（mkdocs 风格 `---` 块）都会取到别的行，
+    而那两种都是**合法结构改写**——`_check_readme_version_shape` 的判据对它们不红，
+    只有这条固定下标例会红（脆断言，l924-11「遗留问题 1」点名的就是它）。
+    取法：从篇首起找首个以 `# ` 开头的行（注意 `## ` 不匹配，故取的是**一级**标题），
+    再返回其后第一段非空文本；`text=None` 时取模块常量 `README`，传入文本即可对任意副本实取。
+    """
+    text = README if text is None else text
+    lines = text.splitlines()
+    start = next((i for i, line in enumerate(lines) if line.startswith(HEAD_MARK)), None)
+    assert start is not None, "README 里没有 `# ` 一级标题，本桩前提不成立"
+    for line in lines[start + 1:]:
+        if line.strip():
+            return line
+    raise AssertionError(f"首个 `# ` 标题（第 {start + 1} 行）之后再无任何非空行：首屏简介行缺失")
 
 
 def _check_readme_version_shape(text):
@@ -206,17 +230,92 @@ def test_侧栏课程门数与LANG_META一致(monkeypatch):
         f"侧栏门数 {n} 与 LANG_META {len(LANG_META_KEYS)} 脱节，加语言时漏改文案"
 
 
-def test_README语言名列表与LANG_META逐项一致():
-    """README:3 的人肉语言清单是**第四处副本**：五个显示名必须逐个出现且顺序与 LANG_META 相同。
+def _readme_lang_names():
+    """LANG_META 的语言显示名（人肉清单的对照侧，与上一例同源取数）。"""
+    return [components.LANG_META[k]["name"] for k in LANG_META_KEYS]
 
+
+def _shifted_readme(tmp_path, prefix, name):
+    """把**真 README** 前插 `prefix` 做成 tmp 副本，落盘后**读回**再返回 (原文, 副本正文)。
+
+    边界用例只吃这份读回的正文（不吃内存拼装值）；顺手钉三条前提：
+    副本读回逐字等于写入、README 本体与 import 期读数一致、跑完本体仍零改动。
+    """
+    raw = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert raw == README, "README 本体与 import 期读数已不等（本文件被并行改写过，两侧取数不可比）"
+    shifted = prefix + raw
+    copy = tmp_path / name
+    copy.write_text(shifted, encoding="utf-8")
+    back = copy.read_text(encoding="utf-8")
+    assert back == shifted, "副本落盘后读回不一致"
+    assert (ROOT / "README.md").read_text(encoding="utf-8") == raw, "README 本体被污染"
+    return raw, back
+
+
+def test_README语言名列表与LANG_META逐项一致():
+    """README 首屏简介行的人肉语言清单是**第四处副本**：五个显示名必须逐个出现且顺序与 LANG_META 相同。
+
+    l927-47 加固：取行改按标记（`_readme_head_paragraph`），不再用 `splitlines()[2]` 的固定下标，
+    所以 README 前插空行、标题前加 front matter 都不误红（边界用例见下面两例，牙见第三例）。
     加第 6 门语言时本例与上一例同时红，两处文案一起改。
     """
-    head = README.splitlines()[2]  # :3
-    names = [components.LANG_META[k]["name"] for k in LANG_META_KEYS]
+    head = _readme_head_paragraph()
+    names = _readme_lang_names()
     assert names == ["Python", "SQL", "C++", "R", "Agent 开发"], names
     pos = [head.find(n) for n in names]
-    assert all(p >= 0 for p in pos), f"README:3 缺语言名 {names} → {head}"
-    assert pos == sorted(pos), f"README:3 语言顺序与 LANG_META 不一致：{list(zip(names, pos))}"
+    assert all(p >= 0 for p in pos), f"README 首屏简介行缺语言名 {names} → {head}"
+    assert pos == sorted(pos), f"README 首屏简介行语言顺序与 LANG_META 不一致：{list(zip(names, pos))}"
+
+
+def test_边界_README前有空行时语言名断言仍绿(tmp_path):
+    """卷宗 l927-47 点名的边界：README **前**有两个空行 ⇒ 按标记仍取到同一句首屏简介行。
+
+    断言对象是「落盘副本读回后再解析」的那一行（不是内存拼装串），并钉住
+    「新取法取到的仍是原来那句话本身」——用未位移的原文件固定下标做对照，防止加固顺手换了判据对象。
+    """
+    raw, back = _shifted_readme(tmp_path, "\n\n", "README.blanklines.md")
+    names = _readme_lang_names()
+    head = _readme_head_paragraph(back)
+    assert head == raw.splitlines()[2], f"位移后按标记取到了别的行：{head!r}"
+    pos = [head.find(n) for n in names]
+    assert all(p >= 0 for p in pos), f"位移后首屏简介行不含语言名：{head!r}"
+    assert pos == sorted(pos), f"位移后语言顺序判据失效：{list(zip(names, pos))}"
+    assert back != raw and back.splitlines()[2] != head, "副本没造出位移，本例前提不成立"
+
+
+def test_边界_标题前有frontmatter时语言名断言仍绿(tmp_path):
+    """再加一层（位移不止空行一种）：标题前是**非空**的 `---` front matter 块（mkdocs 风格）。
+
+    固定下标在这里取到的是 `---`；按标记仍命中首屏简介行。README 的部署段本来就写 mkdocs，
+    所以「将来给 docs/index.md 补 front matter」是**合法改写**，不该被本桩判红。
+    """
+    raw, back = _shifted_readme(tmp_path, "---\ntitle: 学习平台\n---\n\n", "README.frontmatter.md")
+    names = _readme_lang_names()
+    head = _readme_head_paragraph(back)
+    assert head == raw.splitlines()[2], f"front matter 后按标记取到了别的行：{head!r}"
+    pos = [head.find(n) for n in names]
+    assert all(p >= 0 for p in pos), f"front matter 后首屏简介行不含语言名：{head!r}"
+    assert pos == sorted(pos), f"front matter 后语言顺序判据失效：{list(zip(names, pos))}"
+
+
+def test_有牙自检_旧固定下标取法在位移副本上必失准(tmp_path):
+    """加固的牙（l927-47 判据②的前半）：**同一份位移副本**喂给旧写法 `splitlines()[2]`，
+    语言名判据必须当场红 ⇒ 证明"改按标记查找"不是把断言改松，而是取行方式真的换了。
+
+    反向再钉一条「加固不改语义」：在**未位移的真 README** 上，标记取法与旧固定下标必须逐字等值
+    ——若两者在真档上就取到不同行，说明本单偷偷换了判据对象，该红。
+    """
+    raw, back = _shifted_readme(tmp_path, "\n\n", "README.legacy.md")
+    names = _readme_lang_names()
+    legacy_line = back.splitlines()[2]  # 旧写法，逐字照搬原断言的取行式
+    assert legacy_line != _readme_head_paragraph(back), "旧写法与标记取法在位移副本上取到同一行 ⇒ 位移没造出来"
+    legacy_pos = [legacy_line.find(n) for n in names]
+    missing = [n for n, p in zip(names, legacy_pos) if p < 0]
+    assert missing, f"旧固定下标在位移副本上照样找得到全部语言名 ⇒ 本例是恒真的假自证：{legacy_line!r}"
+    # 旧写法的原判据形状（all(p >= 0 …)）在同一份副本上必须为假，且假在被位移的这一行上
+    assert not all(p >= 0 for p in legacy_pos), f"原判据在位移副本上仍为真 ⇒ 牙不存在：{legacy_line!r}"
+    assert _readme_head_paragraph() == raw.splitlines()[2], \
+        "标记取法与旧固定下标在真 README 上取到不同行 ⇒ 加固改变了判据对象，需复核"
 
 
 def test_全仓生产码版本字面量只有单源一处():
