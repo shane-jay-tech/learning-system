@@ -206,14 +206,24 @@ section[data-testid="stSidebar"] .section-title::before { height: 13px; width: 3
 }
 button:focus-visible, [role="radio"]:focus-visible, input:focus-visible,
 textarea:focus-visible, [data-baseweb="select"]:focus-within {
-  outline: 3px solid rgba(91, 91, 214, .28) !important; outline-offset: 2px;
+  outline: 3px solid #4547B9 !important; outline-offset: 2px;
 }
 /* d913c-02 键盘焦点可见性：导航项（侧边栏链接/锚点/标签页）纳入同一 focus ring。
-   取色来源＝品牌主色 var(--primary) #5B5BD6 的 28% 透明描边（与上组按钮/表单规则同源，
-   描边 3px + offset 2px），深浅背景上均满足 WCAG 2.4.7 焦点可见。 */
+   l927-43 改色落地（档 A＝l924-06 报告的推荐档）：三组描边由 rgba(91,91,214,.28)
+   半透明改为实色 #4547B9（＝:14 已在册 --primary-dark，与 :204 主按钮 hover 同色），
+   厚度 3px 与 offset 2px 不变。
+   门槛口径订正：这里守的是 WCAG 1.4.11 非文本对比（AA，3:1）与 WCAG 2.2 的
+   2.4.11 Focus Appearance（AAA）；旧注释引的 2.4.7 Focus Visible 只要求"焦点可见"、
+   不设对比度门槛，所以 1.45–1.49:1 的旧值也永远不会因它报错——那正是这条债的看守缺口。
+   实算（sRGB 编码域 source-over＋WCAG 相对亮度，复算入口见
+   docs/insights/l927-43-recolor.md）：vs #F5F6FA 6.81／#FFFFFF 7.36／#F8F9FC 6.99／
+   #EEEEFF 6.41／侧栏 #F8F8FC 6.94 ⇒ 在册浅色面全集 min 6.41:1，门槛 3:1。
+   ⚠ 本仓无深色主题载体（无 html.dark、无 media prefers-color-scheme、config 未设
+   theme.base）。若将来加深色主题，本支实色在深底上只剩 2.21:1（假想 #172033 实测），
+   须换亮色腿（#A5A7EE 7.25 或反白 #F5F6FA 15.06），不可沿用本组色值。 */
 a:focus-visible, [data-testid="stSidebar"] a:focus-visible,
 [role="tab"]:focus-visible, [data-testid="stSidebar"] button:focus-visible {
-  outline: 3px solid rgba(91, 91, 214, .28) !important; outline-offset: 2px;
+  outline: 3px solid #4547B9 !important; outline-offset: 2px;
   border-radius: 6px;
 }
 /* l923-18 F-1 实装：展开区标题行纳入同一品牌焦点描边。此前本仓 12 处展开器
@@ -222,7 +232,7 @@ a:focus-visible, [data-testid="stSidebar"] a:focus-visible,
    静态普查依据见 docs/insights/ 里的 learn-focus-f1-outline-static 档；
    浏览器 Tab 目检 12 处展开头留日间批（见 l923-18 result）。 */
 [data-testid="stExpander"] summary:focus-visible {
-  outline: 3px solid rgba(91, 91, 214, .28) !important; outline-offset: 2px;
+  outline: 3px solid #4547B9 !important; outline-offset: 2px;
 }
 [data-baseweb="select"] > div, .stTextInput input, .stTextArea textarea {
   min-height: 42px; border-color: var(--border-strong) !important; border-radius: 10px !important;
