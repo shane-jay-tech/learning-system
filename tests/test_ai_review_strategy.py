@@ -239,6 +239,164 @@ def test_open_and_code_cache_namespaces_never_collide(cache):
     assert len(cache) == 2
 
 
+# ---------------------------------------------------------------------------
+# l927-56（2026-09-28 追加）：FIFO 断言面补齐＝现状钉桩，不是升级。
+#   裁决状态：l927-35（FIFO 升 LRU 裁决材料）卷宗仍在 inbox 未执行；`l924-20` 的
+#   两案稿 `docs/insights/learn-review-cache-lru-verdict-20260924.md` §六 明写「选案交人工」，
+#   待人工台账 `D:\code\docs\insights\drain-20260923-pending-human.md` 现点 LRU 命中 0 行，
+#   `D:\code\docs\decisions\` 零授权件 ⇒ **未拍板** ⇒ 本段只把现状钉住，不改语义、不放宽任何在册断言。
+#   上游只钉了一条顺位桩（:134，且只覆盖代码点评写路径），"读命中不续命""open 写路径复写
+#   不刷新顺位""两类共用同一只顺位"三格全空 ⇒ 按 l924-20 §二 的三态口径（FIFO／LRU-w／LRU-rw）补平。
+#   断言一律「动作可经生产读路径，顺位判定不经读路径」＝直接看 `list(cache)`，
+#   这是 §三 点名的修法形状（在册 :120 用读来探淘汰对象，本身是 lru-rw 下会误伤的那一格，故本段不仿它）。
+#   将来真升级时本段每一例转红都是**一次可见的行为决策**，逐例归因见 docstring 与 note 档。
+#   全程离线：零 LLM、零子进程、零网络、零写盘；只用 fixture 换上的干净 OrderedDict。
+# ---------------------------------------------------------------------------
+
+
+def _ck(pid, code="c", lang="python"):
+    """代码点评键形（core/ai_review.py:62 的拼法，测试侧只用于比对键序，不写缓存）。"""
+    return (lang, pid, hashlib.sha1(code.encode("utf-8", errors="replace")).hexdigest())
+
+
+def _ok(pid, answer="a", lang="python"):
+    """开放题键形＝直接调被测函数，避免在测试里重抄一遍 sha1 拼法。"""
+    return ai_review._open_key(lang, pid, answer)
+
+
+def test_cache_read_hit_does_not_refresh_eviction_rank(cache):
+    """钉现状（LRU-rw 那一格）：**命中读不续命**。
+    `_cached_feedback` 走 `_feedback_cache.get(key)`（:71），get 不 move_to_end ⇒
+    反复读最旧那条也不会把它挪到队尾，超容量时被淘汰的仍是它。
+    真 LRU（读也刷新）下本例当场红在第 1 条断言（读三下之后队首已经不是 p0）。
+    在册 :120 只把"读"当探针用、顺带碰到这格语义，从未以"读命中"为动作对象钉过。"""
+    n = ai_review._FEEDBACK_CACHE_MAX
+    for i in range(n):
+        ai_review._cache_feedback("python", f"p{i}", "c", "点评")
+    oldest = _ck("p0")
+    for _ in range(3):
+        assert ai_review._cached_feedback("python", "p0", "c") == "点评"   # 命中：读得到
+    assert list(cache)[0] == oldest, "读命中把条目挪位了 ⇒ 已是 LRU-rw 而非现状 FIFO"
+    assert len(cache) == n                                                 # 读不新增条目
+    ai_review._cache_feedback("python", "p-new", "c", "点评")
+    assert oldest not in cache, "被踢的应仍是 p0（读命中不救它）"
+    assert _ck("p1") in cache and _ck("p-new") in cache
+
+
+def test_open_result_reinsert_updates_value_but_not_eviction_rank(cache):
+    """钉现状（LRU-w 在 open 写路径那一格）：:134 只钉了 `_cache_feedback`，
+    而 `_cache_open_result`（:95-101）是同形码的第二份拷贝（各自 `_feedback_cache[key] = ...`
+    ＋各自 `while ... popitem(last=False)`），此前**无任何顺位桩**。
+    本例＝:134 在开放题侧的孪生：复写同键只换值、不动位置，超容量时被踢的仍是它。"""
+    n = ai_review._FEEDBACK_CACHE_MAX
+    for i in range(n):
+        ai_review._cache_open_result("python", f"o{i}", "a", {"score": i, "llm_ok": True})
+    oldest = _ok("o0")
+    for i in range(3):
+        ai_review._cache_open_result("python", "o0", "a", {"score": 900 + i, "llm_ok": True})
+    assert list(cache)[0] == oldest, "复写同键把它挪到队尾了 ⇒ 写路径已是 LRU-w"
+    assert cache[oldest]["score"] == 902              # 值改了（最后一次写生效）
+    assert len(cache) == n                            # 复写不涨条目
+    ai_review._cache_open_result("python", "o-extra", "a", {"score": 1, "llm_ok": True})
+    assert oldest not in cache, "被踢的应仍是 o0（复写不刷新顺位）"
+    assert _ok("o1") in cache and _ok("o-extra") in cache
+
+
+def test_both_write_paths_share_one_insertion_rank(cache):
+    """钉现状（共用一只缓存＝共用一条顺位）：两类写路径交替灌、各自复写队首若干次后，
+    `list(cache)` 仍逐位等于**首次插入序**。
+    在册 :216 钉的是"共用一只**预算**"（容量争用），本例钉的是"共用一条**顺位**"——
+    这是另一格：分池方案（l924-20 案 A）若只做容量分池而保留 FIFO，本例仍绿；
+    任何一侧偷偷加 `move_to_end`（LRU-w）都会让本例在第 1 条断言红，且红侧能指出是哪一族键。"""
+    n = ai_review._FEEDBACK_CACHE_MAX
+    insert_order = []
+    for i in range(n // 2):
+        ai_review._cache_feedback("python", f"c{i}", "c", "点评")
+        insert_order.append(_ck(f"c{i}"))
+        ai_review._cache_open_result("python", f"o{i}", "a", {"llm_ok": True})
+        insert_order.append(_ok(f"o{i}"))
+    assert len(insert_order) == n and len(cache) == n
+    # 两类各复写队首 2 次（值变、位置不许变）
+    ai_review._cache_feedback("python", "c0", "c", "点评2")
+    ai_review._cache_open_result("python", "o0", "a", {"llm_ok": True, "score": 7})
+    ai_review._cache_feedback("python", "c0", "c", "点评3")
+    ai_review._cache_open_result("python", "o0", "a", {"llm_ok": True, "score": 8})
+    assert list(cache) == insert_order, "交替灌＋复写后的键序不等于首次插入序"
+    assert cache[_ck("c0")] == "点评3" and cache[_ok("o0")]["score"] == 8   # 值确实被复写过
+    ai_review._cache_feedback("python", "c-overflow", "c", "点评")
+    assert list(cache)[0] == insert_order[1]           # 淘汰的仍是最先插入的 c0
+    assert insert_order[0] not in cache
+    assert list(cache) == insert_order[1:] + [_ck("c-overflow")]
+    assert len(cache) == n                             # 只截不回涨（:120 已钉，此处钉混合流下同一条）
+
+
+def test_variant_pid_entries_are_evicted_by_same_fifo_rank(cache):
+    """钉现状（卷宗标题"变式题缓存"的落点）：盘上**没有第二只**变式题缓存，
+    变式题点评与真题点评同挤 `core/ai_review.py:55` 那一只是 OrderedDict，
+    键形只是把 pid 换成 `AI_VARIANT::<原题 id>`（`core/ai_generate.py:105` 的拼法）。
+    ⇒ 变式题条目**不享有任何淘汰豁免**，FIFO⇄LRU 一次升级的爆炸半径必然含它。
+    （对照：真题侧会话状态键有 `_LRU_CAP=30` 那套、变式走 `_variant_lru`，那是**另一件事**，
+    在 ui/pages/language.py，与本只 LLM 点评缓存无关，勿串案。）"""
+    n = ai_review._FEEDBACK_CACHE_MAX
+    variant = "AI_VARIANT::python/01_basics/p1"
+    insert_order = []
+    for i in range(n // 2):
+        ai_review._cache_feedback("python", f"p{i}", "c", "真题点评")
+        insert_order.append(_ck(f"p{i}"))
+        ai_review._cache_feedback("python", f"{variant}_{i}", "c", "变式点评")
+        insert_order.append(_ck(f"{variant}_{i}"))
+    assert list(cache) == insert_order
+    # 复写最旧那条变式条目：只改值、不刷新顺位
+    ai_review._cache_feedback("python", f"{variant}_0", "c", "变式点评改")
+    assert list(cache)[0] == insert_order[0]
+    assert cache[insert_order[1]] == "变式点评改"
+    # 读命中同样不救它
+    assert ai_review._cached_feedback("python", f"{variant}_0", "c") == "变式点评改"
+    assert list(cache)[0] == insert_order[0]
+    # 挤两条：出局顺序严格按首次插入序，先真题 p0、再变式那条 ⇒ 无淘汰豁免
+    ai_review._cache_feedback("python", "p-extra1", "c", "挤一条")
+    assert insert_order[0] not in cache and insert_order[1] in cache
+    assert len(cache) == n
+    ai_review._cache_feedback("python", "p-extra2", "c", "挤两条")
+    assert insert_order[1] not in cache, "变式条目被豁免／真题条目被多踢 ⇒ 顺位口径已变"
+    assert cache[insert_order[2]] == "真题点评"           # 第三顺位（真题）仍在场
+    assert cache[_ck("p-extra2")] == "挤两条"
+    assert len(cache) == n
+
+
+def test_feedback_cache_capacity_constant_is_pinned_at_current_value(cache):
+    """钉现状（容量与容器）：:120/:134/:216 全部动态读 `ai_review._FEEDBACK_CACHE_MAX`
+    ⇒ 把 64 改成 192（l924-20 案 A 的容量半段）**不会让任何在册用例红**，这是断言面的真空格。
+    本例把现值钉死，并钉"全仓只有一只点评缓存容器"（案 A 分池会当场红在这里＝一次可见决策）。
+    🔴 这不是"容量应该是 64"的技术结论——命中率与容量的数值裁决属 l924-20 §四／§五，交人工。"""
+    assert ai_review._FEEDBACK_CACHE_MAX == 64
+    assert isinstance(ai_review._feedback_cache, OrderedDict)
+    containers = [n for n in dir(ai_review) if n.endswith("_cache") or n.endswith("_CACHE")]
+    assert containers == ["_feedback_cache"], f"点评缓存容器出现第二只：{containers}"
+    # 现值自洽：容量常量与头注释里的"64 条"口径同源（注释若改数而常量没改＝口径漂移）
+    with open(ai_review.__file__, encoding="utf-8") as f:
+        src = f.read()
+    assert "64 条容量" in src or "共用 64 条容量" in src, "缓存段头注释的容量口径已漂离常量"
+
+
+def test_cache_section_comment_still_self_describes_fifo(cache):
+    """钉现状（注释⇄实现口径一致，防 l922-10 那次"注释说 LRU、实现是 FIFO"的漂移复发）：
+    缓存段头注释必须仍明示 FIFO，且不得再次出现把现状说成 LRU 的字样。
+    🔴 只跑测试时读源码（非 import 期），编码写死 utf-8（本仓 autocrlf=true ⇒ 工作树是 CRLF，
+    子串判定不受行尾影响，但别拿字节数比对）。"""
+    with open(ai_review.__file__, encoding="utf-8") as f:
+        src = f.read()
+    head = src.split("def _cache_feedback", 1)[0]
+    assert len(head) > 0
+    assert "淘汰语义是 FIFO" in head, "头注释不再明示 FIFO ⇒ 语义或注释已改动，本段钉桩需同步定夺"
+    # LRU 二字只允许以"曾被否证的历史指涉"出现（l923-05 保留的那句），不许变成现役口径
+    assert "不是注释曾写的「LRU 上限 64 条」" in head, "历史指涉句式被改写 ⇒ 需复核 LRU 二字是否被当现役口径"
+    assert "改成真 LRU 是一次行为决策" in head
+    fifo_line = next(ln for ln in head.splitlines() if "淘汰语义是 FIFO" in ln)
+    assert "popitem" in head and "move_to_end" in head, "钉桩依据（实现侧两行自述）被摘掉 ⇒ 本段失去可追溯性"
+    assert fifo_line.lstrip().startswith("#"), f"明示 FIFO 的那行不再是注释：{fifo_line[:40]}"
+
+
 def test_trim_default_limit_and_exact_boundary():
     """_trim 是 core.utils.trim_text 的薄包装：默认档 _MAX_FIELD，边界在 len<=n。"""
     from core.utils import trim_text
