@@ -67,14 +67,16 @@ streamlit run app.py
 ## 验证
 
 ```powershell
-pytest                           # 单元与回归测试
-python scripts/health_check.py   # 环境健康检查
-python scripts/smoke_boot.py     # 快速启动冒烟测试
-python scripts/perf_baseline.py  # 性能基线
-python scripts/audit_content.py  # 题库内容审计
-python scripts/backup_data.py    # 学习数据备份
-python scripts/prune_old_data.py # 过期数据清理
-python scripts/generate_system_report.py # 系统报告
+# 属性标注（l927-32，2026-09-28 逐条实测副作用后追加；口径见 docs/insights/l927-32-note.md）：
+#   只读＝零写盘可夜跑 ／ 写盘＝会落盘 ／ 需日间＝连生产库或起进程，夜桥禁照块跑
+pytest                           # 单元与回归测试 —— 只读（实测仅写 .pytest_cache/ 与 __pycache__）｜全量约 400s，可夜跑
+python scripts/health_check.py   # 环境健康检查 —— 只读（实测仓内零文件变化、生产库 sha 不变）｜可夜跑
+python scripts/smoke_boot.py     # 快速启动冒烟测试 —— 起进程（绑 127.0.0.1:8599，脚本自带 terminate）｜需日间，夜桥禁跑
+python scripts/perf_baseline.py  # 性能基线 —— 连生产库（无参 ProgressDAO()，默认库 data/progress.db；连接期生成临时 -wal/-shm 侧车）｜需日间
+python scripts/audit_content.py  # 题库内容审计 —— 只读（实测 rc=0 零写盘）｜可夜跑
+python scripts/backup_data.py    # 学习数据备份 —— 写盘＋删档（写新 zip、默认 --keep 5 轮换删最旧备份，并对生产库做 WAL checkpoint）｜需日间，夜桥禁跑
+python scripts/prune_old_data.py # 过期数据清理 —— 连生产库；默认干跑不删行，加 --apply 即 DELETE＋VACUUM 删数据行｜需日间，夜桥禁跑
+python scripts/generate_system_report.py # 系统报告 —— 只读（实测零写盘，只打印指标；--strict 会走 pytest 收集，慢）｜可夜跑
 ```
 
 ## 目录

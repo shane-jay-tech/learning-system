@@ -42,6 +42,12 @@ per-item try ＋ 点击侧文案订正为「跨路径推荐点击上报异常」
 本帧后续条踢出循环，"试过几条"从"首抛为止"变成"全量"；而写序 add→impressions→emit 未动
 （A2 裁决域），失败那条仍本地有账、事件库永无。
 新增第七节 3 例钉拉齐后的规格：坏一项只掉一项（计数面＋渲染面）＋两区同一注入下的形态对照。
+
+追加（l927-29，2026-09-28）：**生产码改了写序**——今日推荐点击侧由「emit 抛错照样跳」翻成
+「emit 送达成功才跳（失败不跳）」。本文件第三／第四节共 **3 例**的跳转断言随之翻转
+（翻面逐条明细见文件末尾「🔴 l927-29 改桩记录」），并新增第八节 2 例钉新规格。
+第五／第六节（跨路径区）**一字未动** ⇒ 两区点击语义自本单起**不一致**，交主班裁。
+本文件不假装一致，也不删桩凑绿。
 """
 import logging
 
@@ -261,12 +267,20 @@ def test_failure_on_third_item_leaves_local_state_ahead_of_events_by_one(wire, f
 
 
 # ---------------------------------------------------------------------------
-# 三、点击侧（:154）：上报炸了不能挡住跳转
+# 三、点击侧：上报失败 ⇒ **不跳转**（l927-29 翻面；旧语义「炸了照样跳」见文件末尾改桩记录）
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
-def test_click_event_failure_still_navigates_to_problem(wire, fake_st, caplog):
-    """按钮按下后 recommendation_clicked 抛错：跳转照常发生，日志照常落 DEBUG 且带栈。"""
+def test_click_event_failure_now_stops_navigation(wire, fake_st, caplog):
+    """l927-29 新语义：按钮按下后 `recommendation_clicked` 抛错 → **不导航**，日志照常落 DEBUG 且带栈。
+
+    本例原名 `test_click_event_failure_still_navigates_to_problem`（l922-101），钉的是旧语义
+    「跳转不被 except 吞掉」。裁决方向翻转后：日志面与「展示侧未被牵连」面**逐条照旧**，
+    只有跳转面由「两张卡各导航一次」改成「一次都不导航、路由三键根本不被写入」
+    （用 `"route" not in session_state` 而不是 `!= "language"`——写错值比不写更难发现）。
+    🔴 旧实现（navigate 在 try 外）下本例红在 `rerun_count == 0`；把 emit 整条删掉（不试了）
+    也会红在 `em.kinds()` 那组——它仍要求"试过了、只是没送到"。
+    """
     plan = _plan(2)
     em = _Emitter(fail_on=("recommendation_clicked",))
     with caplog.at_level(logging.DEBUG, logger=LOGGER):
@@ -275,16 +289,19 @@ def test_click_event_failure_still_navigates_to_problem(wire, fake_st, caplog):
     hits = [r for r in caplog.records if r.getMessage() == CLICK_MSG]
     assert len(hits) == 2, f"两张卡各一条点击异常日志，实得 {len(hits)}"
     assert all(r.levelno == logging.DEBUG and r.exc_info is not None for r in hits)
-    # 跳转没有被 except 吞掉：两张卡各导航一次（navigate_to_problem 真跑，未打桩）
-    assert fake_st.rerun_count == 2
-    assert fake_st.session_state.route == "language"
-    assert fake_st.session_state.selected_lang == "python"
-    assert fake_st.session_state.selection["problem_id"] == plan[-1]["problem_id"]
+    # 跳转被送达门控挡在原地：一次 rerun 都没有，路由三键也从未被创建
+    assert fake_st.rerun_count == 0, "上报失败帧不得再导航（l927-29 裁决：失败就不跳）"
+    for nav_key in ("route", "selected_lang", "selection"):
+        assert nav_key not in fake_st.session_state, \
+            f"失败帧不该写任何跳转变更，实见 {nav_key}={fake_st.session_state.get(nav_key)!r}"
     # 展示侧未被牵连：两处 except 各自独立
     assert em.kinds() == ["recommendation_shown", "recommendation_shown",
                           "recommendation_clicked", "recommendation_clicked"]
     assert len(em.sent_of("recommendation_shown")) == 2
     assert em.sent_of("recommendation_clicked") == []
+    # 卡片仍在（用户停在面板上才能重试点击：掉的是跳转，不是整区）
+    assert _cards_rendered(fake_st, plan) == [it["title"] for it in plan]
+
 
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
@@ -332,62 +349,68 @@ def test_shown_side_failure_yields_clicked_events_with_no_matching_shown_event(w
 
 
 # ---------------------------------------------------------------------------
-# 四、l922-102：点击上报炸了之后，:155 的 navigate 仍在 try 外——「断网也能跳」
-#     回归把 navigate_to_problem 挪进 try（或挪到 emit 之前），本节两例立刻转红。
-#     与上一节的分工：那里用 rerun_count 侧面看「跳了」，这里直接数 navigate 的调用次数与实参。
+# 四、l922-102 的两格顺序面 —— l927-29 按裁决翻面（逐条改桩记录见文件末尾）
+#     旧语义：emit 在 try 内、navigate 在 try 外 ⇒ 炸了也跳（"断网也能跳"）。
+#     新语义：navigate 只在 emit **送达成功**之后发生 ⇒ 失败不跳、成功照跳且实参完整。
+#     与上一节的分工不变：§三用 rerun_count 侧面看「没跳」，这里直接数 navigate 的次数与实参。
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
-def test_click_emit_failure_leaves_navigate_called_exactly_once(wire, fake_st, monkeypatch):
-    """:142-155 单卡：recommendation_clicked 抛错 → navigate 调用次数 ==1，且 route 真切换。
+def test_click_emit_failure_leaves_navigate_never_called(wire, fake_st, monkeypatch):
+    """单卡：`recommendation_clicked` 抛错 → navigate 调用次数 **==0**，路由三键一个都不写。
 
-    这条顺序（emit 在 try 内、navigate 在 try 外）此前无测试保护：
-    一旦有人「顺手」把 navigate 收进 try 想统一兜异常，断网/事件库写失败时点「去做 →」
-    就会变成按钮没反应，而页面渲染测试全绿——只有这里会红。
+    本例原名 `..._leaves_navigate_called_exactly_once`（l922-102），当时正是拿它守住
+    「别顺手把 navigate 收进 try，否则事件库写失败时按钮变死键」。l927-29 的裁决
+    **主动**把 navigate 收到「送达门控」之后 ⇒ 同一格由 `==1` 翻成 `==0`。
+    翻面 ≠ 把桩改松，三条钉都还在：
+      · 旧实现（navigate 在 try 外）在本例红在 `nav_calls == []`（它会调 1 次）；
+      · 「上报根本没试」仍被下面 `em.kinds("attempts")` 那格抓住——裁决只挡跳转、不吞上报；
+      · 原例里「navigate 实参为完整路由三元组」这格没丢，整体搬进 §八 例 1 继续钉。
     """
     plan = _plan(1)
     em = _Emitter(fail_on=("recommendation_clicked",))
-    real_navigate = components.navigate_to_problem
     nav_calls = []
 
     def spy(lang, topic_slug, problem_id):
         nav_calls.append((lang, topic_slug, problem_id))
-        return real_navigate(lang, topic_slug, problem_id)
+        # 故意不打真 navigate：本例断言它**一次都不该来**，打真反而掩盖门控失效
 
     monkeypatch.setattr(dashboard_page, "navigate_to_problem", spy)
     wire(plan, em)                                                     # 异常没窜出来＝except 生效
 
-    assert nav_calls == [(plan[0]["lang"], plan[0]["topic_slug"], plan[0]["problem_id"])], \
-        "上报失败后 navigate 必须仍被调用恰一次、且带完整路由三参数"
-    assert fake_st.session_state.route == "language"
-    assert fake_st.session_state.selected_lang == "python"
-    assert fake_st.session_state.selection == {
-        "lang": "python", "topic_slug": "01_x", "problem_id": plan[0]["problem_id"]}
+    assert nav_calls == [], "l927-29：上报失败帧不得调用 navigate（旧语义此处为恰 1 次）"
+    for nav_key in ("route", "selected_lang", "selection"):
+        assert nav_key not in fake_st.session_state, \
+            f"失败帧不该产生任何跳转变更，实见 {nav_key}={fake_st.session_state.get(nav_key)!r}"
     assert em.kinds("attempts") == ["recommendation_shown", "recommendation_clicked"]
     assert em.sent_of("recommendation_clicked") == []                   # 事件确实没送达
 
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
-def test_navigate_runs_after_the_failed_emit_not_instead_of_it(wire, fake_st, monkeypatch):
-    """:145-155 顺序桩：navigate 发生时，clicked 上报已经**尝试过**一次（emit 尝试计数 ==1）。
+def test_navigate_runs_after_the_delivered_emit_not_instead_of_it(wire, fake_st, monkeypatch):
+    """顺序桩（l927-29 版）：navigate 发生时 clicked 必须**既已尝试、也已送达**。
 
-    钉的是「先试上报、炸了照样跳」这条时序，而不是「跳了就算对」：
-    若实现改成 emit 在 navigate 之后，跳转触发的 rerun 会把上报整条丢掉，本例即红。
+    原名 `test_navigate_runs_after_the_failed_emit_not_instead_of_it`：旧语义钉的是
+    「先试上报（哪怕炸了）再跳」；新语义把门控条件从「试过」抬到「送到」，于是本例的注入
+    由「clicked 必炸」换成「clicked 送达」，而**先后**这一格一格没少：
+      · 实现若改成 emit 在 navigate 之后 → 跳转时刻 `sent_of(clicked)` 仍为 0 ⇒ 本例红；
+      · 实现若退化为旧语义（试过没送到也跳）→ 本例用成功注入看不出，
+        由 §三／§四 例 1／§八 例 2 三处各自转红（这就是"每格都留了反向钉"的分工）。
     """
     plan = _plan(1)
-    em = _Emitter(fail_on=("recommendation_clicked",))
-    attempts_at_nav = []
+    em = _Emitter()                                       # 全送达：只有成功路径才谈得上先后
+    seen_at_nav = []
 
     def spy(lang, topic_slug, problem_id):
-        attempts_at_nav.append(len(em.attempts))
-        # 故意不打真 navigate：本例只关心调用点先后，路由断言在上一条已钉死
+        seen_at_nav.append((len(em.attempts), len(em.sent_of("recommendation_clicked"))))
+        # 故意不打真 navigate：本例只钉调用点的先后，路由面在 §八 例 1 钉死
 
     monkeypatch.setattr(dashboard_page, "navigate_to_problem", spy)
     wire(plan, em)
 
-    assert attempts_at_nav == [2]                                       # shown(1) + clicked(1) 都发生在跳转前
+    assert seen_at_nav == [(2, 1)]          # shown(1)+clicked(1) 都在跳转前，且 clicked 已落库
     assert em.kinds("attempts")[-1] == "recommendation_clicked"
-    assert len(em.sent_of("recommendation_clicked")) == 0               # 尝试了、但一条没送到
+
 
 
 # ---------------------------------------------------------------------------
@@ -789,3 +812,117 @@ def test_dropped_items_log_one_debug_each_and_change_nothing_on_screen(wire, mon
     hits = [r for r in caplog.records if r.getMessage() == SHOWN_MSG]
     assert len(hits) == 2, f"per-item 那一案是「每项一条 DEBUG」，实得 {len(hits)}"
     assert all(r.levelno == logging.DEBUG and r.exc_info[0] is RuntimeError for r in hits)
+
+
+# ---------------------------------------------------------------------------
+# 八、l927-29：写序翻面后的**新规格**两例（成功路径照跳 ＋ 部分失败不连坐跳转）
+#     §三／§四 翻面后各自钉住「失败帧不跳」，本节补的是那两个方向都看不见的一格：
+#     门控**只该挡失败帧**。把 `reported` 旗标写反（成功也不跳）时 §三／§四 反而全绿——
+#     只有例 1 会红；把门控写成批级共享（一条炸则整区都不跳）时例 2 会红。
+#     这两例合起来才是「emit 送达成功之后才做跳转变更」的完整规格。
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_l927_29_click_emit_success_navigates_with_full_route(wire, fake_st, monkeypatch):
+    """成功跳（判据②例一）：两张卡的 clicked 都送达 → navigate 恰两次、实参逐卡完整、路由真切换。
+
+    这条同时把 l922-102 原例里「navigate 实参为完整路由三元组」那格接了过来——
+    翻面时那格没有被丢掉，只是从失败路径搬到了成功路径（失败路径现在压根不该有实参）。
+    """
+    plan = _plan(2)
+    em = _Emitter()                                             # 无故障：shown 与 clicked 全送达
+    nav_calls = []
+    real_navigate = components.navigate_to_problem
+
+    def spy(lang, topic_slug, problem_id):
+        nav_calls.append((lang, topic_slug, problem_id))
+        return real_navigate(lang, topic_slug, problem_id)       # 转发真函数，不架空路由面
+
+    monkeypatch.setattr(dashboard_page, "navigate_to_problem", spy)
+    wire(plan, em)
+
+    assert nav_calls == [(it["lang"], it["topic_slug"], it["problem_id"]) for it in plan], \
+        "上报送达成功时门控不得挡跳转：两张卡各导航一次、按渲染顺序"
+    assert len(em.sent_of("recommendation_clicked")) == 2
+    assert fake_st.session_state.route == "language"
+    assert fake_st.session_state.selected_lang == "python"
+    assert fake_st.session_state.selection == {
+        "lang": "python", "topic_slug": "01_x", "problem_id": plan[-1]["problem_id"]}
+    assert fake_st.rerun_count == 2                              # 每次真导航各一 rerun
+    # 曝光侧照常两笔送达，写序（add→impressions→emit）本单未动
+    assert len(em.sent_of("recommendation_shown")) == 2
+
+
+@pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
+def test_l927_29_second_click_failure_drops_only_its_own_navigation(wire, fake_st, monkeypatch, caplog):
+    """失败不跳（判据②例二，部分失败面）：只有**第 2 张卡**的 clicked 抛错
+    → 第 1 张照样导航、第 2 张停在原地，路由落在第 1 张卡。
+
+    🔴 有牙：旧实现（navigate 在 try 外）本例红——两张都会跳、`selection` 落第 2 张卡。
+    若把 `reported` 旗标提到 for 外做成批级共享（一条炸⇒整区都不跳），本例同样红
+    （第 1 张不该被连坐）。与第七节例 1 对曝光侧的分工同型：这里钉的是**点击侧连带半径归零**。
+    """
+    plan = _plan(2)
+    em = _NthBoomer(2, kind="recommendation_clicked", boom="第 2 张卡点击上报炸")
+    nav_calls = []
+    real_navigate = components.navigate_to_problem
+
+    def spy(lang, topic_slug, problem_id):
+        nav_calls.append((lang, topic_slug, problem_id))
+        return real_navigate(lang, topic_slug, problem_id)
+
+    monkeypatch.setattr(dashboard_page, "navigate_to_problem", spy)
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        wire(plan, em)                                           # 异常不外窜＝except 仍收在单条体内
+
+    assert nav_calls == [(plan[0]["lang"], plan[0]["topic_slug"], plan[0]["problem_id"])], \
+        "坏一条只掉它自己的跳转：第 1 张已送达必须照跳，第 2 张失败不得跳"
+    assert fake_st.session_state.selection["problem_id"] == plan[0]["problem_id"]
+    assert fake_st.rerun_count == 1
+    assert em.kinds("attempts") == ["recommendation_shown", "recommendation_shown",
+                                    "recommendation_clicked", "recommendation_clicked"]
+    assert [kw["problem_id"] for _k, kw in em.sent_of("recommendation_clicked")] == \
+        [plan[0]["problem_id"]]
+    hits = [r for r in caplog.records if r.getMessage() == CLICK_MSG]
+    assert len(hits) == 1 and hits[0].levelno == logging.DEBUG and hits[0].exc_info[0] is RuntimeError
+
+
+# ---------------------------------------------------------------------------
+# 🔴 l927-29 改桩记录（2026-09-28）——**本文件唯一一次按裁决翻转断言方向**，逐字留痕
+#
+# 裁决来源：`zcode-bridge/inbox/l927-29.task.md`「做什么」＝"修写序：emit_event 成功后再写
+# 跳转变更（或按档内裁决方向——上报失败就不跳）"。方向取自 `l922-102` 结果「遗留问题」第 2 条
+# 原话："若规划侧将来要把语义改成「上报失败就不跳」，例 1 会首先转红——那是**有意**留下的
+# 冲突点，请在裁决时一并决定桩的去留，不要静默改桩。" ⇒ 本单就是那句"将来"的兑现。
+# **不是**为了让盘子变绿而改桩：三处旧例每一处都保留了原有的至少一条判别钉，只是方向翻了。
+#
+# 翻面明细（旧例名 → 新例名 → 哪格变了／哪格没丢）：
+#   1. §三 `test_click_event_failure_still_navigates_to_problem`
+#      → `test_click_event_failure_now_stops_navigation`
+#        变：`rerun_count == 2` ＋ `route == "language"` ＋ `selection` 落最后一张卡
+#          → `rerun_count == 0` ＋ `route`/`selected_lang`/`selection` 三键**根本不存在**
+#            （用「不写」而不是「写成别的值」，后者更难发现）。
+#        没丢：CLICK_MSG 恰 2 条＋DEBUG＋exc_info 真带；`em.kinds()` 四条全试序列；
+#          `sent_of(shown)==2`、`sent_of(clicked)==[]`；新增 `_cards_rendered` 一条（掉的是
+#          跳转，不是整区——用户得停在面板上才可能重试）。
+#   2. §四 例 1 `test_click_emit_failure_leaves_navigate_called_exactly_once`
+#      → `test_click_emit_failure_leaves_navigate_never_called`
+#        变：`nav_calls == [(lang, slug, pid)]` → `== []`；spy 不再转发真 navigate（旧实现下
+#          它会多写一次路由，掩盖门控失效）。
+#        没丢：`em.kinds("attempts")` 仍钉「上报真试过」＋「clicked 未送达」。
+#        搬走：「navigate 实参为完整路由三元组」整格搬进 §八 例 1 的成功路径继续钉。
+#   3. §四 例 2 `test_navigate_runs_after_the_failed_emit_not_instead_of_it`
+#      → `test_navigate_runs_after_the_delivered_emit_not_instead_of_it`
+#        变：注入由「clicked 必炸」换成「clicked 送达」；跳转时刻的读数由 `(尝试数 == 2)`
+#          抬成 `(尝试数, 送达数) == (2, 1)`。
+#        没丢：钉的仍是**先后**（emit 在 navigate 之前）——实现把 emit 挪到跳转之后照样红。
+#   4. §五／§六／§七 **一字未动**：跨路径区（现值 `ui/pages/dashboard.py:447-458`，
+#      `except` :454 ／ `navigate_to_problem` :458）的
+#      `except` 之后 `navigate_to_problem` 仍在 try 外 ⇒ 两区点击语义自本单起**不一致**
+#      （今日推荐＝失败不跳；跨路径＝失败仍跳）。本文件不假装一致；不一致面见
+#      `docs/insights/l927-29-note.md` §三 与 `l927-29.result.md`「遗留问题」1（属人工裁决）。
+#   5. 写序缺陷的另一半（曝光侧 `add → impressions → emit` 仍在送达之前）**本单未动**，
+#      仍由 §二 例 3 的第 ④ 组断言与 §七 例 1 的记账面钉着；解它走 A2/A3 设计稿
+#      `docs/insights/learn-shown-writeorder-design-20260923.md`。
+# ---------------------------------------------------------------------------
+

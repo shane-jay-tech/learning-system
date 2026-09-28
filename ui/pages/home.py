@@ -222,7 +222,7 @@ def _render_ai_pulse(dao):
         st.markdown("""
 **5 分钟流程**：
 1. 打开 [Anthropic News](https://anthropic.com/news) — 看是不是出了 Claude 新大版本
-2. 打开 [OpenAI Blog](https://openai.com/blog) — 看是不是出了 GPT 新大版本
+2. 打开 [OpenAI Blog](https://openai.com/news/) — 看是不是出了 GPT 新大版本
 3. 浏览 [Simon Willison's Weblog](https://simonwillison.net) 过去 30 天 — 实战派博主过滤虚假繁荣很准
 
 **判断标准**：
@@ -254,7 +254,7 @@ def _render_ai_pulse(dao):
 | 来源 | 看什么 | 频率 |
 |---|---|---|
 | **[Anthropic News](https://anthropic.com/news)** | Claude / API 大版本、Tool Use 新能力 | 月看 |
-| **[OpenAI Blog](https://openai.com/blog)** | GPT 大版本、新能力 | 月看 |
+| **[OpenAI Blog](https://openai.com/news/)** | GPT 大版本、新能力 | 月看 |
 | **[Simon Willison's Weblog](https://simonwillison.net)** | 实战派博主，**过滤虚假繁荣最准** | 周看 |
 | **[Hacker News](https://news.ycombinator.com)** | 业界正在讨论的工具（看 AI 标签） | 季看 |
 | **[Hugging Face Daily Papers](https://huggingface.co/papers)** | 学术前沿 | 季看 |
