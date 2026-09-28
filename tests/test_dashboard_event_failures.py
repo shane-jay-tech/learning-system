@@ -48,6 +48,16 @@ per-item try ＋ 点击侧文案订正为「跨路径推荐点击上报异常」
 （翻面逐条明细见文件末尾「🔴 l927-29 改桩记录」），并新增第八节 2 例钉新规格。
 第五／第六节（跨路径区）**一字未动** ⇒ 两区点击语义自本单起**不一致**，交主班裁。
 本文件不假装一致，也不删桩凑绿。
+
+追加（l927-37，2026-09-28）：**生产码又改了写序，这回是跨路径区的曝光侧**——
+`_render_cross_recommend` 的记账循环由 `add → impressions → emit` 换成
+`emit（前置条件先算齐）→ add 成功 → 记 impressions`（＝设计稿 A2 案，
+docs/insights/learn-shown-writeorder-design-20260923.md §三／§七；A3 幂等键属改漏斗口径，本单没碰）。
+于是本文件翻 3 处：§五 例 B 的第 ④ 组、§五 例 C 的末段，以及被**连坐**的 §七 例 2
+（两区对照桩里"本地记账数"那两格自此按表面分叉，改逐表面钉值不放宽）——逐字明细见文末
+「🔴 l927-37 改桩记录」。新增 §九 1 例钉自愈面（故障帧没送达的那条，恢复帧补报同一个 rid）。
+今日推荐区（`:191-205`）的曝光写序**本单未动** ⇒ 两区曝光写序自本单起**不一致**（与 l927-29
+留下的点击侧不一致是两格，各自交主班裁）。仍然零真库、零写盘。
 """
 import logging
 
@@ -501,9 +511,11 @@ def test_cross_shown_event_failure_is_contained_per_item(wire, monkeypatch, fake
       ① 异常不外窜（函数正常返回）；
       ② 连带半径归零——首条炸了，第 2、3 条仍各上报一次并送达事件库；
       ③ 展示侧日志真发出：DEBUG、带栈、文案「跨路径推荐展示异常」（本区现在配得上这句话）；
-      ④ 写序未动（add → impressions → emit 仍在送达之前）⇒ 失败那条**照样永久丢失**、
-         本地比事件库多 1。这一格要等 A2 方案才会归零，见
-         `docs/insights/learn-shown-writeorder-design-20260923.md`；本断言就是留给那单的靶子。
+      ④ 🔴 **l927-37 翻面**：写序已由 `add → impressions → emit` 换成 `emit → add → impressions`
+         （A2，设计稿 docs/insights/learn-shown-writeorder-design-20260923.md §三 A2／§七）。
+         旧断言钉的是"失败那条本地有账、库里永无 ⇒ 本地比事件库多 1"（悬空账），
+         新断言钉的是"本地账与事件库**齐平**、失败那条**没进** shown ⇒ 恢复帧还会重试它"
+         （自愈面由 §九 例 1 独立钉）。⚠ 翻面明细见文件末尾「🔴 l927-37 改桩记录」1。
     """
     items = _cross(3)
     calls, sent = [], []
@@ -521,9 +533,13 @@ def test_cross_shown_event_failure_is_contained_per_item(wire, monkeypatch, fake
     assert calls == ["recommendation_shown"] * 3                              # 断言 ②
     assert [kw["problem_id"] for _k, kw in sent] == [it["problem_id"] for it in items[1:]]
     assert [kw["payload"]["surface"] for _k, kw in sent] == ["cross_path"] * 2
-    assert fake_st.session_state[CROSS_SHOWN_KEY] == {(it["lang"], it["problem_id"]) for it in items}
-    assert len(fake_st.session_state[IMPR_KEY]) == 3                           # 断言 ④：本地照旧记 3
-    assert len(sent) == 2, "写序未动 ⇒ 失败那条本地有账、库里永无（悬空账，A2 才修）"
+    # ---- 断言 ④（l927-37 翻面）：本地账不再跑在送达前面 ----
+    assert fake_st.session_state[CROSS_SHOWN_KEY] == \
+        {(it["lang"], it["problem_id"]) for it in items[1:]}, \
+        "emit 失败那条不该进 shown——进了就被门控永久挡掉，这条曝光再也补不回来"
+    assert len(fake_st.session_state[IMPR_KEY]) == 2
+    assert len(fake_st.session_state[IMPR_KEY]) == len(sent), \
+        "写序换完 ⇒ 本地 impressions 与事件库送达数齐平（旧写序恒差 1，就是本例原来钉的那格）"
     assert _cards_rendered(fake_st, items) == [it["title"] for it in items]    # 卡片全渲
     hits = [r for r in caplog.records if r.getMessage() == CROSS_MSG]          # 断言 ③
     assert len(hits) == 1, f"只有失败那条该记展示异常，实得 {len(hits)}"
@@ -538,6 +554,13 @@ def test_cross_shown_event_failure_no_longer_takes_down_the_sections_below(wire,
     而 `render_dashboard`（:94-97）只 try/finally 不 catch ⇒ 跨路径区一次事件库写入失败＝
     整页后半段（成就/热力图/报告导出/学习数据/最近活动）空白。
     补了 per-item try 之后：异常收在单条循环体内，后半段必须**全部照常渲染**。
+
+    🔴 l927-37 改末段（整页渲染面一字未动）：写序换 A2 后本区那条「残余脏面」的**形态**变了——
+    旧：曝光没送达、本地却已记账 ⇒ 点击带得上一个事件库里**永不存在的 rid**（悬空归因，看着完整、
+    实则断裂）；新：曝光没送达、本地也没记 ⇒ 点击走 `imp.get(...)` 回退分支，事件库里落一条
+    **空 rid / rank=0** 的 clicked（肉眼可辨的缺口，且下一帧补报的是同一个 rid，可事后闭合）。
+    旧断言 `payload["recommendation_id"]` 为真值 ⇒ 新实现下它红；翻面明细见文件末尾
+    「🔴 l927-37 改桩记录」2，代价登记见 docs/insights/l927-37-writeseq.md §三。
     """
     items = _cross(1)
     em = _Emitter(fail_on=("recommendation_shown",))
@@ -550,12 +573,19 @@ def test_cross_shown_event_failure_no_longer_takes_down_the_sections_below(wire,
         assert want in joined, f"{want} 区不该再被跨路径区的单条失败带走"
     assert any(c[0] == "download_button" for c in fake_st.calls), "导出/下载按钮须仍在"
     assert any(c[0] == "file_uploader" for c in fake_st.calls), "导入器须仍在（导入功能不再整段消失）"
-    # 残余脏面（写序未动的直接后果，A2 才修）：曝光没送达，但卡片仍可点、
-    # 点击带得上一个事件库里永不存在的 recommendation_id —— 悬空归因，见例 B 第 ④ 条。
+    # 末段（l927-37 翻面）：故障帧的脏 clicked 由「悬空 rid」换成「空 rid」，
+    # 并且本地账必须与送达同步为 0——旧写序那格（本地 1 / 库里 0）现在该红。
     assert em.kinds() == ["recommendation_shown", "recommendation_clicked"]
     assert em.sent_of("recommendation_shown") == []
+    assert CROSS_SHOWN_KEY not in fake_st.session_state or \
+        fake_st.session_state[CROSS_SHOWN_KEY] == set(), "失败那条不得进本地 shown"
+    assert fake_st.session_state.get(IMPR_KEY, {}) == {}, "失败那条不得进本地 impressions"
     clicks = em.sent_of("recommendation_clicked")
-    assert len(clicks) == 1 and clicks[0][1]["payload"]["recommendation_id"]
+    assert len(clicks) == 1, "曝光失败不连坐点击上报：这一条 clicked 照样送达"
+    assert clicks[0][1]["payload"]["recommendation_id"] == "" \
+        and clicks[0][1]["payload"]["rank"] == 0, \
+        "A2 的已知残余风险＝故障帧最多 1 条空 rid 点击（设计稿 §八 待裁决 1）；" \
+        "此处若出现非空 rid，说明有人把本地账又挪回送达之前"
 
 
 # ---------------------------------------------------------------------------
@@ -762,8 +792,19 @@ def test_both_surfaces_share_the_same_per_item_containment_shape(
     attempts 只到第 2 条（批级 try 首抛即出循环）、跨路径支到第 3 条 ⇒ 本例在旧实现下
     红在 dashboard 那一支。断言面：试过的条数 / 送达的 problem_id 序列 / 本地 shown 记账数 /
     impressions 数 / 卡片全渲 / 展示侧日志条数与各自文案。
+
+    🔴 l927-37 改桩（本例自此**只合比四面、记账面分表面钉**）：跨路径区写序换成 A2（emit 先、
+    成功后落本地账）后，"本地 shown 记账数 / impressions 数"这两格**不再两区相等**——
+    dashboard 支仍 3/3（旧写序，本地跑在送达前面），cross_path 支变 2/2（失败那条不进本地账）。
+    原来那两行 `== 3` 是给两区共用的，留着就是把新写序判红；直接放宽成"两区各自 <=3"又会让
+    本例失去判别力。⇒ 改成逐表面给期望值：**哪一区自己挪了写序而没同步这里，哪一支当场红**
+    （按字节把跨路径区写回旧写序 ⇒ 只有 cross_path 支红；把今日推荐区也换成 A2 ⇒ 只有
+    dashboard 支红）。两区写序自此不一致是**事实**，本例不假装它不存在，交主班裁的方向见
+    docs/insights/l927-37-writeseq.md §三（⚠ 别照抄 l924-01 的拉齐方向，那次是"新向旧看齐"）。
     """
     em = _NthBoomer(2, boom="第 2 条炸")
+    # 逐表面的本地记账期望：dashboard＝旧写序（本地 3 / 库里 2），cross_path＝A2（本地 2 / 库里 2）
+    expected_local = 3 if surface == "dashboard" else 2
     with caplog.at_level(logging.DEBUG, logger=LOGGER):
         if surface == "dashboard":
             items = _plan(3)
@@ -779,8 +820,9 @@ def test_both_surfaces_share_the_same_per_item_containment_shape(
     assert [kw["problem_id"] for _k, kw in em.sent] == \
         [it["problem_id"] for i, it in enumerate(items) if i != 1]
     assert {kw["payload"]["surface"] for _k, kw in em.sent} == {surface}
-    assert len(fake_st.session_state[shown_key]) == 3
-    assert len(fake_st.session_state[IMPR_KEY]) == 3
+    assert len(fake_st.session_state[shown_key]) == expected_local, \
+        f"{surface} 区的本地 shown 记账数该是 {expected_local}（本区写序形态见 docstring）"
+    assert len(fake_st.session_state[IMPR_KEY]) == expected_local
     assert _cards_rendered(fake_st, items) == [it["title"] for it in items]
     hits = [r for r in caplog.records if r.getMessage() == msg]
     assert len(hits) == 1 and hits[0].levelno == logging.DEBUG
@@ -888,7 +930,85 @@ def test_l927_29_second_click_failure_drops_only_its_own_navigation(wire, fake_s
 
 
 # ---------------------------------------------------------------------------
-# 🔴 l927-29 改桩记录（2026-09-28）——**本文件唯一一次按裁决翻转断言方向**，逐字留痕
+# 九、l927-37：跨路径区曝光写序换 A2（emit 先、成功后落本地账）后的**自愈面**
+#     设计稿 §七 落地批次②原话：「新增一条『故障帧失败、恢复帧补报同一 rid』的自愈例
+#     （今天这条线只有"钉坏"没有"钉好"）」——本节就是那条"钉好"。
+#     只打跨路径区（今日推荐区 :191-205 的写序本单未动，两区形态差异见 §七 例 2 的逐表面期望）。
+# ---------------------------------------------------------------------------
+
+def test_l927_37_failed_cross_exposure_is_retried_next_frame_with_same_rec_id(
+        wire, monkeypatch, fake_st, caplog):
+    """故障帧没送达的第 2 条，恢复帧补报，且带的还是**同一个** recommendation_id。
+
+    A2 换序的全部收益就在这一格：失败那条不进 `_cross_rec_shown_ids` ⇒ 门控不挡它 ⇒ 下一帧重试；
+    rid 由 `_make_rec_id` 确定性生成 ⇒ 补报的 rid 与故障帧**尝试**时报的那个逐字相同 ⇒ 归因链
+    事后可闭合（设计稿 §七 推荐理由 2，也是它判 A2 优于 B 案的那一格）。
+    🔴 有牙：把写序换回 `add → impressions → emit`（＝本单前的形态）时，故障帧已把那条写进
+    shown，恢复帧被门控整条跳过 ⇒ `recovered` 变空、本例当场红（与例 B ④ 的红互为正反两面）。
+    """
+    items = _cross(3)
+
+    first = _NthBoomer(2, boom="第 2 条曝光上报炸")
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        dashboard_page._render_cross_recommend(_cross_setup(monkeypatch, items, first))
+    attempted_rids = [kw["payload"]["recommendation_id"] for _k, kw in first.attempts]
+    assert len(first.attempts) == 3 and len(first.sent) == 2
+    assert fake_st.session_state[CROSS_SHOWN_KEY] == \
+        {(it["lang"], it["problem_id"]) for it in items if it is not items[1]}, \
+        "故障那条不得进 shown（进了＝永久丢失，本单的靶子）"
+
+    second = _Emitter()
+    dashboard_page._render_cross_recommend(_cross_setup(monkeypatch, items, second))   # 故障恢复帧
+
+    recovered = [kw for _k, kw in second.sent_of("recommendation_shown")]
+    assert second.attempts and len(second.attempts) == 1, "只有没送达的那一条该被重试"
+    assert [kw["problem_id"] for kw in recovered] == [items[1]["problem_id"]], \
+        "恢复帧只该补报故障那一条，而且必须补得回来（旧写序这里一条也补不了）"
+    assert recovered[0]["payload"]["recommendation_id"] == attempted_rids[1], \
+        "补报带的必须是同一个 rid，归因链才接得上（rid 若含随机量本例会红）"
+    assert len(fake_st.session_state[CROSS_SHOWN_KEY]) == 3
+    assert len(fake_st.session_state[IMPR_KEY]) == 3
+    # 两帧合计：事件库 3 条 / 本地 3 条 ⇒ 旧写序那笔「本地恒比库里多 1」的悬空账在本区不复存在
+    assert len(first.sent) + len(second.sent) == 3
+
+
+class _BoomSet(set):
+    """`add` 一调就抛的 shown 集合（l927-37 §九 例 2 专用，模拟会话态写不进去那一格）。"""
+
+    def add(self, *a, **kw):
+        raise RuntimeError("shown 集合写不进去")
+
+
+def test_l927_37_impressions_are_written_only_after_shown_add_succeeded(
+        wire, monkeypatch, fake_st, caplog):
+    """钉换序的**第三格**：`emit` 成功后还要 `add` 成功，才轮得到记 impressions。
+
+    卷宗「做什么」写的是"add 成功后再记 impressions"，前两处翻面只钉住了「emit 在前、本地账在后」，
+    **钉不住 add 与 impressions 谁先谁后**（把它俩对调，例 B／例 C／§七 例 2／§九 例 1 全绿）。
+    本例把这一格单独钉住：注入 `shown.add` 抛错（会话态写不进）⇒ 事件库已经收到那条 shown，
+    本地 impressions **必须还是空的**；若实现把 impressions 挪到 `add` 之前，这里就会留下
+    一条"本地有归因、shown 门控却没记下"的错位账，下一帧重发同一条 ⇒ 漏斗吃到重复曝光。
+    🔴 这一格的代价也如实登记：**送达之后才失败的项在事件库里有一条、本地没账**（反方向悬空），
+    它比旧写序好的地方在于「下一帧重试」而不是「下一帧永久跳过」——见 §九 例 1 与
+    docs/insights/l927-37-writeseq.md §三。
+    """
+    items = _cross(1)
+    fake_st.session_state[CROSS_SHOWN_KEY] = _BoomSet()
+    em = _Emitter()
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        dashboard_page._render_cross_recommend(_cross_setup(monkeypatch, items, em))
+
+    assert len(em.sent_of("recommendation_shown")) == 1, "emit 已成功：这一条确实在库里"
+    assert fake_st.session_state[IMPR_KEY] == {}, \
+        "add 失败 ⇒ impressions 不得写入（本例只钉 add 与 impressions 的先后）"
+    assert _cards_rendered(fake_st, items) == [it["title"] for it in items]
+    hits = [r for r in caplog.records if r.getMessage() == CROSS_MSG]
+    assert len(hits) == 1 and hits[0].levelno == logging.DEBUG \
+        and hits[0].exc_info[0] is RuntimeError
+
+
+# ---------------------------------------------------------------------------
+# 🔴 l927-29 改桩记录（2026-09-28）——本文件第一次按裁决翻转断言方向（第二次见文末 l927-37），逐字留痕
 #
 # 裁决来源：`zcode-bridge/inbox/l927-29.task.md`「做什么」＝"修写序：emit_event 成功后再写
 # 跳转变更（或按档内裁决方向——上报失败就不跳）"。方向取自 `l922-102` 结果「遗留问题」第 2 条
@@ -924,5 +1044,51 @@ def test_l927_29_second_click_failure_drops_only_its_own_navigation(wire, fake_s
 #   5. 写序缺陷的另一半（曝光侧 `add → impressions → emit` 仍在送达之前）**本单未动**，
 #      仍由 §二 例 3 的第 ④ 组断言与 §七 例 1 的记账面钉着；解它走 A2/A3 设计稿
 #      `docs/insights/learn-shown-writeorder-design-20260923.md`。
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# 🔴 l927-37 改桩记录（2026-09-28）——跨路径区**曝光写序**翻面（emit 先、成功后落本地账），逐字留痕
+#
+# 裁决来源：`zcode-bridge/inbox/l927-37.task.md`「做什么」＝"按档内预置断言（例B④／例C）换序：
+# add 成功后再记 impressions、emit 前置条件齐备，两断言翻绿"。这两格正是 l923-07 结果「遗留问题」1
+# 原话点名的靶子：「`add → impressions → emit` 未换序 ⇒ 失败一条曝光永久丢失＋点击带悬空 rid
+# 两件事没修（例 B ④、例 C 末段两条断言就是留给 A2 的靶子）」⇒ 本单是那句"留给"的兑现，
+# 实现面＝设计稿 §三 A2 案（emit 成功 → `shown.add` → `impressions[k]`），A3（幂等唯一索引、
+# 改漏斗计数口径）**没做也不该由执行班做**——`core/progress.py` 与题件本单一字未碰。
+#
+# 翻面明细（旧断言 → 新断言 → 哪格没丢）：
+#   1. §五 例 B `test_cross_shown_event_failure_is_contained_per_item` 的第 ④ 组
+#      变：`CROSS_SHOWN_KEY == 全部 3 条` ＋ `len(IMPR_KEY) == 3` ＋
+#          `len(sent) == 2  # 写序未动 ⇒ 本地有账、库里永无（悬空账）`
+#        → `CROSS_SHOWN_KEY == items[1:]（失败那条不在）` ＋ `len(IMPR_KEY) == 2` ＋
+#          新增 `len(IMPR_KEY) == len(sent)`（本地与送达齐平＝悬空账归零的正写）。
+#      没丢：① 不外窜、② `calls == shown*3`（连带半径）、③ 日志恰 1 条 DEBUG 带栈、卡片全渲
+#        ——三格逐字照旧，本例仍区分有 try / 无 try。
+#      补：自愈面独立成 §九 例 1（设计稿 §七 批次② 点名的"钉好"），不在这里合钉。
+#   2. §五 例 C `test_cross_shown_event_failure_no_longer_takes_down_the_sections_below` 末段
+#      变：`len(clicks) == 1 and payload["recommendation_id"]`（悬空 rid 为真值）
+#        → `len(clicks) == 1` ＋ `recommendation_id == ""` ＋ `rank == 0`
+#          ＋ 新增两条「失败那条不进本地账」（`CROSS_SHOWN_KEY` 空集、`IMPR_KEY` 空 dict）。
+#      没丢：整页后半段五个区块标题、`download_button`／`file_uploader` 在位——**全部一字未动**，
+#        本例的本体（l922-103 例 C）钉的是"爆炸半径"，与写序无关，翻面只碰末段那三行。
+#      脏事实没被抹掉，只换了形态：旧＝库里永不出现的 rid（对账看着完整、实则断裂），
+#        新＝肉眼可辨的空串（rid 确定 ⇒ 恢复帧补报同一个 rid 可闭合）。设计稿 §八 待裁决 1
+#        登记的正是这条残余，本单把它写成"该红就红"。
+#   3. §七 例 2 `test_both_surfaces_share_the_same_per_item_containment_shape`（**连坐面，如实登记**）
+#      变：两区共用的 `len(shown_key) == 3`／`len(IMPR_KEY) == 3` 两行 → 逐表面期望
+#        （dashboard 支 3/3 旧写序、cross_path 支 2/2 新写序）。
+#      为什么不是"改松凑绿"：四面合比（尝试数 / 送达 problem_id / 卡片 / 日志）原样保留，
+#        只有真分叉的那两格改成逐表面钉值 ⇒ 任一区自己挪了写序而没同步这里，对应那支当场红
+#        （变异实测：跨路径区写回旧写序 ⇒ 只 cross_path 支红；把 dashboard 区也换成 A2 ⇒ 只
+#         dashboard 支红，读数见 docs/insights/l927-37-writeseq.md §四）。
+#      ⚠ 这条是 l924-01「两区 except 语义拉齐」的对照桩，本单把它的**记账面**拆开：拉齐方向别默认
+#        ——l924-01 是"今日推荐照跨路径那一案改"（新向旧看齐），本单是跨路径区自己走向 A2（旧形态
+#         该向新形态看齐），两案相反，是否把今日推荐区一并换过来属主班裁决（l927-37-writeseq.md §三）。
+#   4. §一／§二／§三／§四／§六／§八 **一字未动**（今日推荐区曝光写序、两区点击语义、l927-29 翻的
+#      跳转面全部保持原样）⇒ 本单没把兄弟单已经翻面的断言又翻回去。§六 例 3/例 4 那两例
+#      空 rid 桩靠「预填 shown 集合」构造，换序后仍绿；它们 docstring 预言"A2 落地时两条一起转红"
+#      **没兑现**（预填门控的路径不经失败注入），属当年推演偏差，如实登记不改桩。
+#   5. 本文件由 23 例增至 24 例（新增 §九 自愈例），未删一例、未 xfail 一例、未放宽任何恒真断言。
 # ---------------------------------------------------------------------------
 

@@ -53,7 +53,11 @@ def _touch_problem(active_id: str) -> None:
     会无界累积。用 LRU 队列保留最近 30 道题，其余按前缀清理。
     """
     if active_id.startswith("AI_VARIANT::"):
-        return  # 变式题状态短暂，不参与 LRU
+        # l927-40：变式题不再「完全豁免」，改走自己的有界队列（第二终点，见 _touch_variant）。
+        # 旧形态是这里直接 return ⇒ 从不点「↩ 回到原题」的变式题六族键整场会话无界
+        #（l923-15 遗留 3 ／ l924-03 遗留 1 ／ l924-04 遗留 C-6 点名的那半边）。
+        _touch_variant(active_id)
+        return
     lru = st.session_state.setdefault("_problem_lru", [])
     if not lru or lru[-1] != active_id:
         lru.append(active_id)
@@ -112,6 +116,50 @@ def _retire_variant(variant_id: str) -> None:
         body = k[len("editor_"):]
         if "_" in body and body.rsplit("_", 1)[0] == variant_id:
             st.session_state.pop(k, None)
+
+
+def _touch_variant(variant_id: str) -> None:
+    """变式题的**第二生命周期终点**：独立有界队列（l927-40，档内「出口一」）。
+
+    终点一（l924-03 的 `_retire_variant`）只覆盖「用户点了 ↩ 回到原题」那半边；
+    刷了变式**直接换题／离开**的那半边今天没有任何终点——`_touch_problem` 早年对
+    `AI_VARIANT::` 直接 return，六族状态键与 widget 残键就按「每刷一道变式 +1」无界增长
+    （l923-15 遗留 3、l924-03 遗留 1、`docs/insights/learn-editor-key-spec-20260924.md`
+    遗留 C-6 三处都登记过，指定的修法就是「给变式题一个独立有界队列」）。
+
+    形态与本文件的真题侧 `_touch_problem` 同型，三点照抄不另创：
+      1. 队列独立（`_variant_lru` 与 `_problem_lru` 两把），因为两边粒度不同：真题按题、
+         变式也按题，但**变式 id 与原 id 会重叠展示**（`ai_variants` 里挂着），混进一张表
+         会让真题侧的 keep_ids 判断把变式算进 30 个名额里，逐出时点从此不可推；
+      2. 封顶沿用 `_LRU_CAP`（30），不自造第二个阈值——「保留最近 N 道题」的口径全仓只有一处，
+         要调就调那一个数；
+      3. 逐出动作只调 `_retire_variant`，**不硬列前缀、不写任何 epoch 字面量形态**：
+         六族与 widget 残键的判据由 `_retire_variant` 遍历共享表 `_PROBLEM_STATE_PREFIXES`
+         给出（在册桩 `test_retire_iterates_the_shared_table` 钉着这条同源约束）。
+
+    与终点一的分工：终点一在「退回」那一刻**立即**清；本函数只在队列**溢出**时清最旧那条。
+    为什么不在离开/换题的那一刻立即清：`ai_variants` 并不会因换题而弹出，用户切回来看到的
+    还是那道变式题（`_active_problem` 直接取），当场清键等于把他刚写的代码换成 starter_code
+    ——那是比泄漏更重的用户可见缺陷，与 l924-03「只清被退回的那一道」同一判断。
+
+    🔴 本形态有意接受的代价（如实登记，不粉饰）：被队列逐出的变式**仍留在 `ai_variants` 里**，
+    用户 30 道变式之后切回那道题，题面还是变式、但代码/对话/提示都退回初值（与真题侧被 LRU
+    逐出后重访同形）。要连 `ai_variants` 一起弹（重访直接回到原题）是可见行为变更，超本单授权。
+
+    队列去重（与真题侧 `_touch_problem` 的「只看队尾」不同，这里是**先摘再挂**）：
+    变式题在每次 rerun 都会被 `_touch_problem` 摸一次，来回切题会让旧形态那样把同一个 id
+    反复堆进队列，30 个名额被重复项吃满 ⇒ 「有界」退化成「按 rerun 次数逐出」。
+    """
+    queue = st.session_state.setdefault("_variant_lru", [])
+    while variant_id in queue:
+        queue.remove(variant_id)
+    queue.append(variant_id)
+    keep_ids = set(queue[-_LRU_CAP:])
+    for vid in list(queue[:-_LRU_CAP]):
+        if vid in keep_ids:
+            continue
+        _retire_variant(vid)          # 逐出＝走终点，清键面与「↩ 回到原题」完全一致
+    st.session_state["_variant_lru"] = queue[-_LRU_CAP:]
 
 
 def _clear_variant_editor_keys(variant_id: str) -> None:

@@ -409,22 +409,34 @@ def _render_cross_recommend(dao):
     for rank, it in enumerate(cross, 1):
         pid_key = (it["lang"], it["problem_id"])
         if pid_key not in st.session_state[cross_shown_key]:
-            # l923-07：本区原先整段裸奔——emit 一抛就窜出 _render_cross_recommend，
+            # 🔴 l923-07：本区原先整段裸奔——emit 一抛就窜出 _render_cross_recommend，
             # 而 render_dashboard(:94-97) 只 try/finally 不 catch ⇒ 后半页（成就/热力图/
             # 报告导出/学习数据/最近活动）全部不渲染。改成 per-item try 后一条失败只影响一条，
             # 与 dashboard 区 :169-183 同型（含 logger.debug 不静默）。
-            # ⚠️ 写序未动（add → impressions → emit 仍在送达之前）：把「永久丢一条曝光」也一并
-            #    解决掉需要 A2 方案（emit 成功后再落本地账），那属规划裁决，见
-            #    docs/insights/learn-shown-writeorder-design-20260923.md，本单不越权。
+            # l927-37（A2 落地，设计稿 docs/insights/learn-shown-writeorder-design-20260923.md §三 A2／§七）：
+            # 写序由 `add → impressions → emit` 换成 **emit 先、成功后才落本地账**（`add` 成功后再记
+            # impressions）。旧写序的后果是「失败那条曝光永久丢失且不自愈」：本地 shown 已记下它，
+            # 下一次渲染被上面那道 `not in cross_shown_key` 门控跳过 ⇒ 事件库永远补不回来，
+            # 本地口径与 DB 漏斗从此恒差 1（l922-101 实测）。换序后失败那条不进 shown ⇒ 恢复帧会
+            # 重试同一条；rid 由 `_make_rec_id` 确定性生成，补报带的是同一个 rid，归因链自动接上。
+            # emit 的前置条件（rid 与 payload）在 try 外算齐，失败帧压根不进本地账，
+            # 于是点击侧 `imp.get(...)` 回退分支生效 ⇒ **故障帧那一条 clicked 带空 rid/rank=0**，
+            # 这是 A2 的已知残余风险（设计稿 §八 待裁决 1，形态＝肉眼可辨的缺口，比旧写序的
+            # 「悬空 rid」可查，旧形态的 rid 在事件库里永不出现）。
+            # ⚠️ 本单只换跨路径区：今日推荐区 `:191-205` 的曝光写序**未动**（卷宗只点名本区，
+            #    w42 §B.1 禁"顺手一致"）⇒ 两区曝光写序自本单起不一致，见
+            #    docs/insights/l927-37-writeseq.md §三。拉齐方向别照抄 l924-01——那单在 except
+            #    粒度上把今日推荐"照跨路径那一案"改（新向旧看齐），本单方向相反（旧形态该向本区看齐）。
+            rec_id = _make_rec_id("cross_path", "cross_path", it["lang"], it["problem_id"], rank)
+            payload = {"reason_code": "cross_path", "surface": "cross_path",
+                       "rank": rank, "recommendation_id": rec_id}
             try:
+                dao.emit_event("recommendation_shown", lang=it["lang"],
+                               problem_id=it["problem_id"], payload=payload)
                 st.session_state[cross_shown_key].add(pid_key)
-                rec_id = _make_rec_id("cross_path", "cross_path", it["lang"], it["problem_id"], rank)
                 st.session_state[impressions_key][(it["lang"], it["problem_id"], "cross_path")] = {
                     "recommendation_id": rec_id, "reason_code": "cross_path", "rank": rank,
                 }
-                dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
-                               payload={"reason_code": "cross_path", "surface": "cross_path",
-                                        "rank": rank, "recommendation_id": rec_id})
             except Exception:
                 logger.debug("dashboard: 跨路径推荐展示异常", exc_info=True)
 

@@ -172,7 +172,13 @@ class TestCurrentProblemNeverEvicted:
 
 
 class TestAiVariantExemption:
-    """AI_VARIANT:: 走 :55 提前 return，不进 LRU、不触发任何清理。"""
+    """AI_VARIANT:: 不进真题侧 `_problem_lru`（:55 那早退分支的语义）。
+
+    🔴 l927-40 口径订正（改桩记录见本文件末尾）：类 docstring 原文是「走 :55 提前 return，
+    不进 LRU、**不触发任何清理**」。后半句已被第二终点否证——变式题现在进自己的
+    `_variant_lru` 并在溢出时逐出六族键（那正是 l923-15 遗留 3 / l924-03 遗留 1 要闭的半边）。
+    「不进**真题** LRU」这半句照旧成立，本组前两条断言原样保留。
+    """
 
     def test_variant_leaves_no_lru_trace(self, fake):
         _seed(fake, "AI_VARIANT::python/topic/p0")
@@ -191,6 +197,13 @@ class TestAiVariantExemption:
             language_page._touch_problem(pid)
         assert fake.session_state["_problem_lru"] == [real]
         assert _survivors(fake, real) == list(SIX_PREFIXES), "变式题把真题状态挤掉了"
-        assert _survivors(fake, "AI_VARIANT::v0") == list(SIX_PREFIXES), (
-            "变式题自身状态不得被 LRU 清理（生命周期短，交页面自己管）"
-        )
+        # 🔴 l927-40 翻面：旧断言是 `v0` 的六族键**必须全在**（"变式题自身状态不得被 LRU 清理，
+        # 生命周期短，交页面自己管"）。第二终点落地后那句话不再成立——"交页面自己管"的
+        # 那半边现在真的有人管了：v0 是最旧的一格，早被 `_variant_lru` 挤出窗口 ⇒ 六族必须清空。
+        # 没丢的格子：上面两行（真题不被连坐）一字未动；被逐出的**只有超出 cap 的那批**，
+        # 窗口内的变式仍须完好在（下面那条新断言把边界钉住，免得改成"一律清光"也绿）。
+        assert _survivors(fake, "AI_VARIANT::v0") == [], (
+            "第二终点空转：刷了变式从不点「↩ 回到原题」时，六族键仍整场会话无界"
+            "（l923-15 遗留 3 原样在）")
+        assert _survivors(fake, f"AI_VARIANT::v{cap + 4}") == list(SIX_PREFIXES), (
+            "窗口内的变式不得被逐出（逐出时点该是溢出那一帧，不是进题那一帧）")

@@ -30,6 +30,15 @@
      表与清扫从此各长各的（真题侧改了、变式侧没跟）。
 
 可复跑：python -m pytest tests/test_retire_variant.py -q
+
+追加（l927-40，2026-09-28）：**生产码补了第二终点**——变式题有了自己的有界队列
+`_variant_lru`（档内三处上游点名的「出口一：独立有界队列」），刷了变式**从不点「↩ 回到原题」**
+直接换题／离开时，超出 `_LRU_CAP` 的最旧变式按 `_retire_variant` 清六族＋widget 残键。
+于是本文件翻 1 条在册断言（`test_retire_defined_once_and_called_once`：字面量计数 → AST 点名调用者）、
+订正 1 条 docstring、新增 `TestVariantSecondEndState` 7 例（含 1 例判据点名的离开路径用例
+＋ 1 例代价面钉子），逐字留痕见文件末尾「🔴 l927-40 改桩记录」。
+连带必要改动在 `tests/test_language_lru_eviction.py`（那条「变式自身状态不得被清理」的现状桩
+按新语义翻面，同批留痕）。真题侧 `_touch_problem` 的行为与 cap **一字未动**。
 """
 import ast
 import inspect
@@ -147,12 +156,26 @@ class TestShimStillOwnsTheCallSite:
         )
 
     def test_retire_defined_once_and_called_once(self):
+        """🔴 l927-40 改桩（本单唯一一处动在册断言方向，逐字留痕见文件末尾改桩记录）。
+
+        旧版第二行是 `assert src.count("_retire_variant(") == 2`＝「定义＋薄壳转调」的
+        字面量计数代理，注释写"多出来的位置说明它被挂进了别的分支"。第二终点
+        （`_touch_variant` 的队列逐出）正是**第三条正当站点**，"多一处就红"这个代理当场过期；
+        但把它改回 `== 3` 只是把巧合写成规矩 ⇒ 换成按 AST 点名单：**谁在调**才是判据。
+        原意（不得挂进「↺ 重置」/「✨ AI 变式题」分支）由同节的
+        `test_not_wired_into_reset_or_generate_branches` 独立钉着，本例不放松，
+        反而多钉「每个调用点各只调一次」。
+        """
         src = LANG_PY.read_text(encoding="utf-8")
         assert src.count("def _retire_variant(") == 1, "定义处应唯一"
-        assert src.count("_retire_variant(") == 2, (
-            "`_retire_variant(` 应恰 2 处 = 定义 + 薄壳内 1 次转调；"
-            "多出来的位置说明它被挂进了别的分支（重置/生成变式都不该清键）"
-        )
+        tree = ast.parse(src)
+        callers = [fn.name for fn in tree.body if isinstance(fn, ast.FunctionDef)
+                   for sub in ast.walk(fn)
+                   if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Name)
+                   and sub.func.id == "_retire_variant"]
+        assert sorted(callers) == ["_clear_variant_editor_keys", "_touch_variant"], (
+            f"`_retire_variant` 的调用点漂移（现值 {sorted(callers)}）：只允许薄壳转调 ＋ "
+            "l927-40 的变式队列逐出两处；出现在别处＝它被挂进了不该清键的分支")
 
     def test_shim_body_is_a_single_delegation(self):
         """壳里不得长出新逻辑：只允许一条 `_retire_variant(variant_id)`。"""
@@ -275,11 +298,129 @@ class TestSharedTableContract:
             "原题被逐出时变式题的六族键被连坐（它还开着）—— 豁免语义回归")
 
     def test_touch_problem_still_skips_variants(self, fake):
-        """进题本身不清键：清理只发生在退回那一刻。"""
+        """进题本身不清键：清理只发生在退回那一刻、或队列溢出逐出那一刻（l927-40 补的后半句）。
+
+        🔴 l927-40 口径订正：本例旧 docstring 写的是「清理只发生在退回那一刻」——第二终点
+        （`_variant_lru` 溢出逐出）落地后那半句不再完整，但**断言面一字未动且仍绿**：
+        它要钉的「进题这一帧不清自己、也不进真题侧 `_problem_lru`」两条都还成立。
+        """
         _load_all_families(fake.session_state, VID)
         language_page._touch_problem(VID)
         assert "_problem_lru" not in fake.session_state
         assert len(_pid_keys(fake.session_state, VID)) == FULL_COUNT
+
+
+class TestVariantSecondEndState:
+    """l927-40 变式题的**第二生命周期终点**：独立有界队列 `_variant_lru`（档内「出口一」）。
+
+    终点一＝`_retire_variant`（「↩ 回到原题」当场清，l924-03）；终点二＝本组：刷了变式
+    **直接换题／离开**（从不点退回）时，六族键原先整场会话无界
+    （l923-15 遗留 3／l924-03 遗留 1／learn-editor-key-spec-20260924.md 遗留 C-6）。
+    现在按 `_LRU_CAP` 封顶逐出，逐出走的就是 `_retire_variant` ⇒ 清键面与终点一逐字同形。
+
+    五个失效面各钉一条：
+      A. 溢出没清（第二终点空转，泄漏面照旧）；
+      B. 进题当帧清自己（用户正在写的代码被 starter_code 覆盖）；
+      C. 队列被同一个 id 反复 rerun 堆满 ⇒ "有界"退化成"按 rerun 次数逐出"；
+      D. 逐出用了 startswith ⇒ 以被逐 id 开头的兄弟变式被连坐；
+      E. 逐出时顺手弹 `ai_variants`／动了真题队列 ⇒ 可见行为变更／真题侧逐出时点漂移。
+    """
+
+    def test_leaving_variants_without_back_button_evicts_only_beyond_cap(self, fake):
+        """判据②「离开路径用例」：刷 cap+2 道变式、一道都不点退回 ⇒ 只有最旧 2 道被清。"""
+        cap = language_page._LRU_CAP
+        vids = [f"AI_VARIANT::python/01_basics/v{i}" for i in range(cap + 2)]
+        for vid in vids:                       # 每刷一道就换题离开：从不点「↩ 回到原题」
+            _load_all_families(fake.session_state, vid)
+            language_page._touch_problem(vid)
+
+        for vid in vids[:2]:
+            assert _pid_keys(fake.session_state, vid) == set(), \
+                f"{vid} 早被挤出 cap 窗口却仍留状态键（第二终点空转）"
+        for vid in vids[2:]:
+            assert len(_pid_keys(fake.session_state, vid)) == FULL_COUNT, \
+                f"{vid} 还在窗口内就被清了（逐出时点错到本帧之前）"
+        assert len(fake.session_state["_variant_lru"]) == cap, "队列本身必须封顶，不能自己无界"
+
+    def test_entering_a_variant_never_clears_its_own_state(self, fake):
+        """失效面 B：当前这道变式永不被本终点清（`keep_ids` 含队尾那一格）。"""
+        _load_all_families(fake.session_state, VID)
+        for _ in range(3):                     # 同一帧反复进题（Streamlit 每次交互都重跑渲染体）
+            language_page._touch_problem(VID)
+        assert len(_pid_keys(fake.session_state, VID)) == FULL_COUNT, \
+            "进题当帧清了自己的键＝用户代码会被 starter_code 覆盖，比泄漏更重"
+
+    def test_repeated_reruns_of_one_variant_do_not_flood_the_queue(self, fake):
+        """失效面 C：先摘再挂 ⇒ 同一 id 只占一格（旧 `_problem_lru` 那套"只看队尾"会堆重复项）。"""
+        cap = language_page._LRU_CAP
+        _load_all_families(fake.session_state, VID)
+        for _ in range(cap + 5):               # 一帧一帧地摸同一道题
+            language_page._touch_problem(VID)
+        assert fake.session_state["_variant_lru"] == [VID], \
+            f"队列被同一个 id 堆满：{fake.session_state['_variant_lru']}"
+        assert len(_pid_keys(fake.session_state, VID)) == FULL_COUNT, "去重失败连带把自己逐出"
+
+    def test_back_and_forth_navigation_keeps_one_slot_per_variant(self, fake):
+        """来回切题（A↔B 各 cap 次）只占 2 格 ⇒ 逐出时点由**不同变式条数**决定，不由交互数决定。"""
+        cap = language_page._LRU_CAP
+        a, b = VID, "AI_VARIANT::python/01_basics/p2"
+        for _ in range(cap):
+            language_page._touch_problem(a)
+            language_page._touch_problem(b)
+        assert fake.session_state["_variant_lru"] == [a, b], \
+            f"来回切题该只占两格，现值 {fake.session_state['_variant_lru']}"
+
+    def test_eviction_is_exact_and_spares_neighbour_and_base(self, fake):
+        """失效面 D：队列路径同样按 `prefix + vid` **精确拼键**，兄弟变式与原题零连坐。"""
+        cap = language_page._LRU_CAP
+        _load_all_families(fake.session_state, VID)
+        _load_all_families(fake.session_state, NEIGHBOUR_VID)
+        _load_all_families(fake.session_state, BASE)
+
+        language_page._touch_problem(VID)                     # 最旧的一格
+        for i in range(cap - 1):                              # 填满窗口（不触发逐出）
+            language_page._touch_problem(f"AI_VARIANT::python/01_basics/filler{i}")
+        language_page._touch_problem(NEIGHBOUR_VID)            # 最后一进 ⇒ 被挤出的是 VID
+
+        assert _pid_keys(fake.session_state, VID) == set(), "队列逐出没走到 _retire_variant"
+        assert len(_pid_keys(fake.session_state, NEIGHBOUR_VID)) == FULL_COUNT, (
+            "startswith 粗匹配连坐了以 VID 开头的兄弟变式（它的 epoch 被抹平＝组件重建、代码被覆盖）")
+        assert len(_pid_keys(fake.session_state, BASE)) == FULL_COUNT, "原题被变式队列连坐"
+
+    def test_second_end_state_does_not_disturb_the_real_problem_lru(self, fake):
+        """失效面 E（两队列独立）：一堆变式不得把真题挤出 `_problem_lru`，也不得混进那张表。"""
+        cap = language_page._LRU_CAP
+        real = "python/01_basics/p1"
+        _load_all_families(fake.session_state, real)
+        language_page._touch_problem(real)
+        for i in range(cap + 5):
+            language_page._touch_problem(f"AI_VARIANT::python/01_basics/v{i}")
+        assert fake.session_state["_problem_lru"] == [real], \
+            f"变式队列污染了真题队列：{fake.session_state['_problem_lru']}"
+        assert len(_pid_keys(fake.session_state, real)) == FULL_COUNT, "变式把真题状态挤掉了"
+
+    def test_evicted_variant_is_left_in_ai_variants_on_purpose(self, fake):
+        """登记的**代价面**（不是"应该"，是"本单刻意不扩权"的钉子）：
+        队列只清键、不弹 `ai_variants` ⇒ 被逐出后重访那道题，题面仍是变式、题态回初值。
+        改成连 `ai_variants` 一起弹＝可见行为变更，交主班裁
+        （docs/insights/l927-40-lifecycle2.md §三 代价 1）。
+        """
+        cap = language_page._LRU_CAP
+        fake.session_state["ai_variants"] = {BASE: {"id": VID, "title": "变式题"}}
+        _load_all_families(fake.session_state, VID)
+        language_page._touch_problem(VID)                     # 最旧的一格
+        for i in range(cap):                                  # 填满窗口 ⇒ VID 在溢出那一帧被挤出
+            language_page._touch_problem(f"AI_VARIANT::python/01_basics/e{i}")
+
+        assert _pid_keys(fake.session_state, VID) == set(), "前置条件：VID 应已被逐出"
+        assert fake.session_state["ai_variants"] == {BASE: {"id": VID, "title": "变式题"}}, (
+            "`ai_variants` 被顺手弹掉了——那是可见行为变更（重访会直接回到原题），超本单授权")
+        assert language_page._active_problem(
+            type("P", (), {"id": BASE, "to_dict": lambda self: {"id": BASE}})())[1] is True, (
+            "逐出后重访该题仍应拿到变式题（`ai_variants` 未弹）⇒ 题面是变式、题态是初值，"
+            "这正是本形态登记的代价")
+        assert language_page._editor_key(VID) == f"editor_{VID}_0", (
+            "epoch 计数器被清 ⇒ 重访时 widget key 归 0、组件重建（本形态的已知代价）")
 
 
 class TestKnownBlindSpotPinned:
@@ -296,3 +437,45 @@ class TestKnownBlindSpotPinned:
         assert "editor_" + VID in fake.session_state, (
             "清掉了无 epoch 后缀的 editor_ 键＝需要先落 key 规范（l924-04），本单不扩权"
         )
+
+
+# ---------------------------------------------------------------------------
+# 🔴 l927-40 改桩记录（2026-09-28）——第二终点（变式独立有界队列）落地，逐字留痕
+#
+# 裁决来源：`zcode-bridge/inbox/l927-40.task.md`「做什么」＝"补第二终态（离开/换题时清理
+# 六族键——按档内设计的第二终点形态），补 1 例离开路径用例"。三处上游都点名同一个修法：
+#   - `done/l923-15.result.md` 遗留 3：「用户刷了变式但从不点退回（换专题/换题直接离开）时，
+#     该变式题的键不会被本单清掉——这正是卷宗『出口一（独立有界队列）』要解决的问题」
+#   - `done/l924-03.result.md` 遗留 1：「要闭它需要第二个终点（出口一『独立有界队列』）」
+#   - `docs/insights/learn-editor-key-spec-20260924.md` 遗留 C-6：同一句
+# ⇒ 本单落的就是那个「出口一」，形态照本文件早已存在的真题侧 `_touch_problem`（同 cap、
+#   同 `_retire_variant` 清键面、同精确拼键），队列另开一把 `_variant_lru`。
+#
+# 动了哪些在册断言（**只有两处**，其余全是新增）：
+#   1. 本文件 `TestShimStillOwnsTheCallSite::test_retire_defined_once_and_called_once`
+#      变：`src.count("_retire_variant(") == 2`（字面量计数）→ AST 点名调用者
+#        `== ["_clear_variant_editor_keys", "_touch_variant"]`。
+#      为什么不是放宽：旧判据是"多一处就红"的代理，第二终点恰好就是正当的第三处，
+#        代理必然过期；写回 `== 3` 只是把巧合当规矩。AST 版把判据换成**谁在调**，
+#        比原来严（挂进任何别的函数体都红），且"不得挂进重置/生成变式分支"那半原意
+#        由同节 `test_not_wired_into_reset_or_generate_branches` **一字未动**地继续钉着。
+#      判别力：M2 变异（队列里不调 `_retire_variant`）⇒ 本例与另外 4 例同时红。
+#   2. 本文件 `TestSharedTableContract::test_touch_problem_still_skips_variants`
+#      只改 docstring（旧半句"清理只发生在退回那一刻"已被第二终点否证，补上"或队列溢出逐出"），
+#      **断言面一字未动且仍绿**——它钉的"进题当帧不清自己／不进真题 `_problem_lru`"两条都还成立。
+#   3. `tests/test_language_lru_eviction.py::TestAiVariantExemption`（连带必要改动）
+#      变：`test_crowd_of_variants_cannot_push_real_problems_out` 末段由
+#        「`AI_VARIANT::v0` 六族键必须全在（生命周期短，交页面自己管）」
+#        → 「`v0` 六族键必须**全空**（第二终点生效）」＋ 新增一格「窗口内最后一道
+#          `v{cap+4}` 仍须全在」防"改成一律清光"也绿。
+#        类 docstring 的「不触发任何清理」同步订正。
+#      没丢：同例前两行（`_problem_lru == [real]`、真题六族不被连坐）逐字照旧；
+#        同组 `test_variant_leaves_no_lru_trace` **一字未动**仍绿。
+#      ⚠ 这条 2026-09-22 的在册断言正是 l923-15/l924-03 说的"钉现状"那一格，
+#        翻面是派单授权的行为变更，不是凑绿。
+#
+# 新增（本单判据②）：`TestVariantSecondEndState` 7 例——离开路径（cap+2 只逐出最旧 2 道）、
+# 进题不清自己、反复 rerun 不堆队列、来回切题只占两格、逐出精确不连坐兄弟变式与原题、
+# 不污染真题队列、以及**代价面钉子**（逐出后 `ai_variants` 仍挂着、重访题面是变式而题态回初值）。
+# 五组变异读数见 docs/insights/l927-40-lifecycle2.md §四；未删一例、未 xfail、未放宽任何断言。
+# ---------------------------------------------------------------------------
