@@ -188,7 +188,27 @@ def _render_dashboard_body(dao):
         #    失败那条本地已记账、事件库永无 ⇒ 下次渲染被 shown 门控挡掉。下沉后一次故障帧
         #    的「本地−事件库」差额从固定 1 条变成**本帧失败条数**（每项各丢各的），
         #    试过的条数从「首抛为止」变成全量——推演见 l923-07 结果「证据 3」。
+        # 🔴 l927-49：**预检形态**收口 `pid_key` 的 try 外暴露面（l924-01 遗留那一格）。
+        #    改前 :192 的 `pid_key = (it["lang"], it["problem_id"])` 在 try **外** ⇒ 推荐字典缺
+        #    lang／problem_id 的畸形项当场 KeyError 窜出本 else 块，一条坏项吃掉**整区**
+        #    （连记账带渲染；`_render_dashboard_body` 上层只 try/finally 不 catch）。
+        #    只把那一行挪进 try 挡不住：渲染循环（现 :227 `LANG_META[it["lang"]]`）同格裸奔，
+        #    坏项照样能把整区带走 ⇒ 故按卷宗许可的「预检形态」在两循环**之前**一次筛清，
+        #    缺键项按项各记一条 DEBUG 后跳过（不计数、不汇总提示，沿用 l924-01 那一案）。
+        #    ⚠ 两件事本单**有意**没做，见 docs/insights/l927-49-note.md §四／§五：
+        #      ① rank 仍取 `enumerate` 的原序（坏项占掉它自己的序号，其余不重新编号）
+        #         ⇒ `_make_rec_id` 生成的 rid 不随坏项出现而漂移，归因链跨帧可比；
+        #      ② 跨路径区 `:430`（原 :410）那格同型暴露面**未动**（卷宗只点名推荐项，w42 §B.1 禁顺手一致）
+        #         ⇒ 两区对畸形项的容错自此不一致。
+        checked = []
         for rank, it in enumerate(plan, 1):
+            missing = [k for k in ("lang", "problem_id") if k not in it]
+            if missing:
+                logger.debug("dashboard: 推荐项缺 %s 键，跳过该项（现有键 %s）",
+                             "+".join(missing), sorted(it))
+                continue
+            checked.append((rank, it))
+        for rank, it in checked:
             pid_key = (it["lang"], it["problem_id"])
             if pid_key not in st.session_state[shown_key]:
                 try:
@@ -203,7 +223,7 @@ def _render_dashboard_body(dao):
                                             "rank": rank, "recommendation_id": rec_id})
                 except Exception:
                     logger.debug("dashboard: 推荐展示数据异常", exc_info=True)
-        for it in plan:
+        for _rank, it in checked:  # l927-49：渲染循环同吃预检结果（改前坏项在此的 LANG_META 取值处二次裸奔）
             meta = LANG_META[it["lang"]]
             with st.container(border=True):
                 cols2 = st.columns([3, 1])

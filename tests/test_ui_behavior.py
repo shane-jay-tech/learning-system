@@ -37,6 +37,19 @@ class Context:
 
 
 class FakeStreamlit:
+    """Streamlit 桩。l927-48 收口：四处「入参失明面」（button/expander/tabs/columns）改为
+    与其余组件同型地把 `(name, args, kwargs)` 落进 `self.calls`，返回值语义一字未动。
+
+    改前：`button` 只回布尔、`expander` 只给上下文管理器、`tabs`/`columns` 只回上下文列表，
+    四处**全都不写 calls** ⇒ 靠基类断言「某标签/某参数存在」必然永绿（l924-02/l924-32 实测登记）。
+    当时主班裁决是「多班共用基类不改」，各档改用 `setattr` 挂实例级录制版绕过去，代价是同一件事
+    在 4 个测试件里各写一遍私有桩。l927-48 是这张遗留面的收口单 ⇒ 本类改为直接录参，
+    录参形状与各档手写版逐字同型（`("button", (label,), kw)` / `("tabs", (labels,), {})` /
+    `("expander", (label,), kw)`），已挂实例级覆盖的档走 `__getattr__` 之外的常规属性路径，
+    实例属性优先 ⇒ 不会双记，行为与改前一致。
+    `container`/`spinner` 不在这四处点名范围内，保持不录参。
+    """
+
     def __init__(self, buttons=None):
         self.session_state = State()
         self.buttons = buttons or {}
@@ -45,14 +58,28 @@ class FakeStreamlit:
         self.rerun_count = 0
 
     def __getattr__(self, name):
-        if name in {"container", "expander", "spinner"}:
+        if name in {"container", "spinner"}:
             return lambda *a, **kw: Context()
+        if name == "expander":
+            def expander(*a, **kw):
+                self.calls.append(("expander", a, kw))
+                return Context()
+            return expander
         if name == "columns":
-            return lambda spec, *a, **kw: [Context() for _ in range(spec if isinstance(spec, int) else len(spec))]
+            def columns(spec, *a, **kw):
+                self.calls.append(("columns", (spec,) + a, kw))
+                return [Context() for _ in range(spec if isinstance(spec, int) else len(spec))]
+            return columns
         if name == "tabs":
-            return lambda labels: [Context() for _ in labels]
+            def tabs(labels, *a, **kw):
+                self.calls.append(("tabs", (labels,) + a, kw))
+                return [Context() for _ in labels]
+            return tabs
         if name == "button":
-            return lambda label, *a, **kw: self.buttons.get(label, False)
+            def button(label, *a, **kw):
+                self.calls.append(("button", (label,) + a, kw))
+                return self.buttons.get(label, False)
+            return button
         if name == "radio":
             return lambda label, options, *a, **kw: options[0]
         if name == "text_area":
@@ -594,3 +621,67 @@ def test_mistakes_wrapper_and_nonempty_tabs(monkeypatch):
     mistakes_page.render_mistakes()
     assert sections == ["due", "wrong", "weak"]
     assert dao.closed
+
+
+# ---------------------------------------------------------------------------
+# l927-48：FakeStreamlit 四处入参失明面的桩自证（每控件一例，钉「入参被记录」这件事本身）
+# 改前这四格是永绿格：靠基类断言「某标签/某参数存在」取不到任何读数。
+# 例 4 顺带把"只收口点名四处"的边界钉住——container/spinner 仍不录参，
+# 免得日后有人以为基类已全量录参而写出实际失据的断言。
+# ---------------------------------------------------------------------------
+
+def test_fake_streamlit_records_button_args():
+    """button：label 与全部关键字参落 calls，且返回值语义零改动（配置命中才为真）。"""
+    fake = FakeStreamlit(buttons={"去做 →": True})
+    assert fake.button("去做 →", key="reco_p1", type="primary", use_container_width=True) is True
+    assert fake.button("生成周报", key="gen_weekly") is False, "未配置的标签不得凭空变真"
+
+    recorded = [c for c in fake.calls if c[0] == "button"]
+    assert len(recorded) == 2, "两次点击应留下两条流水"
+    label, args, kwargs = recorded[0]
+    assert args == ("去做 →",)
+    assert kwargs == {"key": "reco_p1", "type": "primary", "use_container_width": True}
+    assert recorded[1][1] == ("生成周报",) and recorded[1][2] == {"key": "gen_weekly"}
+
+
+def test_fake_streamlit_records_expander_args():
+    """expander：标题与 expanded 落 calls，同时仍是可用的上下文管理器；
+    container/spinner 不在这四处点名范围内 ⇒ 保持不录参（边界自证）。"""
+    fake = FakeStreamlit()
+    with fake.expander("预览报告", expanded=False) as ctx:
+        assert ctx is not None, "expander 仍要能进 with"
+
+    exp = [c for c in fake.calls if c[0] == "expander"]
+    assert exp == [("expander", ("预览报告",), {"expanded": False})]
+
+    fake.container()
+    fake.spinner("计算中")
+    assert [c[0] for c in fake.calls] == ["expander"], "未点名的两格不得被顺手录参"
+
+
+def test_fake_streamlit_records_tabs_args():
+    """tabs：标签列表整体落 calls，返回格数与标签数一致且每格可用。"""
+    fake = FakeStreamlit()
+    labels = ["📅 月度浅扫（5 分钟）", "🔍 季度深查（30 分钟）", "📰 信息源"]
+    tabs = fake.tabs(labels)
+    assert len(tabs) == 3
+    for t in tabs:
+        with t:
+            pass
+
+    recorded = [c for c in fake.calls if c[0] == "tabs"]
+    assert recorded == [("tabs", (labels,), {})], "断言某页签存在必须有读数可取，不得永绿"
+
+
+def test_fake_streamlit_records_columns_args():
+    """columns：int 与权重列表两种 spec 都落 calls，槽位数仍由 spec 决定。"""
+    fake = FakeStreamlit()
+    four = fake.columns(4)
+    weighted = fake.columns([3, 1], gap="small")
+    assert len(four) == 4 and len(weighted) == 2
+    with four[0]:
+        pass
+
+    recorded = [c for c in fake.calls if c[0] == "columns"]
+    assert [c[1][0] for c in recorded] == [4, [3, 1]], "补的空槽/权重比参数取不回来 ⇒ 该例失据"
+    assert recorded[1][2] == {"gap": "small"}

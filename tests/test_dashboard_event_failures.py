@@ -1008,6 +1008,56 @@ def test_l927_37_impressions_are_written_only_after_shown_add_succeeded(
 
 
 # ---------------------------------------------------------------------------
+# 十、l927-49：畸形推荐项（字典缺 lang／problem_id）的预检收口面
+#     改前那一格在 try 外（`pid_key = (it["lang"], it["problem_id"])`），坏一项吃掉整区；
+#     本节钉「不崩 ＋ 跳过该项 ＋ 按项记一条 DEBUG」，并顺手钉住 rank 取原序不重编号。
+# ---------------------------------------------------------------------------
+
+def test_malformed_recommendation_item_is_skipped_without_killing_the_region(wire, fake_st, caplog):
+    """畸形项（缺 `problem_id`）不崩、跳过、记一条 DEBUG，其余四条照常（l927-49 判据②）。
+
+    改前现证：`ui/pages/dashboard.py` 的 `pid_key = (it["lang"], it["problem_id"])` 落在
+    per-item `try` **外**（l924-01 遗留问题 1 点名的那一格），本例会以 KeyError 直接窜出
+    `_render_dashboard_body`（上层 `render_dashboard` 只 try/finally 不 catch）⇒
+    整张面板后半段一起掉，一条坏项吃掉四条正常项的记账与渲染。
+    现按卷宗许可的「预检形态」收：缺键项在两循环之前就被挡掉，只掉它自己。
+    🔴 顺带钉住本单的实现选择：**rank 取 `enumerate` 原序、坏项不重新编号**
+    （⇒ 幸存四条的 rank 是 [1,3,4,5] 而非 [1,2,3,4]）。理由是 `_make_rec_id` 把 rank 编进 rid，
+    重编号会让"同一条推荐在坏项出现的帧与不出现的帧"拿到两个 rid，跨帧归因链断裂；
+    代价＝rank 与卡片视觉序在坏项帧里不等。要改这一格请连同本例一起改，见
+    docs/insights/l927-49-note.md §四。
+    """
+    base = _plan(4)
+    malformed = {k: v for k, v in base[1].items() if k != "problem_id"}
+    malformed["title"] = "畸形项（缺 problem_id）"
+    plan = [base[0], malformed] + base[1:]          # 畸形项插在 rank 2
+
+    em = _Emitter()
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        wire(plan, em)                               # 异常没窜到调用方，本身就是判据②的前半
+
+    # 不连坐：四条正常项照常尝试并送达，畸形项一次都没试
+    assert em.kinds() == ["recommendation_shown"] * 4, "坏项不该吃掉其余条的尝试，也不该自己被试"
+    sent = [kw for _k, kw in em.sent_of("recommendation_shown")]
+    assert [kw["problem_id"] for kw in sent] == [it["problem_id"] for it in base]
+    assert [kw["payload"]["rank"] for kw in sent] == [1, 3, 4, 5], "rank 取原序（见 docstring 的 🔴）"
+    # 渲染面：三张正常卡在，畸形卡不在（改前此处压根渲染不到）
+    assert _cards_rendered(fake_st, plan) == [it["title"] for it in base]
+    assert "畸形项（缺 problem_id）" not in " ".join(
+        str(c[1][0]) for c in fake_st.calls if c[0] == "markdown")
+    # 本地账：shown 只收四条，畸形项没进去（它连 pid_key 都取不出来）
+    assert fake_st.session_state[SHOWN_KEY] == {
+        (it["lang"], it["problem_id"]) for it in base}
+    # 不静默：恰一条 DEBUG，报出缺的是哪个键
+    hits = [r for r in caplog.records if r.getMessage().startswith("dashboard: 推荐项缺 ")]
+    assert len(hits) == 1, f"每条畸形项各记一条、正常项零记，实得 {len(hits)} 条"
+    assert hits[0].levelno == logging.DEBUG and "problem_id" in hits[0].getMessage()
+    assert [r.getMessage() for r in caplog.records
+            if r.name == LOGGER and r.levelno == logging.DEBUG] == [hits[0].getMessage()], \
+        "本帧除预检那一条外不该再产生任何 DEBUG（正常项照常 ⇒ SHOWN_MSG 零条）"
+
+
+# ---------------------------------------------------------------------------
 # 🔴 l927-29 改桩记录（2026-09-28）——本文件第一次按裁决翻转断言方向（第二次见文末 l927-37），逐字留痕
 #
 # 裁决来源：`zcode-bridge/inbox/l927-29.task.md`「做什么」＝"修写序：emit_event 成功后再写
