@@ -206,6 +206,14 @@ def check_readme(readme_path, metrics):
     errors = []
     version = metrics["version"]
 
+    # l930-15（l927-47 遗留口径对称）：README 若带 YAML front matter（--- … ---），
+    # 检点①跳过之再取首行——与 docs 侧「跳 front matter」口径对称，
+    # 否则「加 front matter」会出现文档绿、门禁红的假不对称。
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) >= 3:
+            text = parts[2].lstrip('\n')
+
     first_line = text.split("\n", 1)[0]
     if version not in first_line:
         errors.append(f"README 标题版本不含 {version}（当前：{first_line.strip()}）")

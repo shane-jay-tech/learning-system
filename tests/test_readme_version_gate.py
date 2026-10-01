@@ -90,3 +90,14 @@ def test_抹掉首行版本串门禁必判红(tmp_path, capsys, metrics):
     assert ok is False, f"抹掉版本串仍判通过 ⇒ 该子判据是恒真门：{out}"
     assert _TITLE_ERROR in out, f"FAIL 文案没点名标题版本：{out}"
     assert README.read_text(encoding="utf-8") == text, "README 本体被污染"
+
+
+def test_front_matter_readme_judged_same_as_plain(tmp_path, capsys, metrics):
+    """l930-15：README 带 YAML front matter 时门禁与文档口径对称——
+    同一内容的裸档判 True，带 front matter 的副本也必须判 True（检点①跳过 front matter）。"""
+    text = README.read_text(encoding="utf-8")
+    fm_copy = tmp_path / "README.fm.md"
+    fm_copy.write_text(f"---\ntitle: x\n---\n{text}", encoding="utf-8")
+    assert generate_system_report.check_readme(fm_copy, metrics) is True, \
+        "带 front matter 的 README 判红 ⇒ 门禁与文档口径不对称（l927-47 遗留复发）"
+    capsys.readouterr()
