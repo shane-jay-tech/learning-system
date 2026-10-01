@@ -206,7 +206,7 @@ section[data-testid="stSidebar"] .section-title::before { height: 13px; width: 3
 }
 button:focus-visible, [role="radio"]:focus-visible, input:focus-visible,
 textarea:focus-visible, [data-baseweb="select"]:focus-within {
-  outline: 3px solid #4547B9 !important; outline-offset: 2px;
+  outline: 3px solid var(--primary-dark) !important; outline-offset: 2px;
 }
 /* d913c-02 键盘焦点可见性：导航项（侧边栏链接/锚点/标签页）纳入同一 focus ring。
    l927-43 改色落地（档 A＝l924-06 报告的推荐档）：三组描边由 rgba(91,91,214,.28)
@@ -223,7 +223,7 @@ textarea:focus-visible, [data-baseweb="select"]:focus-within {
    须换亮色腿（#A5A7EE 7.25 或反白 #F5F6FA 15.06），不可沿用本组色值。 */
 a:focus-visible, [data-testid="stSidebar"] a:focus-visible,
 [role="tab"]:focus-visible, [data-testid="stSidebar"] button:focus-visible {
-  outline: 3px solid #4547B9 !important; outline-offset: 2px;
+  outline: 3px solid var(--primary-dark) !important; outline-offset: 2px;
   border-radius: 6px;
 }
 /* l923-18 F-1 实装：展开区标题行纳入同一品牌焦点描边。此前本仓 12 处展开器
@@ -232,7 +232,7 @@ a:focus-visible, [data-testid="stSidebar"] a:focus-visible,
    静态普查依据见 docs/insights/ 里的 learn-focus-f1-outline-static 档；
    浏览器 Tab 目检 12 处展开头留日间批（见 l923-18 result）。 */
 [data-testid="stExpander"] summary:focus-visible {
-  outline: 3px solid #4547B9 !important; outline-offset: 2px;
+  outline: 3px solid var(--primary-dark) !important; outline-offset: 2px;
 }
 [data-baseweb="select"] > div, .stTextInput input, .stTextArea textarea {
   min-height: 42px; border-color: var(--border-strong) !important; border-radius: 10px !important;
