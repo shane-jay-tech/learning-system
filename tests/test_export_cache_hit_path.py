@@ -48,11 +48,27 @@ _COUNT_SQL = (
     "SELECT COUNT(*) FROM meta",
 )
 
+# l930-12：每张导出面表的时戳列（与 dashboard._exp_key 的 MAX 组一一对应）
 
 def expected_key(dao):
-    """独立重算的期望键（不用生产码的 `_exp_key`，避免"拿被测对象自证"）。"""
-    parts = [dao.total_attempts(), dao.event_count()]
-    parts += [int(dao.conn.execute(sql).fetchone()[0]) for sql in _COUNT_SQL]
+    """独立重算的期望键（不用生产码的 `_exp_key`，避免"拿被测对象自证"）。
+    l930-12：指纹升级为「每表 COUNT＋MAX(时戳)」两组件，**逐表交错**（与 dashboard._exp_key
+    的表序一致：attempts/problems_status/review_state/rubric_scores/learning_events/meta）。"""
+    pairs = [
+        ("SELECT COUNT(*) FROM attempts", "SELECT COALESCE(MAX(ts), '') FROM attempts"),
+        ("SELECT COUNT(*) FROM problems_status",
+         "SELECT COALESCE(MAX(last_attempt_ts), '') FROM problems_status"),
+        ("SELECT COUNT(*) FROM review_state",
+         "SELECT COALESCE(MAX(updated_ts), '') FROM review_state"),
+        ("SELECT COUNT(*) FROM rubric_scores", "SELECT COALESCE(MAX(ts), '') FROM rubric_scores"),
+        ("SELECT COUNT(*) FROM learning_events",
+         "SELECT COALESCE(MAX(created_at), '') FROM learning_events"),
+        ("SELECT COUNT(*) FROM meta", "SELECT COALESCE(MAX(updated_ts), '') FROM meta"),
+    ]
+    parts = []
+    for count_sql, max_sql in pairs:
+        parts.append(dao.conn.execute(count_sql).fetchone()[0])
+        parts.append(str(dao.conn.execute(max_sql).fetchone()[0]))
     return "_".join(str(n) for n in parts)
 
 
@@ -120,12 +136,13 @@ def test_first_export_miss_serializes_once_and_writes_cache_into_session_state(t
         payload = json.loads(cache_json)
         assert payload["format"] == dp.FORMAT_NAME
         assert [r["problem_id"] for r in payload["data"]["problems_status"]] == [P1]
-        # 键 == 独立重算的六表指纹（生产侧从键里删任一张表 ⇒ 本断言当场红）
+        # 键 == 独立重算的六表指纹（生产侧从键里删任一张表或任一 MAX(时戳) 组 ⇒ 本断言当场红）
         assert cache_key == expected_key(dao), \
             f"键形状漂移：盘上 {cache_key!r}，按 dashboard:330-335 契约应为 {expected_key(dao)!r}"
-        # 键的组件数 == 导出面表数（导出面新增第 7 张表而键没跟 ⇒ 当场红；绑实取，不写字面量 6）
-        assert len(cache_key.split("_")) == len(dp.export_all(dao)["data"]), \
-            "缓存键组件数与 export_all 导出表数不等 ⇒ 键没覆盖导出面每一张表"
+        # 键的组件数 == 2×导出面表数（l930-12：每表 COUNT＋MAX(时戳) 两组件；
+        # 导出面新增第 7 张表而键没跟 ⇒ 当场红；绑实取，不写字面量）
+        assert len(cache_key.split("_")) == 2 * len(dp.export_all(dao)["data"]), \
+            "缓存键组件数与 2×export_all 导出表数不等 ⇒ 键没覆盖导出面每张表的行数与时戳"
         # 按钮 data 吃的是缓存（三者同源：session_state / spy 结果 / 按钮实参）
         buttons = _export_buttons(fake)
         assert len(buttons) == 1, f"学习数据区应恰有 1 个 JSON 导出按钮，实得 {len(buttons)}"

@@ -234,3 +234,42 @@ def test_ui_import_overwriting_same_rows_without_changing_counts_invalidates_cac
         assert len(exports) > rows_before
     finally:
         dao.close()
+
+
+# ---------------------------------------------------------------------------
+# l930-12：指纹升级（行数级 → 每表 COUNT＋MAX(时戳) 组合）后的靶点例——
+# 「只改值不加行」不再需要走导入路径才被抓（例 3 是导入面变体；本例是最小变体：
+# 生产写端 mark_status 同键覆盖，行数与两计数全不变，仅 last_attempt_ts 刷新）。
+# ---------------------------------------------------------------------------
+def test_value_only_update_bumps_the_combined_fingerprint(tmp_path, monkeypatch):
+    dao = ProgressDAO(str(tmp_path / "k4.db"))
+    try:
+        _seed(dao)
+        fake, render, exports = _wire(monkeypatch, dao)
+        render()
+        key_before = fake.session_state["_export_cache_key"]
+        before = json.loads(_exported_text(fake))
+        assert _by_pid(before["data"]["problems_status"], P1, "status") == ["wrong"]
+        counts_before = (dao.total_attempts(), dao.event_count())
+        rows_before = len(exports)
+
+        # 只改值：行数、两计数全不变。⚠ 用直接 SQL 显式刷 last_attempt_ts——
+        # mark_status 走 CURRENT_TIMESTAMP（秒级），与本例 seed 同秒执行时 MAX 不变属
+        # **精度限制**（组合指纹的已知盲区，见 l930-12 result 登记），不是指纹失效；
+        # 显式异值时戳证的是「指纹对值变化本身敏感」这一命题。
+        dao.conn.execute(
+            "UPDATE problems_status SET status = 'solved', last_attempt_ts = '2026-10-02 12:00:00' "
+            "WHERE lang = 'python' AND problem_id = ?", (P1,))
+        dao._clear_memo()
+        assert (dao.total_attempts(), dao.event_count()) == counts_before
+        fake.calls.clear()
+        render()
+        # 指纹必须变（MAX(last_attempt_ts) 刷新）——旧行数级键在此场景恒等＝本单升级的靶点
+        assert fake.session_state["_export_cache_key"] != key_before, \
+            "只改值不加行而键不变＝组合指纹未生效"
+        # 导出内容跟上新值（不再吃旧快照）
+        after = json.loads(_exported_text(fake))
+        assert _by_pid(after["data"]["problems_status"], P1, "status") == ["solved"]
+        assert len(exports) == rows_before + 1
+    finally:
+        dao.close()

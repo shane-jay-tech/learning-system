@@ -341,12 +341,25 @@ def _render_dashboard_body(dao):
         # 键必须覆盖 export_all 导出的每一张表：只数 attempts/learning_events 时，
         # 一个只带 problems_status/review_state 的导入包不改这两个计数，
         # rerun 后立刻导出会拿到合并前的旧快照（l922-104 复现）。
-        _exp_key = "_".join(str(n) for n in (
-            dao.total_attempts(), dao.event_count(),
+        # l930-12（l927-55/l922-104 遗留 2 收口）：指纹从行数级升级为「行数＋MAX(时戳)」组合——
+        # 每张导出面表两组件（COUNT＋该表时戳列的 MAX），「只改值不加行」的写入
+        # （如 INSERT OR REPLACE 同键覆盖、直接 UPDATE）只要走生产写端（时戳列刷新）就会被抓。
+        # 键组件数＝2×导出面表数（test_export_cache_hit_path 的守卫已同步 2×N 口径）。
+        # 已知盲区（如实登记）：绕过写端直接 UPDATE 且不刷时戳列的写入仍不可见——
+        # 那属「绕过生产写端」的同一信任前提，彻底解法是 DAO 侧统一作废（备选案，未采）。
+        _exp_key = "_".join(str(v) for v in (
+            _count_rows(dao, "SELECT COUNT(*) FROM attempts"),
+            str(dao.conn.execute("SELECT COALESCE(MAX(ts), '') FROM attempts").fetchone()[0]),
             _count_rows(dao, "SELECT COUNT(*) FROM problems_status"),
+            str(dao.conn.execute("SELECT COALESCE(MAX(last_attempt_ts), '') FROM problems_status").fetchone()[0]),
             _count_rows(dao, "SELECT COUNT(*) FROM review_state"),
+            str(dao.conn.execute("SELECT COALESCE(MAX(updated_ts), '') FROM review_state").fetchone()[0]),
             _count_rows(dao, "SELECT COUNT(*) FROM rubric_scores"),
-            _count_rows(dao, "SELECT COUNT(*) FROM meta")))
+            str(dao.conn.execute("SELECT COALESCE(MAX(ts), '') FROM rubric_scores").fetchone()[0]),
+            _count_rows(dao, "SELECT COUNT(*) FROM learning_events"),
+            str(dao.conn.execute("SELECT COALESCE(MAX(created_at), '') FROM learning_events").fetchone()[0]),
+            _count_rows(dao, "SELECT COUNT(*) FROM meta"),
+            str(dao.conn.execute("SELECT COALESCE(MAX(updated_ts), '') FROM meta").fetchone()[0])))
         if st.session_state.get("_export_cache_key") != _exp_key:
             st.session_state["_export_cache_json"] = export_json(dao)
             st.session_state["_export_cache_key"] = _exp_key
