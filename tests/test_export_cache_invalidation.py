@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """学习面板「导出全部学习数据」的渲染内缓存键覆盖面（l922-104-export-cache-invalidation）。
 
-现场锚点复核（2026-09-22，与任务书一致，0 处漂移）：
-  - `ui/pages/dashboard.py:213`  `_exp_key = f"{dao.total_attempts()}_{dao.event_count()}"`
-  - `ui/pages/dashboard.py:214`  `if st.session_state.get("_export_cache_key") != _exp_key:`
+现场锚点（l930-17 现取订正，原 :213-214 指针已双重陈旧——l927-55 记 :336，l930-12 又把
+  指纹升级为每表 COUNT＋MAX(时戳) 12 组件，机制与行号同步变化）：
+  - `ui/pages/dashboard.py:344-362`  `_exp_key`（组合指纹，详见 docs/insights/l930-12-fingerprint-note.md）
+  - `ui/pages/dashboard.py:363`      `if st.session_state.get("_export_cache_key") != _exp_key:`
 
-缺陷：键只含 attempts / learning_events 两个计数，而 `export_all` 导出的是**六张表**。
+缺陷（历史陈述，键已升级）：原键只含 attempts / learning_events 两个计数，而 `export_all`
+导出的是**六张表**。
 任何「不改这两计数」的写入，rerun 后仍命中旧键 → 用户立刻点导出拿到的是合并前的旧快照。
 本文件用两个不同的注入面把它拆开：
   例 1 旁路写入（脚本/另一进程调 import_json）：只加 problems_status/review_state 行 → 键不变；
@@ -150,6 +152,8 @@ def test_import_touching_only_review_and_status_is_visible_in_next_export(tmp_pa
 # 例 2：反向守护——数据没变仍走缓存；真变了（加了答题）要失效
 # ---------------------------------------------------------------------------
 
+# l930-17 注：本例钉的是「命中路径要保住」的次数面；键形状/升级面由
+# tests/test_export_cache_hit_path.py（镜像+2×N 守卫）与 l930-12 组合指纹负责。
 def test_unchanged_data_serializes_the_export_only_once(tmp_path, monkeypatch):
     dao = ProgressDAO(str(tmp_path / "k2.db"))
     try:

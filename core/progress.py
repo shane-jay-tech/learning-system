@@ -636,7 +636,7 @@ class ProgressDAO:
         return result
 
     def get_due_reviews_total(self) -> int:
-        """到期复习的**真总数**（COUNT 无 LIMIT）—— :397 `get_due_reviews` 的伴生查询（l924-09）。
+        """到期复习的**真总数**（COUNT 无 LIMIT）—— :423 `get_due_reviews` 的伴生查询（l924-09；行号锚 l930-17 现取订正）。
 
         落地 l922-123 遗留 / l923-20 在册的第二条出口：页侧 `limit=50` 拿到的是页内条数，
         真数在库侧被丢掉 ⇒ 到期 >50 时用户看不到总量。谓词与 get_due_reviews **逐字同源**
@@ -644,8 +644,8 @@ class ProgressDAO:
         去掉 ORDER BY/LIMIT ⇒ 两侧不会因口径漂移而不等；`get_due_reviews` 一行未动。
 
         ⚠ 位置刻意落在类尾（`checkpoint_wal` 之前）：仓内在册锚点最多指到 `progress.py:610`
-        （`tests/test_recommend_review_state.py:226` 钉 :418、docs 若干钉 :525-:610），
-        插进中段会让那些行号集体失真。找它请按名字，别按 :413。
+        （`tests/test_recommend_review_state.py:226` 钉 :429〔l930-17 现取订正，原 :418〕、docs 若干钉 :525-:610），
+        插进中段会让那些行号集体失真。找它请按名字，别按 :413（本函数现址 :638——l930-17 订正）。
         """
         from datetime import date
         today = date.today().isoformat()
