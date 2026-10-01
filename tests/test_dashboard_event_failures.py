@@ -1176,3 +1176,29 @@ def test_dashboard_impression_failure_self_heals_on_next_frame(wire, fake_st):
     # 本地账此时补齐 3 条（含刚重试的那条）
     assert len(fake_st.session_state[SHOWN_KEY]) == 3
     assert len(fake_st.session_state[IMPR_KEY]) == 3
+
+
+# ---------------------------------------------------------------------------
+# 九、l930-04：跨路径区畸形项预检（l927-49 note §五-1 半件收口）——与今日推荐区
+#     l927-49 段同型：缺 lang/problem_id 的项按项记 DEBUG 跳过，渲染循环同吃预检结果
+#     （A2 写序与 rec_id/payload try 外先算不动）。
+# ---------------------------------------------------------------------------
+def test_cross_path_malformed_item_is_skipped_not_blown_up(wire, monkeypatch, fake_st, caplog):
+    """一条缺 problem_id 的畸形项混进 cross(3) ⇒ 不窜出、其余两条照常展示+渲染，
+    日志一条 DEBUG 带缺键名（与今日推荐区 l927-49 段同判据）。"""
+    items = _cross(3)
+    del items[1]["problem_id"]                                   # 中位项畸形
+    em = _Emitter()
+    dao = _cross_setup(monkeypatch, items, em)
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        dashboard_page._render_cross_recommend(dao)
+
+    hits = [r for r in caplog.records if r.name == LOGGER
+            and "跨路径推荐项缺" in r.getMessage()]
+    assert len(hits) == 1 and hits[0].levelno == logging.DEBUG
+    assert "problem_id" in hits[0].getMessage()
+    # 好的两条照常送达 shown（渲染循环同吃预检结果 ⇒ 不再在 LANG_META 裸奔）
+    assert [kw["problem_id"] for _k, kw in em.sent_of("recommendation_shown")] == \
+        [it["problem_id"] for it in items if "problem_id" in it]
+    assert _cards_rendered(fake_st, items[:1] + items[2:]) == \
+        [it["title"] for it in items if "problem_id" in it]

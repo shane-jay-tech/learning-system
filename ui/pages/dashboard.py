@@ -429,7 +429,19 @@ def _render_cross_recommend(dao):
     cross_shown_key = "_cross_rec_shown_ids"
     if cross_shown_key not in st.session_state:
         st.session_state[cross_shown_key] = set()
+    # l930-04（l927-49 note §五-1 半件收口）：跨路径区 pid_key 同型格预检——与今日推荐区
+    # l927-49 段同型（在两循环之前一次筛清，缺 lang/problem_id 的畸形项按项各记一条 DEBUG 后
+    # 跳过，不计数不汇总提示）。⚠ 该区是 A2 写序、rec_id/payload 在 try 外先算 ⇒ 不能照抄
+    # 推荐区的 try 内移，预检独立成段。渲染循环（原 :466 LANG_META 裸奔格）同吃预检结果。
+    checked_cross = []
     for rank, it in enumerate(cross, 1):
+        missing = [k for k in ("lang", "problem_id") if k not in it]
+        if missing:
+            logger.debug("dashboard: 跨路径推荐项缺 %s 键，跳过该项（现有键 %s）",
+                         "+".join(missing), sorted(it))
+            continue
+        checked_cross.append((rank, it))
+    for rank, it in checked_cross:
         pid_key = (it["lang"], it["problem_id"])
         if pid_key not in st.session_state[cross_shown_key]:
             # 🔴 l923-07：本区原先整段裸奔——emit 一抛就窜出 _render_cross_recommend，
@@ -463,7 +475,7 @@ def _render_cross_recommend(dao):
             except Exception:
                 logger.debug("dashboard: 跨路径推荐展示异常", exc_info=True)
 
-    for it in cross:
+    for _rank, it in checked_cross:  # l930-04：渲染循环同吃预检结果（LANG_META 取值处不再裸奔）
         meta = LANG_META[it["lang"]]
         cols2 = st.columns([3, 1])
         with cols2[0]:
