@@ -61,13 +61,18 @@ def test_ai_call_chain_and_post_check(monkeypatch):
     harsh = "不足很多，问题是没有处理边界"
     checked = ai_review._post_check(harsh, difficulty=1, passed=True)
     assert "核心思路是正确的" in checked
-    assert ai_review._post_check(harsh, difficulty=4, passed=True) == harsh
+    # l930-19：R-3 强制后，无动作标记的点评在 beginner 软化之外还会追加可执行清单
+    #（旧钉「非 beginner 下 == harsh 原样」过期——该文本本来就缺动作，追加是契约）。
+    checked4 = ai_review._post_check(harsh, difficulty=4, passed=True)
+    assert checked4.startswith(harsh) and "【改进建议】" in checked4
 
 
 def test_ai_review_success_and_offline_friendly_fallback(monkeypatch):
     run = SimpleNamespace(stdout="ok", stderr="NameError: x")
     monkeypatch.setattr(ai_review, "_call_chain", lambda *a, **kw: ("具体点评", "deepseek"))
-    assert ai_review.review("python", {"difficulty": 3}, "print(1)", run, True) == "具体点评"
+    # l930-19：R-3 强制——"具体点评" 无动作标记 ⇒ 会被追加纠偏清单（改写式保留原文在前）
+    result = ai_review.review("python", {"difficulty": 3}, "print(1)", run, True)
+    assert result.startswith("具体点评") and "【改进建议】" in result
 
     friendly = SimpleNamespace(title="变量名不存在", explanation="先定义变量。", suggested_action="检查拼写")
     monkeypatch.setattr(ai_review, "_call_chain", lambda *a, **kw: ("", None))
@@ -191,8 +196,9 @@ def test_feedback_cache_hits_for_identical_code(monkeypatch):
     pid = "python/01_hello_and_vars/01_hello_world"
     first = ai_review.review("python", {"id": pid, "difficulty": 3}, "print(1)", run, True)
     second = ai_review.review("python", {"id": pid, "difficulty": 3}, "print(1)", run, True)
-    assert first == "点评内容"
-    assert second == "点评内容"
+    # l930-19：R-3 强制后缓存里存与返回的都是纠偏后的文本——两次一致且含清单即为缓存命中
+    assert first == second
+    assert first.startswith("点评内容") and "【改进建议】" in first
     assert len(calls) == 1  # 第二次命中缓存，无 LLM 调用
 
     # 不同代码不命中缓存
@@ -263,7 +269,9 @@ def test_judge_helpers_and_unknown_language():
     assert not result.passed
     assert "暂不支持" in result.ai_feedback
 
-    expected, actual = _build_display("sql", {"expected_rows": []}, SimpleNamespace(rows=None, stdout="fallback"))
+    # l927-15（K-2 两段式）起 _build_display 需显式传 passed；通过路径全量对照不变
+    expected, actual = _build_display("sql", {"expected_rows": []},
+                                      SimpleNamespace(rows=None, stdout="fallback"), passed=True)
     assert expected == "(空)"
     assert actual == "fallback"
 
@@ -304,11 +312,12 @@ def test_rows_comparison_tolerates_numeric_types_and_reports_exact_cell():
         RowsRunner([[1], [2.0]]), "sql", "", {"expected_rows": [[1.0], [2]]})
     assert passed and hint == ""
 
-    # 同行列不同 → 给出精确的第 r 行第 c 列提示
+    # 同行列不同 → 给出精确的第 r 行第 c 列坐标；l927-15（K-3）起定位不给值，只给该列类型
     passed, _, hint = _run_test_cases(
         RowsRunner([["b", 2]]), "sql", "", {"expected_rows": [["a", 2]]})
     assert not passed
-    assert "第 1 行第 1 列" in hint and "b" in hint and "a" in hint
+    assert "第 1 行第 1 列" in hint and "文本" in hint
+    assert "b" not in hint and "a" not in hint, "K-3 后逐格提示不得携带实际/期望值"
 
     # SQL 执行失败（rows=None）→ 提示带 stderr 原因，不再盲盒
     class FailRunner:
