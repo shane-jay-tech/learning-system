@@ -211,16 +211,22 @@ def _render_dashboard_body(dao):
         for rank, it in checked:
             pid_key = (it["lang"], it["problem_id"])
             if pid_key not in st.session_state[shown_key]:
+                # l930-02（k930-88 系写序拉齐，A2 落地）：写序由 `add → impressions → emit`
+                # 换成 **emit 先、成功后才落本地账**——与跨路径区 :447-456 逐字同型（旧向新看齐）。
+                # 旧写序后果＝失败那条本地已记、事件库永无、shown 门控挡住重试 ⇒ 恒差 1 不自愈；
+                # 换序后失败那条不进 shown ⇒ 恢复帧重试同一条（rid 确定性生成，归因链自动接上）。
+                # 5 处桩同步与自愈例见 tests/test_dashboard_event_failures.py l930-02 段。
+                rc = it.get("reason_code", "")
+                rec_id = _make_rec_id("dashboard", rc, it["lang"], it["problem_id"], rank)
+                payload = {"reason_code": rc, "surface": "dashboard",
+                           "rank": rank, "recommendation_id": rec_id}
                 try:
+                    dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
+                                   payload=payload)
                     st.session_state[shown_key].add(pid_key)
-                    rc = it.get("reason_code", "")
-                    rec_id = _make_rec_id("dashboard", rc, it["lang"], it["problem_id"], rank)
                     st.session_state[impressions_key][(it["lang"], it["problem_id"], "dashboard")] = {
                         "recommendation_id": rec_id, "reason_code": rc, "rank": rank,
                     }
-                    dao.emit_event("recommendation_shown", lang=it["lang"], problem_id=it["problem_id"],
-                                   payload={"reason_code": rc, "surface": "dashboard",
-                                            "rank": rank, "recommendation_id": rec_id})
                 except Exception:
                     logger.debug("dashboard: 推荐展示数据异常", exc_info=True)
         for _rank, it in checked:  # l927-49：渲染循环同吃预检结果（改前坏项在此的 LANG_META 取值处二次裸奔）

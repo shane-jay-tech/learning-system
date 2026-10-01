@@ -207,34 +207,34 @@ def test_shown_event_failure_logs_debug_with_exc_info(wire, caplog):
 # 二、会话态：add(shown) 与 impressions 都在 emit 之前 —— 失败条目曝光永久丢失
 # ---------------------------------------------------------------------------
 
-def test_local_state_is_written_before_emit_so_one_failure_loses_that_impression_forever(wire, fake_st):
-    """钉写序：add(shown) → impressions[k]=… → emit_event，三件全在**送达之前**。
+def test_emit_failure_leaves_no_local_trace_and_self_heals_on_recovery(wire, fake_st):
+    """l930-02 改桩（写序拉齐 A2：旧向新看齐）——本例原名
+    test_local_state_is_written_before_emit_so_one_failure_loses_that_impression_forever，
+    钉旧形态 `add → impressions → emit`（失败那条永久丢失）。今日推荐区换成与跨路径区
+    逐字同型的 `emit 先、成功后才落本地账` 后，断言全部翻转：
 
-    于是「本地认为展示过」与「事件库收到 recommendation_shown」并不等价：emit 抛错时
-    shown 与 impressions 都已经记了这条，下一次渲染 `if pid_key not in shown` 直接跳过 →
-    该条曝光**永久补不回来**，本地口径与 DB 漏斗口径从此恒差 1。用「先坏后好」两次渲染钉死。
-
-    🔴 l924-01 改桩：注入由"首条就炸"换成"第 2 条炸"。批级 try 下第 3 条压根不会被试，
-    本例当时的差额 1 混着两种成因（emit 失败 + 被批级 try 提前踢出循环）；per-item 下
-    第 1、3 条正常送达 ⇒ 剩下的那条差额**只可能**来自写序 ⇒ 本例从今往后只钉写序这一件事。
+    第 2 条炸 ⇒ 本地 shown/impressions 各 2（失败条**零残留**）、事件库 2；
+    恢复帧重试第 2 条 ⇒ 事件库 3、本地 3——「本地−事件库」差额自愈归零（不再恒差 1）。
+    rid 由 _make_rec_id 确定性生成 ⇒ 补报带同一 rid，归因链接上（跨路径区同款，:447 注释）。
     """
     plan = _plan(3)
 
     bad = _NthBoomer(2, boom="第 2 条曝光上报炸")
     wire(plan, bad)
-    assert len(fake_st.session_state[SHOWN_KEY]) == 3                  # 三条全进 shown（含炸的第 2 条）
-    assert len(fake_st.session_state[IMPR_KEY]) == 3                   # 也已全进 impressions
-    assert bad.kinds() == ["recommendation_shown"] * 3                 # 试过 3 次（坏项不连坐）
+    assert len(fake_st.session_state[SHOWN_KEY]) == 2                  # 失败条不进 shown（可重试前提）
+    assert len(fake_st.session_state[IMPR_KEY]) == 2                   # impressions 同步零残留
+    assert bad.kinds() == ["recommendation_shown"] * 3                 # 仍试满 3 次（坏项不连坐）
     assert [kw["problem_id"] for _k, kw in bad.sent] == \
         [plan[0]["problem_id"], plan[2]["problem_id"]]                 # 事件库到的正是另两条
 
     good = _Emitter()                                                  # 故障恢复，再渲染一次
     fake_st.calls.clear()
     wire(plan, good)
-    assert good.sent_of("recommendation_shown") == [], \
-        "炸那条已被 shown 门控永久挡掉 ⇒ 恢复后一条也补不回来（写序未动的直接后果，A2 才修）"
-    assert len(fake_st.session_state[IMPR_KEY]) == 3                   # 本地记 3 条 …
-    assert len(bad.sent_of("recommendation_shown")) == 2               # … 事件库只到 2 条
+    retried = good.sent_of("recommendation_shown")
+    assert [kw["problem_id"] for _k, kw in retried] == [plan[1]["problem_id"]], \
+        "恢复帧重试的恰是炸掉的那条（自愈，A2 的核心收益）"
+    assert len(fake_st.session_state[IMPR_KEY]) == 3                   # 本地 3 …
+    assert len(bad.sent_of("recommendation_shown")) == 2               # … 事件库 2+1=3，差额归零
 
 
 def test_local_impression_state_and_emitted_events_match_when_nothing_fails(wire, fake_st):
@@ -269,8 +269,9 @@ def test_failure_on_third_item_leaves_local_state_ahead_of_events_by_one(wire, f
 
     wire(plan, em)
     assert em.kinds() == ["recommendation_shown"] * 5                  # 第 4、5 条现在也试了
-    assert len(fake_st.session_state[SHOWN_KEY]) == 5
-    assert len(fake_st.session_state[IMPR_KEY]) == 5                     # 与 shown 同步（不差在这）
+    # l930-02：写序 A2 后失败条不进本地账 ⇒ shown/impressions 各 4（差的就是坏的第 3 条）
+    assert len(fake_st.session_state[SHOWN_KEY]) == 4
+    assert len(fake_st.session_state[IMPR_KEY]) == 4
     assert [kw["problem_id"] for _k, kw in em.sent] == \
         [p["problem_id"] for i, p in enumerate(plan) if i != 2]          # 事件库恰少第 3 条
     assert _cards_rendered(fake_st, plan) == [it["title"] for it in plan]
@@ -348,12 +349,15 @@ def test_shown_side_failure_yields_clicked_events_with_no_matching_shown_event(w
                           "recommendation_clicked",          # 第 1 张卡被点
                           "recommendation_clicked"]          # 第 2 张卡被点
     assert em.sent_of("recommendation_shown") == []
+    # l930-02：写序 A2 后两条都炸 ⇒ 本地账**零残留**，点击侧走 `imp.get(...)` 回退分支
+    # （空 rid/rank=0——跨路径侧注释里「已知残余风险」的 dashboard 侧同款，形态肉眼可辨）。
     clicks = em.sent_of("recommendation_clicked")
     assert len(clicks) == 2
     for idx, it in enumerate(plan):
-        local = fake_st.session_state[IMPR_KEY][(it["lang"], it["problem_id"], "dashboard")]
-        assert clicks[idx][1]["payload"]["recommendation_id"] == local["recommendation_id"]
-        assert clicks[idx][1]["payload"]["rank"] == idx + 1                  # 本地账在、归因照带
+        assert (it["lang"], it["problem_id"], "dashboard") not in fake_st.session_state[IMPR_KEY], \
+            "A2 下失败条不得有本地账"
+        assert clicks[idx][1]["payload"].get("recommendation_id") in (None, ""), "回退分支：空 rid"
+        assert clicks[idx][1]["payload"].get("rank") in (None, 0), "回退分支：rank 0/缺省"
         assert clicks[idx][1]["problem_id"] == it["problem_id"]              # 事件库里它从未 shown 过
     assert [r.getMessage() for r in caplog.records if r.name == LOGGER] == [SHOWN_MSG, SHOWN_MSG]
 
@@ -776,8 +780,9 @@ def test_one_bad_item_only_drops_itself_in_a_five_item_frame(wire, fake_st, capl
     assert [kw["payload"]["rank"] for _k, kw in shown] == [1, 2, 4, 5]
     assert {kw["payload"]["surface"] for _k, kw in shown} == {"dashboard"}
     assert _cards_rendered(fake_st, plan) == [it["title"] for it in plan]
-    assert len(fake_st.session_state[SHOWN_KEY]) == 5
-    assert len(fake_st.session_state[IMPR_KEY]) == 5
+    # l930-02：写序 A2 后失败条不进本地账 ⇒ 各 4（旧写序时代这里是 5，差的正是坏的那条）
+    assert len(fake_st.session_state[SHOWN_KEY]) == 4
+    assert len(fake_st.session_state[IMPR_KEY]) == 4
     hits = [r for r in caplog.records if r.getMessage() == SHOWN_MSG]
     assert len(hits) == 1, f"只该为坏掉那条记一条展示异常，实得 {len(hits)}"
     assert hits[0].levelno == logging.DEBUG and hits[0].exc_info[0] is RuntimeError
@@ -804,7 +809,7 @@ def test_both_surfaces_share_the_same_per_item_containment_shape(
     """
     em = _NthBoomer(2, boom="第 2 条炸")
     # 逐表面的本地记账期望：dashboard＝旧写序（本地 3 / 库里 2），cross_path＝A2（本地 2 / 库里 2）
-    expected_local = 3 if surface == "dashboard" else 2
+    expected_local = 2  # l930-02：两区写序已拉齐为 A2（emit 先成功后记账），失败条都不进本地账
     with caplog.at_level(logging.DEBUG, logger=LOGGER):
         if surface == "dashboard":
             items = _plan(3)
@@ -1142,3 +1147,30 @@ def test_malformed_recommendation_item_is_skipped_without_killing_the_region(wir
 #   5. 本文件由 23 例增至 24 例（新增 §九 自愈例），未删一例、未 xfail 一例、未放宽任何恒真断言。
 # ---------------------------------------------------------------------------
 
+
+
+# ---------------------------------------------------------------------------
+# 八、l930-02 自愈例：失败帧零残留 ⇒ 恢复帧重试同一条（今日推荐区 A2 后的专属钉，
+#     跨路径区的同款自愈由 l927-37 §九 例在册；本例补齐 dashboard 支）
+# ---------------------------------------------------------------------------
+def test_dashboard_impression_failure_self_heals_on_next_frame(wire, fake_st):
+    """第 2 条炸 → 恢复帧只补报那一条、rid 与首次注入的确定性 rid 一致（归因链自动接上）。"""
+    plan = _plan(3)
+    bad = _NthBoomer(2, boom="第 2 条曝光上报炸")
+    wire(plan, bad)
+    assert len(fake_st.session_state[SHOWN_KEY]) == 2
+
+    good = _Emitter()
+    fake_st.calls.clear()
+    wire(plan, good)
+    retried = good.sent_of("recommendation_shown")
+    assert len(retried) == 1, "恢复帧只补报炸掉那一条（其余两条 shown 门控挡住不重发）"
+    _k, kw = retried[0]
+    assert kw["problem_id"] == plan[1]["problem_id"]
+    expected_rid = dashboard_page._make_rec_id("dashboard", plan[1].get("reason_code", ""),
+                                               plan[1]["lang"], plan[1]["problem_id"], 2)
+    assert kw["payload"]["recommendation_id"] == expected_rid, "补报 rid＝确定性 rid（归因链接上）"
+    assert kw["payload"]["rank"] == 2
+    # 本地账此时补齐 3 条（含刚重试的那条）
+    assert len(fake_st.session_state[SHOWN_KEY]) == 3
+    assert len(fake_st.session_state[IMPR_KEY]) == 3
