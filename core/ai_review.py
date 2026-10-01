@@ -93,13 +93,15 @@ def _copy_open_result(result: dict) -> dict:
 
 
 def _cache_open_result(lang: str, pid: str, answer: str, result: dict) -> dict:
+    # l930-13（l927-56 遗留收口）：返回值改交副本——缓存内部早已隔离，但旧形态把调用方
+    # 那只活字典原样交回，拿着返回值就地改的人会误以为改到了缓存。副本语义与读侧一致。
     if not result.get("llm_ok"):
-        return result  # 基础设施失败不入缓存
+        return _copy_open_result(result)  # 基础设施失败不入缓存（返回副本，同契约）
     key = _open_key(lang, pid, answer)
     _feedback_cache[key] = _copy_open_result(result)
     while len(_feedback_cache) > _FEEDBACK_CACHE_MAX:
         _feedback_cache.popitem(last=False)
-    return result
+    return _copy_open_result(result)
 
 
 def _cached_open_result(lang: str, pid: str, answer: str):

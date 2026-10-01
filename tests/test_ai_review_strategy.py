@@ -163,11 +163,14 @@ def test_open_key_is_stable_and_discriminates_every_argument():
 
 def test_open_result_cache_roundtrip_miss_and_llm_failure_guard(cache):
     ok = {"passed": True, "score": 88, "feedback": "不错", "llm_ok": True}
-    assert ai_review._cache_open_result("python", "p1", "答案", ok) is ok
+    # l930-13：返回值改交副本（不再把活字典交回调用方）——相等但非同一对象。
+    ret = ai_review._cache_open_result("python", "p1", "答案", ok)
+    assert ret == ok and ret is not ok, "返回值应为内容相等的副本"
     assert ai_review._cached_open_result("python", "p1", "答案") == ok
-    # llm_ok=False 不落缓存：基础设施失败时学生重试仍会真调
+    # llm_ok=False 不落缓存：基础设施失败时学生重试仍会真调（返回值同副本契约）
     fail = {"passed": False, "score": None, "feedback": "AI 评判暂时不可用", "llm_ok": False}
-    assert ai_review._cache_open_result("python", "p2", "答案", fail) is fail
+    ret_fail = ai_review._cache_open_result("python", "p2", "答案", fail)
+    assert ret_fail == fail and ret_fail is not fail
     assert ai_review._cached_open_result("python", "p2", "答案") is None
     assert ai_review._cached_open_result("python", "p1", "别的答案") is None
     assert ai_review._cached_open_result("cpp", "p1", "答案") is None
