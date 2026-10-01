@@ -30,7 +30,7 @@
 
 - 已完成全局设计系统、侧栏、首页、刷题、路径、诊断、面板与错题本改造。
 - 已验证 900×768、1366×768、1920×1080，均无横向溢出或页面异常。
-- 全量测试结果：**622 passed，7 skipped**（本机未安装 g++ / Rscript；7 条恒 skip 经复核为 cpp runner 4 + r runner 3，非「7 条 R」）。实测命令：python -m pytest tests -q；口径：pytest（非 unittest discover）。**基线绑 commit 不绑日期**：622/7（629 collected，622+7=629 自洽）@ commit `a0ee9b9`，2026-09-22 01:23 复跑、工作树 clean。口径链：376（9/17）→ 384（9/18）→ 566（9/21 @0564042，l922-03）→ 597（9/22 @1632f91，n922-10）→ **622**（9/22 @a0ee9b9，l922-107）；566→622 的 +56 逐文件归因见 `docs/insights/learn-plan-baseline-refresh-20260922.md`。
+- 全量测试结果：**1240 passed，9 failed，7 skipped**（本机未安装 g++ / Rscript；7 条恒 skip＝cpp runner 4 + r runner 3；9 failed 均为在途内容漂移红——cpp census 67≠62 与「课文尾题数 vs 实题数」未修 4 处，归因见 l930-12/l930-19 尾注与 l930-23 普查）。实测命令：python -m pytest tests -q；口径：pytest（非 unittest discover）。**基线绑 commit 不绑日期**：1240/9/7 @ commit `63f9c8d`，2026-10-02 00:2x 实测（l930-24 现取）。口径链：376（9/17）→ 384（9/18）→ 566（9/21 @0564042，l922-03）→ 597（9/22 @1632f91，n922-10）→ 622（9/22 @a0ee9b9，l922-107）→ 1162（9/27 @2665f0a，l927-03）→ 1206/7/2（9/29 @31840db，l927-52）→ **1240/9/7**（10/2 @63f9c8d，l930-24）；622→1162 分解见 l927-03 §3.2，1162→1206 见 l927-52-baseline-refresh.md。
 
 ## 题库内容规范（l923-02 钉，2026-09-23 @ HEAD `1eebffb`）
 
@@ -61,7 +61,9 @@
 - `tests/test_content_census_python.py:19,20,71,80` —— `EXPECTED_PROBLEMS 121`、`EXPECTED_DIFF {1:27,2:56,3:31,4:7}`、答案字段计数 `{expected_output:113, tests:46, rubric:8, reference_answer:8}`、`judge_mode {run:113, ai_open:8}` 四组精确桩。
 - **新题难度建议 ≤3**：`difficulty >= 4` 会扩宽 `core/progress.py` 的 SRS ease 惩罚可达面并连带要求改 `PINNED_TOP_TIER`（`tests/test_content_difficulty_pins.py:38-58`）。SRS/判题属红线域，补题不得顺手扩。
 
-### 399 → 403 预留（本夜 l923-03 的落地口径）
+### 399 → 403（l923-03 已落地）与 403 → 408（l927-27 已落地）
 
-`python/20_numpy_basics` 与 `python/21_datetime_ts` 各 3→5、**净增 4 题**（难度取 2/3 档）⇒ 官方对外口径由 **399 → 403**，python 侧 121 → 125。届时上表 4 处与追加面 2 处**同批**改为 403/125。cpp 侧两目录（`l922-07` §四 P0 第一行，再 +5 题 → 408）**本机无 g++ 判不了参考答案**，留日间班，留日间时口径停在 403 不冲突——本规范按「每补一批、口径走一次」更新，不预支未落地的数字。
+`python/20_numpy_basics` 与 `python/21_datetime_ts` 各 3→5、**净增 4 题**（难度取 2/3 档）⇒ 官方对外口径 **399 → 403**，python 侧 121 → 125（l923-03 落地，等值点 4 处＋追加面 2 处已同批刷）。
+
+cpp 侧两目录（`l922-07` §四 P0 第一行：`cpp/01_io_and_vars` 2→5、`cpp/02_branch_loop` 3→5，**净增 5 题**，难度取 2/3 档）已由 l927-27（2026-09-30）按 2026-09-28 用户「答案域授权自拟」拍板落地 ⇒ 对外口径 **403 → 408**，cpp 侧 62 → 67；等值点 4 处（PINNED_HIST cpp 行、两处总数断言、README 对外口径）＋精确桩 2 件（census_python 不涉 cpp、本批 P0_SNAPSHOT）同批刷新。本机无 g++，cpp 参考解未经编译对拍，正确性按算术事实与教材口径自证、出处行在各 yaml 首行注释。本规范按「每补一批、口径走一次」更新，不预支未落地的数字。
 
