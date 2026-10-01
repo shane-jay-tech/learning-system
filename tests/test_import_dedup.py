@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """导入成功后「确认导入」二次点击不得把只追加表翻倍（l923-09）。
 
-现场锚点复核（2026-09-23 磁盘实况，HEAD `cc10ef2`）：
-  - `ui/pages/dashboard.py:289-290` `uploaded = st.file_uploader("选择之前导出的 .json 文件", …,
-    key="data_import_uploader")` —— 任务书写的 :289 逐字命中，**未漂移**。
-  - `:292` `if st.button("确认导入", type="primary", key="data_import_confirm")` —— 同样未漂移。
+现场锚点（l930-18 现取订正，原 :289-290/:292 指针随头部扩展漂移，现值 :377/:381）：
+  - `ui/pages/dashboard.py:377` `uploaded = st.file_uploader("选择之前导出的 .json 文件", …,
+    key="data_import_uploader")`
+  - `:381` `if st.button("确认导入", type="primary", key="data_import_confirm")`
   - 上游事实来源 `tests/test_data_portability.py:46-59`（l922 系列的 by-design 断言
     `dao.total_attempts() == before * 2`）⇒ **append 表在 `import_all` 层面刻意不去重**，
     本单不动那一层（改它＝改判分/统计口径的邻域，且会把那条在册断言弄红）。
@@ -15,8 +15,10 @@
 
 修法（本单实装）：成功分支写 `session_state["_import_consumed_fp"] = sha256(字节)`，
 同一次会话里同指纹的第二次确认**只提示不写库**（`components.render_notice` 出一句 warning）。
-任务书首选的「清 uploader 键」没照做，原因写在生产码注释里：控件实例化后 pop/赋值其 key
-会抛 `StreamlitAPIException`，换 key 重建则每次导入留一个陈旧 session_state 键。
+任务书首选的「清 uploader 键」没照做，原因写在生产码注释里（l930-18 已按 l927-31 实测
+口径改写）：**赋值**会抛（守卫只挂 `__setitem__`）；pop 不抛但前端可能仍回送文件；
+换 key 的陈旧 user-key 短驻留约 2 帧后被 stale-widget 回收（≈2 个、非无界）。
+结论绑 streamlit 1.58.0，换版本需重跑 probe 两件。
 
 手法沿用同族档：真 `ProgressDAO`（tmp_path 真 sqlite）＋ FakeStreamlit 桩，
 `file_uploader` 与按钮态由 `_wire.render()` 逐帧注入。不连真实 Streamlit、不联网。

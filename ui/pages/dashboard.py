@@ -387,10 +387,13 @@ def _render_dashboard_body(dao):
                         # 「确认导入」还能再按一次；而 attempts / learning_events / rubric_scores
                         # 是只追加表（import_all 对它们不去重，见 test_data_portability.py:46 的
                         # by-design 断言），第二下会把同一批数据原样翻倍（l922-105 遗留问题）。
-                        # ⚠️ 任务书首选的「清 uploader 相关键」在 streamlit 里做不到无痕：控件实例化后
-                        #    pop/赋值它的 key 会抛 StreamlitAPIException，换 key 重建又会每次导入留下
-                        #    一个陈旧 session_state 键（同 §十二 点名的 editor_* 无界增长那类），
-                        #    故这里按内容指纹收口，副作用面更小。
+                        # ⚠️ 「清 uploader 相关键」在 streamlit 里的行为（l927-31 实测口径，
+                        #    结论绑 streamlit 1.58.0；requirements 允许 >=1.32,<2，换版本需重跑
+                        #    probe_uploader.py＋probe_stalekey.py）：**赋值**会抛（守卫只挂
+                        #    __setitem__）；pop 不抛但**前端可能仍回送文件**；换 key 的陈旧
+                        #    user-key 会**短驻留约 2 帧**后被 stale-widget 回收，实测稳态 ≈2 个、
+                        #    **非无界**（l923-09 时"无界增长"的推断被实测否证）。
+                        #    故这里按内容指纹收口，副作用面最小且不依赖上述任何一条。
                         fp = hashlib.sha256(blob).hexdigest()
                         if st.session_state.get("_import_consumed_fp") == fp:
                             render_notice(
