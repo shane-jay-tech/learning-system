@@ -1202,3 +1202,32 @@ def test_cross_path_malformed_item_is_skipped_not_blown_up(wire, monkeypatch, fa
         [it["problem_id"] for it in items if "problem_id" in it]
     assert _cards_rendered(fake_st, items[:1] + items[2:]) == \
         [it["title"] for it in items if "problem_id" in it]
+
+
+# ---------------------------------------------------------------------------
+# 十、l930-05：推荐项预检键域扩展（l927-49 遗留「未点名残面」三类收口）
+#     渲染必需四键缺口／lang 不在 LANG_META／非 dict 项——三类各一例注入，
+#     全部按项 DEBUG 跳过、不窜出不带炸整区；rank 保持原序不重编号。
+# ---------------------------------------------------------------------------
+def test_dashboard_precheck_extended_key_domain(wire, fake_st, caplog):
+    """plan(4) 里混三类畸形（缺 topic_slug／lang 不在 LANG_META／非 dict）＋一条好项
+    ⇒ 好项照常展示渲染，三条畸形各一条 DEBUG（缺键名/LANG_META/非 dict 各自可辨）。"""
+    plan = _plan(4)
+    plan[1].pop("topic_slug")                     # 缺渲染必需键
+    plan[2]["lang"] = "klingon"                   # 不在 LANG_META
+    plan[3] = "not-a-dict"                        # 非 dict
+    em = _Emitter()
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        wire(plan, em)
+
+    dbg = [r.getMessage() for r in caplog.records if r.name == LOGGER and "推荐项" in r.getMessage()]
+    assert any("topic_slug" in m for m in dbg), "缺渲染键应有专属 DEBUG"
+    assert any("klingon" in m and "LANG_META" in m for m in dbg), "LANG_META 成员校验应有专属 DEBUG"
+    assert any("非 dict" in m for m in dbg), "非 dict 应有专属 DEBUG"
+    # 好项（第 1 条）照常：1 条 shown、1 张卡渲染
+    assert len(em.sent_of("recommendation_shown")) == 1
+    renderable = [it for it in plan if isinstance(it, dict) and "title" in it]
+    assert _cards_rendered(fake_st, renderable) == [plan[0]["title"]]
+    # rank 保持原序不重编号：好项的 rank 仍是 1（坏项占掉自己的序号）
+    stored = fake_st.session_state[IMPR_KEY][(plan[0]["lang"], plan[0]["problem_id"], "dashboard")]
+    assert stored["rank"] == 1

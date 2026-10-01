@@ -200,12 +200,23 @@ def _render_dashboard_body(dao):
         #         ⇒ `_make_rec_id` 生成的 rid 不随坏项出现而漂移，归因链跨帧可比；
         #      ② 跨路径区 `:430`（原 :410）那格同型暴露面**未动**（卷宗只点名推荐项，w42 §B.1 禁顺手一致）
         #         ⇒ 两区对畸形项的容错自此不一致。
+        # l930-05（l927-49 遗留「未点名残面」收口）：预检键域从两键扩到渲染必需六键
+        # （+title/topic_title/difficulty/topic_slug）、lang∈LANG_META 成员校验、
+        # 非 dict 项 isinstance 校验——三类都会在渲染体 KeyError/TypeError 走带整区，
+        # 全部在预检一次筛清（跳过面与 l927-49 同案：按项 DEBUG、不计数不重编号）。
+        REQUIRED_RECO_KEYS = ("lang", "problem_id", "title", "topic_title", "difficulty", "topic_slug")
         checked = []
         for rank, it in enumerate(plan, 1):
-            missing = [k for k in ("lang", "problem_id") if k not in it]
+            if not isinstance(it, dict):
+                logger.debug("dashboard: 推荐项非 dict（%s），跳过该项", type(it).__name__)
+                continue
+            missing = [k for k in REQUIRED_RECO_KEYS if k not in it]
             if missing:
                 logger.debug("dashboard: 推荐项缺 %s 键，跳过该项（现有键 %s）",
                              "+".join(missing), sorted(it))
+                continue
+            if it["lang"] not in LANG_META:
+                logger.debug("dashboard: 推荐项 lang=%r 不在 LANG_META，跳过该项", it["lang"])
                 continue
             checked.append((rank, it))
         for rank, it in checked:
