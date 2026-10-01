@@ -415,3 +415,26 @@ def test_trim_default_limit_and_exact_boundary():
     assert ai_review._trim("abcdef", 4) == "abcd\n[... 已截断（>4 字符）]"
     long_s = "y" * (n + 500)
     assert ai_review._trim(long_s) == trim_text(long_s, n)       # 与底层同义，无额外加工
+
+
+# ── l930-19：R-3/R-4 程序化强制（反馈须带动作／无空泛表扬）────────────────────────
+def test_post_check_appends_corrective_when_praise_only(cache):
+    """违规改写路径：纯空泛表扬（黑名单命中、零动作标记）经 _post_check 后
+    追加可执行清单（含【改进建议】段与动作动词），原文保留在前。"""
+    raw = "写得还不错，加油！"
+    out = ai_review._post_check(raw, difficulty=3, passed=True)
+    assert out.startswith(raw), "原文应保留在前（改写式不拦截）"
+    assert "【改进建议】" in out
+    assert "自查" in out and "边界输入" in out
+    assert ai_review._empty_praise_hits(raw) == ["还不错", "加油"]
+
+
+def test_post_check_leaves_actionable_text_untouched(cache):
+    """合规路径：已含【改进建议】段与动作动词的点评原样通过（不重复追加）。"""
+    good = (
+        "【改进建议】把第 3 行的循环改成 list comprehension，试试把重复的校验抽成函数；"
+        "注意边界输入（空列表）没有处理，建议补上。"
+    )
+    out = ai_review._post_check(good, difficulty=3, passed=True)
+    assert out == good, "合规点评不得被二次追加（幂等）"
+    assert ai_review._feedback_actionable(good) is True

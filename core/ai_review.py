@@ -275,13 +275,46 @@ def review(lang: str, problem: dict, code: str, run_result: Any, passed: bool) -
     return _offline_fallback(passed, stderr)
 
 
+# l930-19：R-3/R-4 程序化强制（l927-16 遗留——原只有提示词条款，无程序化校验）。
+# R-3 反馈须带动作：文本须含至少一个动作性标记（结构段标记或动词/建议词）。
+# R-4 无空泛表扬：黑名单短语不得是点评的**唯一内容**——带实质动作的建议里顺带
+# 肯定不算违规（beginner-pass 提示词本就要求鼓励）。
+_ACTION_MARKERS = (
+    "【改进建议】", "【", "建议", "改成", "改为", "换成", "试试", "检查",
+    "注意", "补上", "补充", "对照", "自查", "练习", "下一步", "可以",
+)
+_EMPTY_PRAISE = ("还不错", "挺好的", "加油", "很棒", "太棒了", "非常棒", "厉害")
+
+_CORRECTIVE_TAIL = (
+    "\n\nn【改进建议】上面的点评缺少可执行的动作，请对照这份清单自查："
+    + "\n\nn1. 重新读题，核对输出格式是否与要求**逐字**一致（多余/缺失的空格和换行都会判错）；"
+    + "\n\nn2. 用边界输入再跑一遍：空输入、0、负数、最大值；"
+    + "\n\nn3. 把重复出现的代码抽成函数并起一个说明用途的名字；"
+    + "\n\nn4. 对照题目给的示例逐行核对你的变量命名是否表意。"
+)
+
+
+def _feedback_actionable(text: str) -> bool:
+    """R-3 判据：含任一动作性标记即视为「带了动作」。"""
+    return any(marker in text for marker in _ACTION_MARKERS)
+
+
+def _empty_praise_hits(text: str) -> list:
+    """R-4 判据：返回命中的空泛表扬短语清单（供测试与日志；空 = 合规）。"""
+    return [phrase for phrase in _EMPTY_PRAISE if phrase in text]
+
+
 def _post_check(text: str, difficulty: int, passed: bool) -> str:
     """轻量后处理：检查 AI 输出是否违反分层策略。"""
     if difficulty <= 2 and passed:
         _HARSH_MARKERS = ["不足", "缺点", "问题是", "错误在于", "应该改为"]
         harsh_count = sum(1 for m in _HARSH_MARKERS if m in text)
         if harsh_count >= 2:
-            text += "\n\n（提示：你做对了！上面的建议仅供参考，核心思路是正确的。）"
+            text += "\n\nn（提示：你做对了！上面的建议仅供参考，核心思路是正确的。）"
+    # l930-19：R-3/R-4 强制——缺动作性内容（空泛表扬/无建议）即追加可执行清单（改写式，
+    # 不拦截原文：点评永远比没有强）；离线兜底分支不经本函数（豁免口径见 l930-19 result）。
+    if not _feedback_actionable(text):
+        text += _CORRECTIVE_TAIL
     return text
 
 
