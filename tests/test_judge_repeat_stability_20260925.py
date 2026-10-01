@@ -231,7 +231,10 @@ def test_ai_feedback_cache_never_stores_unavailable_text(dao, monkeypatch):
     assert "暂时不可用" in r1[1], r1
     mode["ok"] = True
     r2 = _snapshot(judge("python", p, code, dao=dao))
-    assert r2[1] == "真点评已恢复", f"失败文本被缓存住了，恢复后仍返回旧文本：{r2[1]}"
+    # l930-19 必随桩：R-3 强制后「真点评已恢复」（无动作标记）会被追加纠偏清单——
+    # 缓存语义不变（第二次真外呼、失败文本未入缓存），断言改为前缀＋清单在册。
+    assert r2[1].startswith("真点评已恢复") and "【改进建议】" in r2[1],         f"恢复后应返回真点评（可带 R-3 纠偏尾）：{r2[1][:120]}"
+    assert "暂时不可用" not in r2[1], "失败兜底句不得残留在恢复文本里"
 
 
 # ---------------------------------------------------------------- 无 dao 分支的落点
