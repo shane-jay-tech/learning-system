@@ -150,3 +150,57 @@ def test_two_states_differ_only_on_the_deploy_notice(tmp_path, monkeypatch):
     # info 差额＝恰好那条一次性提示（公开态没有它）
     assert len(local.info) - len(pub.info) == 1, \
         f"info 差额应为一次性安全提示那一条，实得 公开 {len(pub.info)}／非公开 {len(local.info)}"
+
+
+# ---------------------------------------------------------------------------
+# l930-09：公开态子页面差额对照（l927-45 遗留「首屏之外未证」）——第六例的差额对照
+# 形状搬到各侧栏路由：每路由公开态 vs 非公开态各跑一遍，钉「差额恰为公开横幅一条」。
+# 纯新增例、既有 6 例不动；夹具 _run 直接复用（route 经 session_state 预置）。
+# ---------------------------------------------------------------------------
+_ROUTES = ["paths", "language", "mistakes", "dashboard"]
+
+
+def _run_route(tmp_path, monkeypatch, route, db_name, **env):
+    """_run 的路由变体：AppTest 须在 run() **之前**预置 session_state.route
+    （app.py:15 用 setdefault——run 后再设等于改已渲染帧；走 env 会被当环境变量忽略）。"""
+    monkeypatch.delenv("RUNNER_SECURITY_MODE", raising=False)
+    monkeypatch.delenv("PUBLIC_DEPLOY", raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setenv("LS_PROGRESS_DB", str(tmp_path / db_name))
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
+    at.session_state["route"] = route
+    at.run()
+    return at
+
+
+@pytest.mark.parametrize("route", _ROUTES)
+def test_public_vs_local_route_differs_only_on_banner(tmp_path, monkeypatch, route):
+    """每路由双档对照：公开态恰多一条三段横幅，其余档位（warning/success/info 差额形态）不变。
+
+    子页面与首屏的差别在页面本体（无主页 CTA/一次性提示），故正向锚换成
+    「无异常＋有 markdown 渲染」；info 差额不钉死 0——子页面不渲染主页的一次性安全提示，
+    两态在该路由的 info 都应为 0，但断言写成「公开态不含安全提示」而非数量，防后续
+    子页面加合法 info 时误红。
+    """
+    pub = _run_route(tmp_path, monkeypatch, route=route, db_name=f"pub_{route}.db",
+                     RUNNER_SECURITY_MODE="public")
+    local = _run_route(tmp_path, monkeypatch, route=route, db_name=f"loc_{route}.db")
+
+    for at in (pub, local):
+        assert not at.exception, f"{route} 路由不得抛异常：{[e.value for e in at.exception]}"
+        assert at.session_state["route"] == route, f"{route} 路由未按预置渲染"
+        assert len(at.markdown) > 0, f"{route} 路由零 markdown ⇒ 页面没渲出来，计数断言全是假绿"
+
+    # 实测口径修正（l930-09）：公开横幅挂 `ui/pages/home.py:33-43` **页内**而非 app.py 全局
+    # ⇒ 子路由两态的可见差额天然为**零**（error/warning/success/info 四档逐一对等）。
+    # 第六例的「差额=一条横幅」只在 route=home 成立；搬到各路由后本例钉的是
+    # 「子路由零差额＋横幅不越界」——横幅若出现在子路由＝有人把它提到了全局层，当场红。
+    for at in (pub, local):
+        assert len(at.error) == 0, f"{route}：子路由任何状态都不该有横幅（横幅是 home 专属）"
+        assert not any(ONCE_INFO_MARK in i.value for i in at.info), \
+            f"{route}：一次性安全提示同样是 home 专属，子路由不得出现"
+    assert len(pub.error) == len(local.error)
+    assert len(pub.warning) == len(local.warning), f"{route}：warning 档位数不得被公开态改动"
+    assert len(pub.success) == len(local.success), f"{route}：success 档位数不得被公开态改动"
+    assert len(pub.info) == len(local.info), f"{route}：info 档位数不得被公开态改动"
