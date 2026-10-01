@@ -432,3 +432,27 @@ def test_两个下载口各占一列且都按容器宽度铺开(monkeypatch):
 
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+# ── l930-10：学习数据 .json 口三面看守（k927-38 遗留①收口——l924-02 只盖报告两枚，
+#    本枚按 84d76ed 引入的导出口补：文案／mime／help 三面逐字钉）─────────────────────────
+def test_学习数据json口_文案mime_help三面看守(monkeypatch):
+    """render_dashboard 全渲染后收集**全部** download_button（不做报告区过滤），
+    按 file_name 认出学习数据 .json 口，三面逐字钉：
+    文案「⬇️ 导出全部学习数据 (.json)」／mime application/json／
+    help「包含答题记录、错题、复习状态、成就与事件——可导入到另一台机器」。
+    """
+    fake = _fake()
+    _wire(monkeypatch, fake)
+    dashboard_page._render_dashboard_body(_dao())
+    # label 是位置参（c[1][0]），mime/file_name/help 是关键字参（c[2]）——录参形状照 _buttons_of。
+    all_downloads = [{"label": str(c[1][0]), "kw": c[2]} for c in fake.calls
+                     if c[0] == "download_button"]
+    json_btns = [d for d in all_downloads
+                 if str(d["kw"].get("file_name", "")).startswith("learning_data_")]
+    assert len(json_btns) == 1, f"学习数据 .json 口应恰 1 枚，实得 {len(json_btns)}"
+    btn = json_btns[0]["kw"]
+    label = json_btns[0]["label"]
+    assert label == "⬇️ 导出全部学习数据 (.json)", f"文案漂移：{label!r}"
+    assert btn.get("mime") == "application/json", f"mime 漂移：{btn.get('mime')!r}"
+    assert btn.get("help") == "包含答题记录、错题、复习状态、成就与事件——可导入到另一台机器",         f"help 漂移：{btn.get('help')!r}"
