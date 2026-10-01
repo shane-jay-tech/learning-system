@@ -58,7 +58,7 @@ public:
 };
 
 Student a("Alice", 85);
-cout << a.passed();    // true
+cout << a.passed();    // 打印 1（无 boolalpha 时 cout 布尔输出为 1/0；要 true/false 见下方 boolalpha 行）
 ```
 
 - `class` 关键字
