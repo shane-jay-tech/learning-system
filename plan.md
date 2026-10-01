@@ -53,6 +53,19 @@
 四处**必须同一批**改，缺任一处即全量红（1/2/3 直接判红；4 经 `scripts/generate_system_report.py:214` 的 README 数字核对间接判红）。
 另注：`tests/test_scripts.py:310` 是 `assert metrics["total_problems"] >= 399` 的**下界护栏**，纯增量补题**不需改它**（它挡的是净减）；`tests/test_paths.py:29` 的 `len(paths) >= 3` 同为下界，与补题无关，且收紧它属改测试语义、待人工。
 
+### 版本串人肉副本清单（l930-25 补第 4 处登记，l927-46 遗留同步面）
+
+升版时 `VERSION`（`core/version.py:1` 单源）之外，以下 **3 处 README 副本须同批改**（共 4 处）：
+
+| # | 落点 | 现值（0.6.5 形态） | 看守 |
+|---|---|---|---|
+| 1 | `core/version.py:1` | `VERSION = "0.6.5"`（单源） | — |
+| 2 | `README.md:1` 首行 | `编程 + Agent 开发学习平台（0.6.5）` | `check_readme` 检点①（generate_system_report.py，标题版本子判据；l930-15 起跳 front matter） |
+| 3 | `README.md:3` 正文 | `当前版本 v0.6.5` | `check_readme` 路线图子判据（`v{version}` in text） |
+| 4 | `README.md:59` 亮点标题 | `## 当前能力亮点（v0.6.5）` | 无哨兵（人肉自觉） |
+
+改版流程：改 `core/version.py` → 同批改 README 2/3/4 三处 → `python -m pytest tests/test_readme_version_gate.py -q` 全绿即同步完整。
+
 ### 读码实测的追加同步面（任务书 4 处之外，本班 2026-09-23 补全）
 
 补 **python** 题除上表外还会同时变红，改动者须一并处理（否则违反「全量零新增红」）：
