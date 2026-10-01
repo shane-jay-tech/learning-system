@@ -19,6 +19,8 @@ _CSS = """
   --bg: #F5F6FA;
   --surface: #FFFFFF;
   --surface-muted: #F8F9FC;
+  --sidebar-bg: #F8F8FC;       /* l930-20：自 :77 侧栏硬编码收进 token */
+  --hover-bg: #F8F8FF;          /* l930-20：自 :197 hover 底硬编码收进 token */
   --text: #172033;
   --muted: #667085;
   --border: #DDE2EA;
@@ -74,7 +76,7 @@ html { font-size: 16px; }
 
 /* 侧栏：低刺激浅色工作区，当前项通过柔和紫色高亮。 */
 section[data-testid="stSidebar"] {
-  background: #F8F8FC;
+  background: var(--sidebar-bg);
   border-right: 1px solid var(--border);
 }
 section[data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding-top: .8rem; }
@@ -194,7 +196,7 @@ section[data-testid="stSidebar"] .section-title::before { height: 13px; width: 3
   transition: background-color .12s ease, border-color .12s ease, box-shadow .12s ease;
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
-  border-color: #AAACE5; color: var(--primary-dark); background: #F8F8FF;
+  border-color: #AAACE5; color: var(--primary-dark); background: var(--hover-bg);
 }
 .stButton > button[kind="primary"] {
   background: var(--primary) !important; border: 1px solid var(--primary) !important;
