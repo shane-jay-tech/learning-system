@@ -25,6 +25,8 @@
 
 meta 现值：ai_pulse_monthly/quarterly=done、all_mistakes_cleared=done、security_notice_seen=done、achievements_earned（首批四成就）。
 
+> **l930-26 订正（2026-10-02，时点注）**：上句「首批四成就」为 2026-09-18 快照时的语义（当时 achievements_earned 记录首批 4 枚）；现值 achievements 词表已扩至 **22 条**（core/achievements.py 现取）。历史读数保留为对照，不回改。
+
 ## 二、观察项（只记不改）
 
 1. **主库 8/24 后未落盘**：attempts/learning_events 的新写入（若有）滞留 WAL——单人本机库风险低，但备份脚本若只拷主库会漏最近数据（供拍板：备份走 `VACUUM INTO` 或 `db.backup()` 而非文件拷贝）；
