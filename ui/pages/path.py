@@ -1,13 +1,17 @@
 """Learning path UI — shows milestones, progress, and navigation."""
 
+import logging
+
 import streamlit as st
 
 from core.loader import load_language
 from core.paths import LearningPath, Milestone, get_milestone_topics_flat, load_all_paths, load_path
 from core.progress import ProgressDAO
 from ui.components import render_empty_state, render_error_notice
-from ui.components import render_error_notice
 from ui.components import hero, navigate_to_problem
+
+logger = logging.getLogger(__name__)
+
 
 
 @st.cache_data(ttl=300)
@@ -204,7 +208,11 @@ def _emit_path_started(dao: ProgressDAO, path_id: str):
     key = f"path_started:{path_id}"
     if dao.get_meta(key):
         return
-    dao.emit_event("path_started", path_id=path_id)
+    try:
+        dao.emit_event("path_started", path_id=path_id)
+    except Exception:  # l930-01：埋点失败不炸整页（甲案 per-item 守卫）
+        logger.exception("path_started 埋点失败 path_id=%s", path_id)
+        return
     dao.set_meta(key, "1")
 
 
@@ -213,5 +221,9 @@ def _emit_milestone_completed(dao: ProgressDAO, path_id: str, milestone_id: str)
     key = f"milestone_done:{path_id}:{milestone_id}"
     if dao.get_meta(key):
         return
-    dao.emit_event("path_milestone_completed", path_id=path_id, milestone_id=milestone_id)
+    try:
+        dao.emit_event("path_milestone_completed", path_id=path_id, milestone_id=milestone_id)
+    except Exception:  # l930-01：埋点失败不炸整页（甲案 per-item 守卫）
+        logger.exception("path_milestone_completed 埋点失败 path_id=%s milestone_id=%s", path_id, milestone_id)
+        return
     dao.set_meta(key, "1")

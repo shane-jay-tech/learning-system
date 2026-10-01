@@ -171,3 +171,50 @@ def test_桩连的是独立临时库不碰真实data(dao, tmp_path):
     assert dao.db_path.startswith(str(tmp_path)), "夹具库必须在 tmp_path 下"
     assert dao.db_path.endswith("path-events.db")
     assert os.sep + "data" + os.sep not in dao.db_path, "绝不连真实 data/"
+
+
+# ── l930-01：两枚裸 emit 的失败注入桩（甲案守卫回归：emit 抛异常不得炸调用方，meta 不得残留半态）──
+
+class _ExplodingEmitDao:
+    """emit_event 必抛、其余透传（真 DAO 包装）。"""
+
+    def __init__(self, dao):
+        self._dao = dao
+        self.events = []
+
+    def get_meta(self, key):
+        return self._dao.get_meta(key)
+
+    def set_meta(self, key, value):
+        return self._dao.set_meta(key, value)
+
+    def emit_event(self, event, **kwargs):
+        self.events.append(event)
+        raise RuntimeError("injected emit failure (l930-01)")
+
+
+def test_l930_01_emit_failure_does_not_raise_and_leaves_no_meta(tmp_path):
+    """emit 抛异常 → 调用方不炸（异常被守卫吞掉转日志），且 meta 键不写入（半态零残留）。"""
+    dao = ProgressDAO(str(tmp_path / "probe.db"))
+    exploding = _ExplodingEmitDao(dao)
+    # 不抛即守卫生效
+    path_page._emit_path_started(exploding, "p1")
+    path_page._emit_milestone_completed(exploding, "p1", "m1")
+    assert dao.get_meta("path_started:p1") is None, "emit 失败后不得写 meta（保持「下次可重发」语义）"
+    assert dao.get_meta("milestone_done:p1:m1") is None
+    assert exploding.events == ["path_started", "path_milestone_completed"]
+
+
+def test_l930_01_emit_recovers_on_next_call(tmp_path):
+    """失败后下一次（DAO 恢复正常）应成功发出事件并写 meta——守卫不得吞掉后续成功路径。"""
+    dao = ProgressDAO(str(tmp_path / "probe2.db"))
+    exploding = _ExplodingEmitDao(dao)
+    path_page._emit_path_started(exploding, "p1")  # 第一次失败
+    path_page._emit_path_started(dao, "p1")        # 第二次换真 DAO 成功
+    n = dao.conn.execute("SELECT COUNT(*) FROM learning_events WHERE event_type='path_started'").fetchone()[0]
+    assert n == 1, '恢复后应真发一次'
+    assert dao.get_meta("path_started:p1") == "1"
+    # 第三次再调（真 DAO）→ 去重生效不再发
+    path_page._emit_path_started(dao, "p1")
+    n2 = dao.conn.execute("SELECT COUNT(*) FROM learning_events WHERE event_type='path_started'").fetchone()[0]
+    assert n2 == 1, '去重后不得重发'
