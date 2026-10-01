@@ -243,13 +243,12 @@ def _render_dashboard_body(dao):
                     if st.button("去做 →", key=f"reco_{it['problem_id']}", type="primary", use_container_width=True):
                         # l927-29 写序裁决（方向＝档内 l922-102 遗留问题点名留的那个冲突点）：
                         # **emit_event 送达成功之后才做跳转变更**——上报失败就不跳。
-                        # 旧形态 `navigate_to_problem` 在 try 外（l922-102 钉的"断网也能跳"），
-                        # 于是事件库写失败那一帧 clicked 永不到库、用户却已被带走 ⇒ 漏斗只掉不补、
-                        # 本地 impressions 与事件库从此差额 +1 且无重试入口。现以 `reported` 旗标门控跳转：
-                        # 失败帧停在面板，用户可再点一次重试上报（重试会再记一次 attempts）。
-                        # 🔴 本裁决**有意**接受的代价：事件库真故障时该按钮变死键且面板零提示
-                        #    ——与曝光侧同型的可见反馈要不要加，属另单裁决，见 docs/insights/l927-29-note.md §三。
-                        reported = False
+                        # l930-03（点击语义拉齐，旧向新看齐＝与跨路径区 :490-497 逐字同型）：
+                        # l927-29 的 `reported` 旗标门控（失败不跳）在此翻面——失败**仍跳**，
+                        # 上报异常只落 DEBUG 日志。拉齐依据：跳转是用户已明示的意图，事件库故障
+                        # 不该把「去做 →」变死键（跨路径区自 l923-07 起的形态，零死键事故在册）；
+                        # 两区不一致本身是 l927-29 遗留的开放面（本单出口）。A2 写序残余
+                        # （故障帧 clicked 带空 rid）由曝光例试重自愈兜底，点击侧不再叠加门控。
                         try:
                             imp = st.session_state.get(impressions_key, {}).get(
                                 (it["lang"], it["problem_id"], "dashboard"), {})
@@ -261,11 +260,9 @@ def _render_dashboard_body(dao):
                                                "surface": "dashboard",
                                                "rank": imp.get("rank", 0),
                                            })
-                            reported = True
                         except Exception:
                             logger.debug("dashboard: 推荐事件上报异常", exc_info=True)
-                        if reported:
-                            navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
+                        navigate_to_problem(it["lang"], it["topic_slug"], it["problem_id"])
 
     _render_cross_recommend(dao)
     _render_achievements(dao)

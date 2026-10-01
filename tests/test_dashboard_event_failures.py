@@ -282,15 +282,14 @@ def test_failure_on_third_item_leaves_local_state_ahead_of_events_by_one(wire, f
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
-def test_click_event_failure_now_stops_navigation(wire, fake_st, caplog):
-    """l927-29 新语义：按钮按下后 `recommendation_clicked` 抛错 → **不导航**，日志照常落 DEBUG 且带栈。
+def test_click_event_failure_still_navigates_and_logs(wire, fake_st, caplog):
+    """l930-03 翻面（旧向新看齐，与跨路径 :490-497 同型）：clicked 抛错 → 日志照落 DEBUG 带栈，
+    **跳转照常**（用户意图不被事件库故障劫持，两区死键面自此归零）。
 
-    本例原名 `test_click_event_failure_still_navigates_to_problem`（l922-101），钉的是旧语义
-    「跳转不被 except 吞掉」。裁决方向翻转后：日志面与「展示侧未被牵连」面**逐条照旧**，
-    只有跳转面由「两张卡各导航一次」改成「一次都不导航、路由三键根本不被写入」
-    （用 `"route" not in session_state` 而不是 `!= "language"`——写错值比不写更难发现）。
-    🔴 旧实现（navigate 在 try 外）下本例红在 `rerun_count == 0`；把 emit 整条删掉（不试了）
-    也会红在 `em.kinds()` 那组——它仍要求"试过了、只是没送到"。
+    本例三代史：l922-101 原名钉「失败仍跳」→ l927-29 翻成 `..._now_stops_navigation`
+    （rerun_count==0＋路由三键 not in）→ l930-03 拉齐翻回本名（rerun_count==2＋路由三键
+    落最后一张卡）。日志面与「展示侧未被牵连」面逐条照旧，只有跳转面来回翻了两次——
+    每次翻面都有裁决记录（l927-29 note §三 / l930-03 note），不是回退是拉齐。
     """
     plan = _plan(2)
     em = _Emitter(fail_on=("recommendation_clicked",))
@@ -300,11 +299,10 @@ def test_click_event_failure_now_stops_navigation(wire, fake_st, caplog):
     hits = [r for r in caplog.records if r.getMessage() == CLICK_MSG]
     assert len(hits) == 2, f"两张卡各一条点击异常日志，实得 {len(hits)}"
     assert all(r.levelno == logging.DEBUG and r.exc_info is not None for r in hits)
-    # 跳转被送达门控挡在原地：一次 rerun 都没有，路由三键也从未被创建
-    assert fake_st.rerun_count == 0, "上报失败帧不得再导航（l927-29 裁决：失败就不跳）"
-    for nav_key in ("route", "selected_lang", "selection"):
-        assert nav_key not in fake_st.session_state, \
-            f"失败帧不该写任何跳转变更，实见 {nav_key}={fake_st.session_state.get(nav_key)!r}"
+    # 失败仍跳：两张卡各一次 rerun，路由三键落在最后一张卡（跨路径同款断言，:495）
+    assert fake_st.rerun_count == 2, "l930-03：上报失败不得把「去做 →」变成死键（与跨路径拉齐）"
+    assert fake_st.session_state.route == "language"
+    assert fake_st.session_state.selection["problem_id"] == plan[-1]["problem_id"]
     # 展示侧未被牵连：两处 except 各自独立
     assert em.kinds() == ["recommendation_shown", "recommendation_shown",
                           "recommendation_clicked", "recommendation_clicked"]
@@ -370,16 +368,13 @@ def test_shown_side_failure_yields_clicked_events_with_no_matching_shown_event(w
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
-def test_click_emit_failure_leaves_navigate_never_called(wire, fake_st, monkeypatch):
-    """单卡：`recommendation_clicked` 抛错 → navigate 调用次数 **==0**，路由三键一个都不写。
+def test_click_emit_failure_still_navigates_with_full_route(wire, fake_st, monkeypatch):
+    """单卡：`recommendation_clicked` 抛错 → navigate **恰 1 次**且实参为完整路由三元组。
 
-    本例原名 `..._leaves_navigate_called_exactly_once`（l922-102），当时正是拿它守住
-    「别顺手把 navigate 收进 try，否则事件库写失败时按钮变死键」。l927-29 的裁决
-    **主动**把 navigate 收到「送达门控」之后 ⇒ 同一格由 `==1` 翻成 `==0`。
-    翻面 ≠ 把桩改松，三条钉都还在：
-      · 旧实现（navigate 在 try 外）在本例红在 `nav_calls == []`（它会调 1 次）；
-      · 「上报根本没试」仍被下面 `em.kinds("attempts")` 那格抓住——裁决只挡跳转、不吞上报；
-      · 原例里「navigate 实参为完整路由三元组」这格没丢，整体搬进 §八 例 1 继续钉。
+    本例三代史：l922-102 原名 `..._called_exactly_once`（守「别把 navigate 收进 try」）
+    → l927-29 翻成 `..._leaves_navigate_never_called`（==0＋三键 not in）→ l930-03 拉齐翻回
+    「恰 1 次＋实参完整」——与跨路径区同型。上报没送达这件事仍被下面 attempts/sent 两格钉着
+    （裁决翻的是跳转面，不是把上报失败洗白成成功）。
     """
     plan = _plan(1)
     em = _Emitter(fail_on=("recommendation_clicked",))
@@ -387,17 +382,15 @@ def test_click_emit_failure_leaves_navigate_never_called(wire, fake_st, monkeypa
 
     def spy(lang, topic_slug, problem_id):
         nav_calls.append((lang, topic_slug, problem_id))
-        # 故意不打真 navigate：本例断言它**一次都不该来**，打真反而掩盖门控失效
 
     monkeypatch.setattr(dashboard_page, "navigate_to_problem", spy)
     wire(plan, em)                                                     # 异常没窜出来＝except 生效
 
-    assert nav_calls == [], "l927-29：上报失败帧不得调用 navigate（旧语义此处为恰 1 次）"
-    for nav_key in ("route", "selected_lang", "selection"):
-        assert nav_key not in fake_st.session_state, \
-            f"失败帧不该产生任何跳转变更，实见 {nav_key}={fake_st.session_state.get(nav_key)!r}"
+    assert nav_calls == [(it["lang"], it["topic_slug"], it["problem_id"]) for it in plan], \
+        "l930-03：失败帧照跳且实参完整（与跨路径拉齐）"
+    # （l930-03 注：本例 spy 只记录不转发，路由三键面由 §五/§六 的转发桩例钉。）
     assert em.kinds("attempts") == ["recommendation_shown", "recommendation_clicked"]
-    assert em.sent_of("recommendation_clicked") == []                   # 事件确实没送达
+    assert em.sent_of("recommendation_clicked") == []                   # 事件确实没送达（跳转≠上报成功）
 
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
@@ -476,7 +469,10 @@ def test_cross_click_failure_still_renders_records_navigates_and_logs(wire, monk
     曝光记账（shown 侧）与导航必须各自独立，日志级别 DEBUG 且真带栈。
     l922-103 落桩时本区只有这一个 except（文案还错写成「展示异常」）；l923-07 补上展示侧
     per-item try 后，本例的"展示侧未被牵连"才第一次有了真正的对照物。
-    """
+    
+
+    l930-03 注：今日推荐区点击语义已拉齐为本形态（失败仍跳），`rerun_count == 2` 由
+    「跨路径特有残存形态」升格为「两区统一契约」；本例断言不变，只登记语义迁移。"""
     items = _cross(2)
     em = _Emitter(fail_on=("recommendation_clicked",))
     dao = _cross_setup(monkeypatch, items, em)
@@ -653,7 +649,10 @@ def test_second_cross_click_failure_does_not_take_down_the_first_click_report(
     断言 ①：渲染完成、两张卡全在；②：第 1 条 clicked 落库且归因正确；③：失败那条按钮
     仍完成跳转（rerun 2 次、selection 落在第 2 张卡）；④：日志恰 1 条点击侧文案、
     DEBUG 带栈，且不误报"展示异常"；⑤：本地比事件库多 1 条 clicked（悬空账，A2 才归零）。
-    """
+    
+
+    l930-03 注：今日推荐区点击语义已拉齐为本形态（失败仍跳），`rerun_count == 2` 由
+    「跨路径特有残存形态」升格为「两区统一契约」；本例断言不变，只登记语义迁移。"""
     items = _cross(2)
     calls, sent = [], []
 
@@ -698,7 +697,10 @@ def test_cross_click_with_no_impression_records_empty_id_and_failure_is_swallowe
     "门控只看 shown 集合、不看 impressions 是否真的落库"这条写序缺陷），
     `_rec_impressions` 留空 ⇒ 点击侧回退分支生效。
     与 l922-101 遗留问题 1 同型；解法待 l923-06 设计稿（A2）裁决，本例只钉现状。
-    """
+    
+
+    l930-03 注：今日推荐区点击语义已拉齐为本形态（失败仍跳），`rerun_count == 2` 由
+    「跨路径特有残存形态」升格为「两区统一契约」；本例断言不变，只登记语义迁移。"""
     items = _cross(2)
     fake_st.session_state[CROSS_SHOWN_KEY] = {(it["lang"], it["problem_id"]) for it in items}
     em = _Emitter(fail_on=("recommendation_clicked",))
@@ -901,13 +903,13 @@ def test_l927_29_click_emit_success_navigates_with_full_route(wire, fake_st, mon
 
 
 @pytest.mark.parametrize("fake_st", [{GO: True}], indirect=True)
-def test_l927_29_second_click_failure_drops_only_its_own_navigation(wire, fake_st, monkeypatch, caplog):
-    """失败不跳（判据②例二，部分失败面）：只有**第 2 张卡**的 clicked 抛错
-    → 第 1 张照样导航、第 2 张停在原地，路由落在第 1 张卡。
+def test_second_click_failure_drops_only_its_own_click_report(wire, fake_st, monkeypatch, caplog):
+    """l930-03 改桩（判据②例二，部分失败面）：只有**第 2 张卡**的 clicked 抛错
+    → l930-03 拉齐后两张卡**都导航**（失败仍跳）；本例改钉点击上报的连带半径归零
 
-    🔴 有牙：旧实现（navigate 在 try 外）本例红——两张都会跳、`selection` 落第 2 张卡。
-    若把 `reported` 旗标提到 for 外做成批级共享（一条炸⇒整区都不跳），本例同样红
-    （第 1 张不该被连坐）。与第七节例 1 对曝光侧的分工同型：这里钉的是**点击侧连带半径归零**。
+    （第 1 张照常送达）。🔴 三代有牙史：l922-102 旧实现本例红在两张都跳；l927-29 时代
+    钉「第 1 张不被连坐」；l930-03 拉齐后跳转面回归跨路径同型 ⇒ 旧跳转断言整体过期，
+    上报面分工断言保留（与 §七例 1 对曝光侧的分工同型）。
     """
     plan = _plan(2)
     em = _NthBoomer(2, kind="recommendation_clicked", boom="第 2 张卡点击上报炸")
@@ -922,10 +924,10 @@ def test_l927_29_second_click_failure_drops_only_its_own_navigation(wire, fake_s
     with caplog.at_level(logging.DEBUG, logger=LOGGER):
         wire(plan, em)                                           # 异常不外窜＝except 仍收在单条体内
 
-    assert nav_calls == [(plan[0]["lang"], plan[0]["topic_slug"], plan[0]["problem_id"])], \
-        "坏一条只掉它自己的跳转：第 1 张已送达必须照跳，第 2 张失败不得跳"
-    assert fake_st.session_state.selection["problem_id"] == plan[0]["problem_id"]
-    assert fake_st.rerun_count == 1
+    assert nav_calls == [(it["lang"], it["topic_slug"], it["problem_id"]) for it in plan], \
+        "l930-03：两区拉齐后失败也照跳 ⇒ 两张各跳一次、selection 落第 2 张"
+    assert fake_st.session_state.selection["problem_id"] == plan[1]["problem_id"]
+    assert fake_st.rerun_count == 2
     assert em.kinds("attempts") == ["recommendation_shown", "recommendation_shown",
                                     "recommendation_clicked", "recommendation_clicked"]
     assert [kw["problem_id"] for _k, kw in em.sent_of("recommendation_clicked")] == \
