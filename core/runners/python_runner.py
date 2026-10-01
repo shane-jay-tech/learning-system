@@ -1,4 +1,6 @@
 import os
+import shutil
+import stat
 import sys
 import subprocess
 import tempfile
@@ -103,6 +105,22 @@ def _safe_stdin(stdin: str) -> bytes:
 class PythonRunner(BaseRunner):
     timeout_sec = 5
 
+    @staticmethod
+    def _make_tree_readonly(root: str) -> None:
+        """目录树整树去写位（Windows/POSIX 通用）：文件 0o444、目录 0o555。
+        沙箱护栏而非安全边界——临时目录整体随 TemporaryDirectory 退出删除，
+        ignore_cleanup_errors 已容忍只读位残留（Windows 只读位不阻止删除）。"""
+        for dirpath, _dirnames, filenames in os.walk(root):
+            for name in filenames:
+                try:
+                    os.chmod(os.path.join(dirpath, name), stat.S_IREAD)
+                except OSError:
+                    pass
+            try:
+                os.chmod(dirpath, stat.S_IREAD | stat.S_IEXEC)
+            except OSError:
+                pass
+
     def run(self, code: str, stdin: str = "", expected: Optional[dict] = None) -> RunResult:
         blocked = self.check_security()
         if blocked:
@@ -113,6 +131,16 @@ class PythonRunner(BaseRunner):
             # 它同时是学生行号折算的偏移量，写在这里会让行级反馈打歪。
             with open(src, "w", encoding="utf-8", newline="\n") as f:
                 f.write(_PREAMBLE + code)
+            # l930-07（l927-19 遗留最小可批形状 a）：content/datasets/ 只读复制挂载进 tmpdir——
+            # 引用数据集的题面（hr_* 族）在学生代码里 read_csv('datasets/…') 才有落点。
+            # 护栏：①复制而非符号链接（Windows 符号链接需特权且可能被沙箱内代码顺链写入
+            # 真目录——复制件天然只读）；②单点白名单式只挂数据集目录，不扩大其它仓内
+            # 路径可见性；③源目录缺失时静默跳过（零题面依赖路径不受影响）。
+            datasets_src = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__)))), "content", "datasets")
+            if os.path.isdir(datasets_src):
+                shutil.copytree(datasets_src, os.path.join(tmpdir, "datasets"))
+                self._make_tree_readonly(os.path.join(tmpdir, "datasets"))
 
             t0 = time.time()
             proc = subprocess.Popen(
