@@ -4,6 +4,10 @@ import streamlit as st
 
 from core import loader as content_loader
 from core.loader import find_problem, load_language
+
+# l930-16（l924-09 遗留 2/l927-44 收口）：到期复习页取数上限单源——
+# 三处字面量 50（limit 实参/汇总行文案/打满判据）一并引用，口径不变仅单源化。
+RECENT_LIMIT = 50
 from core.progress import ProgressDAO, format_local_ts
 from ui.components import render_empty_state
 from ui.components import ALL_LANGS, LANG_META, ai_feedback_block, code_highlight_lang, hero, navigate_to_problem, section_title
@@ -72,16 +76,16 @@ def _render_mistakes_body(dao: ProgressDAO):
     # 真数在库侧就被丢掉），错题侧 list_mistakes() 无 LIMIT ⇒ 全量真数。
     # 汇总行文案按这个不对称标出下限语义（l923-20）；「加 COUNT(*) 伴生查询」出口 l924-09
     # 已实装为**下方净新增的一行**（get_due_reviews_total），汇总行与 limit=50 未换口径。
-    due_reviews = dao.get_due_reviews(limit=50)
+    due_reviews = dao.get_due_reviews(limit=RECENT_LIMIT)
     overdue_count = len(due_reviews)
     wrong_count = len(mistakes)
 
-    st.markdown(f"**错题 {wrong_count} 道 · 最近 50 条内到期复习 {overdue_count} 道**")
+    st.markdown(f"**错题 {wrong_count} 道 · 最近 {RECENT_LIMIT} 条内到期复习 {overdue_count} 道**")
     # l924-09：上面那句的 COUNT(*) 伴生出口落地（l922-123 遗留 / l923-20 在册的第二条出口）。
     # 只在「页打满」时才多问一次真数——未打满时真数恒等于页内条数，那一行纯属重复。
     # 真数确实更大才提示；相等时不提示（此时「最近 50 条内」已是完整事实）。
     # 汇总行的文案与 :75 的 limit=50 实参一律未动：这一行是**净新增**，不改任何既有读数。
-    if overdue_count == 50:  # 50 与 :75 的 limit 同源，跨源一致性由 test_mistakes_tabs_contract 钉
+    if overdue_count == RECENT_LIMIT:  # 与上方 limit 同源（RECENT_LIMIT 单源），跨源一致性由 test_mistakes_tabs_contract 钉
         due_total = dao.get_due_reviews_total()
         if due_total > overdue_count:
             st.caption(f"实际到期共 {due_total} 道 · 上面只列出最先到期的 {overdue_count} 道")
