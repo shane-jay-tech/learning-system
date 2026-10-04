@@ -111,7 +111,7 @@ def _render_mistakes_body(dao: ProgressDAO):
 
     if wrong_count:
         with tabs[tab_idx]:
-            _render_wrong_problems(dao, mistakes)
+            _render_wrong_problems(mistakes)
         tab_idx += 1
 
     with tabs[tab_idx]:
@@ -146,7 +146,9 @@ def _render_due_reviews(dao, reviews):
                 st.caption("该题已不在题库中，可以忽略。")
 
 
-def _render_wrong_problems(dao, mistakes):
+# l1002-69（l922-119 遗留清理）：dao 死形参移除——函数体只读 mistakes（k921 系缓存重构后不再触 DAO），
+# 前置桩语义同步退役（tests/test_mistakes_lookup_cache.py 的 _Dao 改为显式 None 传入形态）。
+def _render_wrong_problems(mistakes):
     section_title("错题重做")
     st.caption("做错的题在这里汇总，重做通过后就能移除。")
     for m in mistakes:

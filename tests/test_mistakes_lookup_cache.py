@@ -45,7 +45,9 @@ class _Problem:
 
 
 class _Dao:
-    """页面签名要 dao，但 _render_wrong_problems 体内不用它；任何触碰都判越界。"""
+    """l1002-69 同批：dao 死形参已从 _render_wrong_problems 签名移除。
+    本桩降级为「显式 None 传入」形态的占位调用实参（签名清理后调用点不再需要任何实参，
+    保留类体只为文档化该前提的演变史；两调用点已改为不传 DAO）。"""
 
     def __getattr__(self, name):
         raise AssertionError(f"渲染函数不该触碰 DAO.{name}（越界＝本测试前提失效）")
@@ -87,7 +89,7 @@ def _render_with(monkeypatch, pid, result_map):
     st = FakeStreamlit()
     monkeypatch.setattr(mistakes_page, "st", st)
     monkeypatch.setattr(mistakes_page, "navigate_to_problem", lambda *a, **kw: None)
-    mistakes_page._render_wrong_problems(_Dao(), [_mistake(pid)])
+    mistakes_page._render_wrong_problems([_mistake(pid)])
     markdowns = [str(c[1][0]) for c in st.calls if c[0] == "markdown"]
     captions = [str(c[1][0]) for c in st.calls if c[0] == "caption"]
     return markdowns, captions, calls
@@ -185,7 +187,7 @@ def test_暖过缓存后渲染全程零find_problem调用(monkeypatch):
     mistakes_page._lookup_problem("python", "p_ok")
     assert len(calls) == 1
 
-    mistakes_page._render_wrong_problems(_Dao(), [_mistake("p_ok")])
+    mistakes_page._render_wrong_problems([_mistake("p_ok")])
     assert calls == [("python", "p_ok")], f"暖过缓存后渲染不该重扫，实得 {calls}"
     markdowns = [str(c[1][0]) for c in st.calls if c[0] == "markdown"]
     assert any("热重载前题面" in m for m in markdowns), markdowns
