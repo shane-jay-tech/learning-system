@@ -11,12 +11,12 @@ _problems_cache_sig: Optional[object] = None
 def all_problems() -> List[Dict]:
     """加载所有题目元数据（带模块级缓存，避免重复扫描）。"""
     global _problems_cache, _problems_cache_sig
-    from core.loader import _signature, _DEFAULT_CONTENT
+    from core.loader import _signature, content_root
     import os
     sig = tuple(
-        _signature(os.path.join(_DEFAULT_CONTENT, lang))
+        _signature(os.path.join(content_root(), lang))
         for lang in ALL_LANGS
-        if os.path.isdir(os.path.join(_DEFAULT_CONTENT, lang))
+        if os.path.isdir(os.path.join(content_root(), lang))
     )
     if _problems_cache is not None and _problems_cache_sig == sig:
         return _problems_cache

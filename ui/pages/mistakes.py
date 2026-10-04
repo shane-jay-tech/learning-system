@@ -36,7 +36,7 @@ def _problem_yaml_stamp(lang: str, pid: str):
     parts = pid.split("/")
     if len(parts) != 3 or parts[0] != lang:
         return None
-    base = getattr(content_loader, "_DEFAULT_CONTENT", None)
+    base = content_loader.content_root()
     if not base:
         return None
     try:

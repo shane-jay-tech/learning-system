@@ -14,6 +14,16 @@ logger = logging.getLogger(__name__)
 _DEFAULT_CONTENT = str(Path(__file__).resolve().parent.parent / "content")
 
 
+def content_root() -> str:
+    """内容根目录公开出口（l1002-85，l923-19 遗留：跨模块消费方不再摸 _DEFAULT_CONTENT 私有名）。
+
+    返回现值而非拷贝——monkeypatch.setattr(loader, "_DEFAULT_CONTENT", …) 的测试手法
+    仍生效（函数每次现读模块全局）。
+    """
+    return _DEFAULT_CONTENT
+
+
+
 @dataclass
 class Problem:
     id: str
