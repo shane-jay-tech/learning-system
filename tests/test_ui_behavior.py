@@ -56,6 +56,9 @@ class FakeStreamlit:
         self.calls = []
         self.sidebar = Context()
         self.rerun_count = 0
+        # l1002-67（l922-111 遗留上收）：per-key radio 返回控制（label → int 索引或选项值）。
+        # 不配 key 时维持「options[0]」原默认语义——默认路径零改动，只加可选能力。
+        self.radio_returns = {}
 
     def __getattr__(self, name):
         if name in {"container", "spinner"}:
@@ -81,7 +84,13 @@ class FakeStreamlit:
                 return self.buttons.get(label, False)
             return button
         if name == "radio":
-            return lambda label, options, *a, **kw: options[0]
+            def radio(label, options, *a, **kw):
+                self.calls.append(("radio", (label, options) + a, kw))
+                if label in self.radio_returns:
+                    picked = self.radio_returns[label]
+                    return options[picked] if isinstance(picked, int) else picked
+                return options[0]
+            return radio
         if name == "text_area":
             return lambda label, value="", *a, **kw: value
         if name == "progress":
@@ -685,3 +694,15 @@ def test_fake_streamlit_records_columns_args():
     recorded = [c for c in fake.calls if c[0] == "columns"]
     assert [c[1][0] for c in recorded] == [4, [3, 1]], "补的空槽/权重比参数取不回来 ⇒ 该例失据"
     assert recorded[1][2] == {"gap": "small"}
+
+
+def test_fake_streamlit_radio_per_key_override(monkeypatch):
+    """l1002-67：per-key radio 覆写演示——配 label 的键返回指定项，未配键维持 options[0] 原语义。"""
+    fake = FakeStreamlit()
+    fake.radio_returns["which one"] = 1          # 索引形态
+    fake.radio_returns["which two"] = "乙选项"    # 选项值形态
+    r1 = fake.radio("which one", ["甲", "乙", "丙"])
+    r2 = fake.radio("which two", ["甲", "乙", "丙"])
+    r3 = fake.radio("unconfigured", ["甲", "乙", "丙"])
+    assert (r1, r2, r3) == ("乙", "乙选项", "甲"), "per-key 覆写与默认并存"
+    assert any(c[0] == "radio" for c in fake.calls), "radio 调用已入 calls 录参"
