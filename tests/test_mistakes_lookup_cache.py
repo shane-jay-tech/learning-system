@@ -12,7 +12,7 @@
 
 失效边界（**l923-19 已按「键里并 mtime」实装，本节从「无失效通道」改写为新语义**）：
 - `_problem_lookup_cache` 仍是进程级可变全局，但键的**第三元是题面 yaml 的 mtime**
-  （`_problem_yaml_mtime`）⇒ 改了 content/ 下那道题的 yaml，mtime 变、键 miss、
+  （`_problem_yaml_stamp`）⇒ 改了 content/ 下那道题的 yaml，mtime 变、键 miss、
   **下一帧就拿到新对象，不必重启 streamlit 进程**。写新格时顺手剪掉同题的旧 mtime 格
   （`_drop_stale_entries`），字典不随改题次数无界增长。
 - 两个**刻意保留**的退化面，各由一条例钉住：
@@ -199,7 +199,7 @@ def _content_root(monkeypatch, tmp_path):
     """把内容根指到 tmp_path，并造一道真实的 `<lang>/<slug>/<stem>.yaml`。
 
     返回 (yaml 路径, 三段式 pid)。mtime 由实现自己 stat 真文件得来，夹具不伪装时间戳。
-    ⚠️ 这里只把 `core.loader._DEFAULT_CONTENT` 换掉：`_problem_yaml_mtime` 每次调用都现取
+    ⚠️ 这里只把 `core.loader._DEFAULT_CONTENT` 换掉：`_problem_yaml_stamp` 每次调用都现取
     该属性，所以补丁必须打在 loader 模块上而不是 mistakes_page 上（本仓内容根是单源）。
     """
     yaml_path = tmp_path / "python" / "01_x" / "01_p.yaml"
@@ -218,11 +218,12 @@ def _bump_mtime(path, delta: float = 1.0) -> None:
 def test_mtime辅助_三段式pid映射到题面yaml_其余三类取不到(monkeypatch, tmp_path):
     """mtime 来源自身的边界：能算的算、不能算的返回 None（这是「退化」的入口条件）。"""
     yaml_path, pid = _content_root(monkeypatch, tmp_path)
-    assert mistakes_page._problem_yaml_mtime("python", pid) == yaml_path.stat().st_mtime
-    assert mistakes_page._problem_yaml_mtime("python", "p1") is None, "非三段式 pid 无从定位文件"
-    assert mistakes_page._problem_yaml_mtime("sql", pid) is None, "lang 与 pid 首段不符 ⇒ 不猜路径"
+    stamp = mistakes_page._problem_yaml_stamp("python", pid)
+    assert stamp == (yaml_path.stat().st_mtime_ns, yaml_path.stat().st_size), "二元组 (mtime_ns, size)"
+    assert mistakes_page._problem_yaml_stamp("python", "p1") is None, "非三段式 pid 无从定位文件"
+    assert mistakes_page._problem_yaml_stamp("sql", pid) is None, "lang 与 pid 首段不符 ⇒ 不猜路径"
     yaml_path.unlink()
-    assert mistakes_page._problem_yaml_mtime("python", pid) is None, "文件已删 ⇒ OSError 被吞成 None"
+    assert mistakes_page._problem_yaml_stamp("python", pid) is None, "文件已删 ⇒ OSError 被吞成 None"
 
 
 def test_mtime进键_改题面yaml后下一帧取新值(monkeypatch, tmp_path):
@@ -239,7 +240,8 @@ def test_mtime进键_改题面yaml后下一帧取新值(monkeypatch, tmp_path):
 
     assert mistakes_page._lookup_problem("python", pid)[1] is old
     assert calls_old == [("python", pid)], "首帧必扫一次"
-    assert ("python", pid, yaml_path.stat().st_mtime) in mistakes_page._problem_lookup_cache
+    stamp = (yaml_path.stat().st_mtime_ns, yaml_path.stat().st_size)
+    assert ("python", pid, stamp) in mistakes_page._problem_lookup_cache
 
     # 开发者改完题面：实现换成返回新对象，并把 yaml 的 mtime 前进 1 秒
     new = _Problem("改过的题面")
@@ -310,3 +312,24 @@ def test_缓存对象是模块级全局且跨调用保持同一实例(monkeypatc
 
     assert mistakes_page._problem_lookup_cache is cache_before, "必须是原地写入，不该整体替换"
     assert ("python", "p1", None) in mistakes_page._problem_lookup_cache
+
+
+def test_touch_r复原mtime但size变化的改内容_新stamp失效_单因子盲区收口(monkeypatch, tmp_path):
+    """l1002-70（l923-19 遗留升级）：改内容（size 变）＋os.utime 复原 mtime（= touch -r 形态）。
+
+    旧单因子 mtime 指纹：mtime 被复原 ⇒ stamp 不变 ⇒ 缓存命中旧对象（假绿）;
+    新 (mtime_ns, size) 二元组：size 分量必变 ⇒ stamp 必变 ⇒ 缓存失效（本例断言）。
+    「同 mtime 同 size 改内容」仍属内容哈希级盲区（l923-19 原文刻意不外扩）。
+    """
+    import os
+    yaml_path, pid = _content_root(monkeypatch, tmp_path)
+    yaml_path.write_text("a: 1", encoding="utf-8")
+    old_stamp = mistakes_page._problem_yaml_stamp("python", pid)
+
+    prev = yaml_path.stat()
+    yaml_path.write_text("a: 12345", encoding="utf-8")   # 内容改、size 变
+    os.utime(yaml_path, ns=(prev.st_atime_ns, prev.st_mtime_ns))  # touch -r：mtime 复原
+
+    new_stamp = mistakes_page._problem_yaml_stamp("python", pid)
+    assert new_stamp != old_stamp, "size 分量必须抓到 touch -r 复原形态的改动"
+    assert (new_stamp[1] != old_stamp[1] and new_stamp[0] == old_stamp[0]), "形态确认：变的正是 size 分量（mtime_ns 已复原）"

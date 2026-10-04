@@ -14,15 +14,20 @@ from ui.components import ALL_LANGS, LANG_META, ai_feedback_block, code_highligh
 
 # find_problem 每次全量线性扫描该语言题库；错题本里每道错题都会调一次。
 # 缓存查找结果：100 道错题从 O(M×P) 降为 O(M+P)。
-# l923-19：缓存键第三元是题面 yaml 的 mtime ⇒ 改了题面、下一帧就取新值，
+# l923-19＋l1002-70：缓存键第三元是题面 yaml 的 (mtime_ns, size) 指纹 ⇒ 改了题面、下一帧就取新值，
 # 不必重启进程；mtime 取不到（题已删、pid 形态不符）时该格退化成旧语义
 # （一次写入、进程内不再失效）。陈旧窗口由 2 秒（core/loader 的签名 memo
 # TTL）封顶，不再是「进程级永不失效」。详见 tests/test_mistakes_lookup_cache.py。
 _problem_lookup_cache: dict = {}
 
 
-def _problem_yaml_mtime(lang: str, pid: str):
-    """题面 yaml 的 mtime；任何一环取不到都返回 None（退化，不抛错）。
+def _problem_yaml_stamp(lang: str, pid: str):
+    """题面 yaml 的变更指纹 (mtime_ns, size) 二元组；任何一环取不到都返回 None（退化，不抛错）。
+
+    l1002-70（l923-19 遗留升级）：单因子 mtime 存在 `touch -r`/同步盘/zip 解包保留时间戳
+    的盲区（改内容不复原时间即不失效）——升 (mtime_ns, size) 二元组后，同尺寸改内容
+    （ns 必变）与同 mtime 改尺寸（size 必变）都被抓；「同 mtime 同 size 改内容」仍属
+    内容哈希级盲区（刻意不外扩，l923-19 原文）。
 
     pid 形如 `<lang>/<slug>/<stem>`（core/loader.py 的 `_build_problem` 是单源），
     故题面文件 = 内容根/<lang>/<slug>/<stem>.yaml，直接 stat、不扫全表。
@@ -35,9 +40,10 @@ def _problem_yaml_mtime(lang: str, pid: str):
     if not base:
         return None
     try:
-        return os.path.getmtime(os.path.join(base, *parts) + ".yaml")
+        st = os.stat(os.path.join(base, *parts) + ".yaml")
     except OSError:
         return None
+    return (st.st_mtime_ns, st.st_size)
 
 
 def _drop_stale_entries(key) -> None:
@@ -53,7 +59,7 @@ def _drop_stale_entries(key) -> None:
 
 
 def _lookup_problem(lang: str, pid: str):
-    key = (lang, pid, _problem_yaml_mtime(lang, pid))
+    key = (lang, pid, _problem_yaml_stamp(lang, pid))
     if key not in _problem_lookup_cache:
         _problem_lookup_cache[key] = find_problem(lang, pid)
         _drop_stale_entries(key)
