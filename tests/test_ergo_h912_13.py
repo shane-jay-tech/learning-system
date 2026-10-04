@@ -75,12 +75,18 @@ def test_dashboard_column_cap_and_1280_breakpoint():
 
 
 def test_dashboard_no_silent_except():
-    """修复③：dashboard 三处 except Exception: pass 全部改为 logger 记录，不再静默。"""
+    """修复③：dashboard 三处 except Exception: pass 全部改为 logger 记录，不再静默。
+
+    l1002-63（l922-101 遗留降级）：原 `src.count("logger.debug(") >= 3` 源级计数断言
+    已移除——该计数对异常路径的行为退化零判别力（只守历史事实）；异常路径覆盖由
+    tests/test_dashboard_event_failures.py 的 28 例行为用例接管（含
+    test_shown_event_failure_logs_debug_with_exc_info / test_click_event_failure_still_navigates_and_logs
+    等直接断言 debug 日志的用例）。本测试保留"无静默 except＋logger 在册"两条结构断言。
+    """
     src = (PAGES / "dashboard.py").read_text(encoding="utf-8")
     silent = re.findall(r"except Exception:\s*\n\s*pass", src)
     assert silent == [], f"仍有静默 except: {len(silent)} 处"
     assert "logger = logging.getLogger(__name__)" in src
-    assert src.count("logger.debug(") >= 3
 
 
 def test_home_days_since_exception_logged(caplog):
