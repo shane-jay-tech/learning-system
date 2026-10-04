@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """变式题退回时的六前缀键清扫桩（l924-03）。
 
-钉 `ui/pages/language.py::_retire_variant`，以及 `_clear_variant_editor_keys`
+钉 `ui/pages/language.py::_retire_variant`，以及 `_retire_variant_state_keys`
 降级为薄壳后的**转调关系**。
 
 来龙去脉：`_touch_problem` 对 `AI_VARIANT::` 提前 return（language.py:55），故
@@ -13,7 +13,7 @@
 在册桩的接缝（本档为什么钉这些形状）：
   - `tests/test_editor_variant_keys.py` 的 `test_clear_called_once_in_back_branch`
     与 `test_clear_order_retire_then_clear_then_rerun` 按**源文本字面量**数
-    `_clear_variant_editor_keys(active_id)` ⇒ 调用点名不可改，只能把实现下沉，
+    `_retire_variant_state_keys(active_id)` ⇒ 调用点名不可改，只能把实现下沉，
     所以 :291 处仍是旧名、旧名成为薄壳（本档第 2 组钉「薄壳确实清到六族」）。
   - `tests/test_language_editor_epoch.py` 的 `test_epoch_counter_sites_are_exactly_two`
     按行数「epoch 前缀紧跟左花括号」的字面量站点，**注释与 docstring 也算一行**
@@ -147,10 +147,10 @@ class TestShimStillOwnsTheCallSite:
     """失效面 C：调用点名被在册桩钉死 ⇒ 旧名只能做薄壳，而壳必须真转调。"""
 
     def test_shim_clears_all_six_families_too(self, fake):
-        """生产路径实际走的是 `_clear_variant_editor_keys`。它若仍停留在
+        """生产路径实际走的是 `_retire_variant_state_keys`。它若仍停留在
         l923-15 的「只清 editor 两族」实现，本条就会红（六族里四族还在）。"""
         _load_all_families(fake.session_state, VID)
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
         assert _pid_keys(fake.session_state, VID) == set(), (
             "薄壳没有转调 _retire_variant，或 _retire_variant 清键面窄于六族"
         )
@@ -173,7 +173,7 @@ class TestShimStillOwnsTheCallSite:
                    for sub in ast.walk(fn)
                    if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Name)
                    and sub.func.id == "_retire_variant"]
-        assert sorted(callers) == ["_clear_variant_editor_keys", "_touch_variant"], (
+        assert sorted(callers) == ["_retire_variant_state_keys", "_touch_variant"], (
             f"`_retire_variant` 的调用点漂移（现值 {sorted(callers)}）：只允许薄壳转调 ＋ "
             "l927-40 的变式队列逐出两处；出现在别处＝它被挂进了不该清键的分支")
 
@@ -181,7 +181,7 @@ class TestShimStillOwnsTheCallSite:
         """壳里不得长出新逻辑：只允许一条 `_retire_variant(variant_id)`。"""
         tree = ast.parse(LANG_PY.read_text(encoding="utf-8"))
         fn = next(n for n in tree.body
-                  if isinstance(n, ast.FunctionDef) and n.name == "_clear_variant_editor_keys")
+                  if isinstance(n, ast.FunctionDef) and n.name == "_retire_variant_state_keys")
         body = [s for s in fn.body
                 if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant)
                         and isinstance(s.value.value, str))]
@@ -194,7 +194,7 @@ class TestShimStillOwnsTheCallSite:
     def test_back_button_branch_still_calls_the_shim(self):
         src = LANG_PY.read_text(encoding="utf-8")
         block = src[src.index('if st.button("↩ 回到原题"'):src.index("with right_col:")]
-        assert block.count("_clear_variant_editor_keys(active_id)") == 1
+        assert block.count("_retire_variant_state_keys(active_id)") == 1
         assert "_retire_variant(" not in block, (
             "回到原题分支应只经薄壳入口；直调新名会让 test_editor_variant_keys 的在册桩红"
         )
@@ -203,7 +203,7 @@ class TestShimStillOwnsTheCallSite:
         src = LANG_PY.read_text(encoding="utf-8")
         reset_block = src[src.index('if st.button("↺ 重置"'):src.index("with ask_col:")]
         gen_block = src[src.index('if st.button("✨ AI 变式题"'):src.index("with back_col:")]
-        assert "_clear_variant_editor_keys" not in reset_block
+        assert "_retire_variant_state_keys" not in reset_block
         assert "_retire_variant" not in reset_block
         assert "_retire_variant" not in gen_block, (
             "生成新变式时清键会把上一道变式的用户代码连同状态一起抹掉（超授权）"
@@ -454,7 +454,7 @@ class TestKnownBlindSpotPinned:
 # 动了哪些在册断言（**只有两处**，其余全是新增）：
 #   1. 本文件 `TestShimStillOwnsTheCallSite::test_retire_defined_once_and_called_once`
 #      变：`src.count("_retire_variant(") == 2`（字面量计数）→ AST 点名调用者
-#        `== ["_clear_variant_editor_keys", "_touch_variant"]`。
+#        `== ["_retire_variant_state_keys", "_touch_variant"]`。
 #      为什么不是放宽：旧判据是"多一处就红"的代理，第二终点恰好就是正当的第三处，
 #        代理必然过期；写回 `== 3` 只是把巧合当规矩。AST 版把判据换成**谁在调**，
 #        比原来严（挂进任何别的函数体都红），且"不得挂进重置/生成变式分支"那半原意

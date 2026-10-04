@@ -162,13 +162,13 @@ def _touch_variant(variant_id: str) -> None:
     st.session_state["_variant_lru"] = queue[-_LRU_CAP:]
 
 
-def _clear_variant_editor_keys(variant_id: str) -> None:
+def _retire_variant_state_keys(variant_id: str) -> None:
     """薄壳：职责已全部下沉到 `_retire_variant`（l924-03 同批改法）。
 
     保留这个名字是因为 l923-15 的在册桩按**源文本字面量**钉了「↩ 回到原题」
     分支里的调用式与顺序（`tests/test_editor_variant_keys.py` 的
     `test_clear_called_once_in_back_branch` / `test_clear_order_retire_then_clear_then_rerun`
-    各数一次 `_clear_variant_editor_keys(active_id)`），改名会让那两条红——
+    各数一次 `_retire_variant_state_keys(active_id)`），改名会让那两条红——
     而那属别的单的账。故此处只做转调，清键面由「editor 两族」扩到「六族 + widget」。
     """
     _retire_variant(variant_id)
@@ -358,7 +358,7 @@ def _render_body(lang, topics, topic, dao):
             if is_variant:
                 if st.button("↩ 回到原题", key=f"back_{base_problem.id}", use_container_width=True):
                     st.session_state.ai_variants.pop(base_problem.id, None)
-                    _clear_variant_editor_keys(active_id)
+                    _retire_variant_state_keys(active_id)
                     st.session_state.pop(judge_result_key(active_id), None)
                     st.rerun()
 
@@ -436,6 +436,9 @@ def _render_body(lang, topics, topic, dao):
                 with cmp_left:
                     section_title("期望输出")
                     io_block(r.expected_display, kind="expected")
+                    if not r.passed:
+                        # K-2 两段式（154241 验收③）：未通过时判题侧只下发规模差异，不给期望值
+                        st.caption("🔒 未通过时只显示规模/行数差异，答对后这里展示全量对照。")
                 with cmp_right:
                     section_title("你的输出")
                     io_block(r.actual_display, kind="actual")

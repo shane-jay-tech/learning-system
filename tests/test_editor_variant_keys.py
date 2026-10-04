@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """AI 变式题 editor 侧键的显式清键桩（l923-15）。
 
-钉 `ui/pages/language.py::_clear_variant_editor_keys` 及其在「↩ 回到原题」分支的接线。
+钉 `ui/pages/language.py::_retire_variant_state_keys` 及其在「↩ 回到原题」分支的接线。
 
 来龙去脉（l922-113 遗留 2 / l922-114 遗留 2 同族，本单按**出口二**结案）：
 `_touch_problem` 对 `AI_VARIANT::` 前缀提前 return，变式题的
@@ -80,24 +80,24 @@ class TestRetirementClearsVariantEditorKeys:
 
     def test_back_to_original_zeroes_both_key_families(self, fake):
         _accumulate(fake, VID, 5)
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
         assert _widget_keys(fake, VID) == [], "退回原题后仍残留变式 editor widget 键"
         assert _epoch_keys(fake, VID) == [], "退回原题后仍残留变式 editor_epoch 计数器键"
 
     def test_clear_is_idempotent_and_tolerates_missing_counter(self, fake):
         """第二次点「回到原题」（或计数器本就未建）不得抛 KeyError。"""
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
         assert EPOCH_OF + VID not in fake.session_state
         _accumulate(fake, VID, 2)
-        language_page._clear_variant_editor_keys(VID)
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
+        language_page._retire_variant_state_keys(VID)
         assert _widget_keys(fake, VID) == []
         assert _epoch_keys(fake, VID) == []
 
     def test_regenerated_variant_starts_at_epoch_zero(self, fake):
         """清完再刷同一道变式（id 由原题决定，故必然同名）应从 0 起、无旧残键。"""
         _accumulate(fake, VID, 3)
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
         assert language_page._editor_key(VID) == f"editor_{VID}_0"
         assert _widget_keys(fake, VID) == [], "只取 key 就留下残键，说明上一轮的没清干净"
         fake.session_state[language_page._editor_key(VID)] = "new code"
@@ -112,7 +112,7 @@ class TestNoCollateralDamage:
         other = "AI_VARIANT::python/01_basics/p2"
         _accumulate(fake, VID, 4)
         _accumulate(fake, other, 2)
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
 
         assert _widget_keys(fake, VID) == []
         assert len(_widget_keys(fake, other)) == 2, "别的变式题被连坐了"
@@ -127,7 +127,7 @@ class TestNoCollateralDamage:
         fake.session_state[f"editor_{BASE}_0"] = "base code"
         fake.session_state[EPOCH_OF + BASE] = 7
         fake.session_state[f"code::{BASE}"] = "base code"
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
 
         assert fake.session_state[f"editor_{BASE}_0"] == "base code"
         assert fake.session_state[EPOCH_OF + BASE] == 7
@@ -138,7 +138,7 @@ class TestNoCollateralDamage:
         """NEIGHBOUR_VID 以 VID 开头：只能按整段 pid 匹配，不得 startswith 误伤。"""
         _accumulate(fake, VID, 2)
         _accumulate(fake, NEIGHBOUR_VID, 2)
-        language_page._clear_variant_editor_keys(VID)
+        language_page._retire_variant_state_keys(VID)
         for e in (0, 1):
             assert f"editor_{VID}_{e}" not in fake.session_state, f"VID 自己的 epoch {e} 残键没清掉"
         assert len(_widget_keys(fake, NEIGHBOUR_VID)) == 2, (
@@ -150,7 +150,7 @@ class TestNoCollateralDamage:
         """防御侧：调用点若误传真题 id，一个键都不许动（清键只对 AI_VARIANT:: 生效）。"""
         fake.session_state[f"editor_{BASE}_1"] = "keep"
         fake.session_state[EPOCH_OF + BASE] = 1
-        language_page._clear_variant_editor_keys(BASE)
+        language_page._retire_variant_state_keys(BASE)
         assert fake.session_state[f"editor_{BASE}_1"] == "keep"
         assert fake.session_state[EPOCH_OF + BASE] == 1
 
@@ -167,7 +167,7 @@ class TestBackButtonWiring:
     def test_clear_called_once_in_back_branch(self):
         src = LANG_PY.read_text(encoding="utf-8")
         block = self._back_block(src)
-        assert block.count("_clear_variant_editor_keys(active_id)") == 1, (
+        assert block.count("_retire_variant_state_keys(active_id)") == 1, (
             "「↩ 回到原题」分支里的清键调用不在/不唯一：变式键泄漏回归"
         )
 
@@ -176,7 +176,7 @@ class TestBackButtonWiring:
         block = self._back_block(src)
         order = [
             "st.session_state.ai_variants.pop(base_problem.id, None)",
-            "_clear_variant_editor_keys(active_id)",
+            "_retire_variant_state_keys(active_id)",
             "st.session_state.pop(judge_result_key(active_id), None)",
             "st.rerun()",
         ]
@@ -189,7 +189,7 @@ class TestBackButtonWiring:
         """「↺ 重置」不得清变式键：清掉 epoch 计数器等于把用户代码冲回 starter_code。"""
         src = LANG_PY.read_text(encoding="utf-8")
         reset_block = src[src.index('if st.button("↺ 重置"'):src.index("with ask_col:")]
-        assert "_clear_variant_editor_keys" not in reset_block
+        assert "_retire_variant_state_keys" not in reset_block
 
     def test_helper_does_not_add_third_epoch_brace_literal(self):
         """l922-114 钉了 `editor_epoch::{` 字面量恰 2 处（:40 读 / :285 写）；
