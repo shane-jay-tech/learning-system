@@ -225,7 +225,7 @@ def check_readme(readme_path, metrics):
         errors.append(f"README 未包含知识点数 {metrics['total_topics']}")
 
     if f"v{version}" not in text:
-        errors.append(f"README 路线图中未包含当前版本 v{version}")
+        errors.append(f"README 整篇未包含当前版本 v{version}")  # l1002-88 订正：扫描面是整篇 README（非路线图段落）
 
     if errors:
         print("FAIL: README 检查不通过:")
