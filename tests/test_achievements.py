@@ -27,8 +27,15 @@ class TestAchievementDefinitions:
         ids = [a.id for a in ACHIEVEMENTS]
         assert len(ids) == len(set(ids))
 
-    def test_count_is_22(self):
-        assert len(ACHIEVEMENTS) == 22
+    def test_count_matches_unlocked_face(self):
+        """l1002-76（l923-26 遗留消解）：原 `== 22` 字面量钉死——加成就即便两侧同步改齐仍红。
+        改为与 census 桩（tests/test_achievements_id_reconcile.py）**同源联动**：
+        数量 = 解锁面 AST 抽取集大小（_unlock_literal_ids），「加一个成就」只需改
+        achievements.py 定义面＋解锁面两处生产码（census 白名单若涉新非 id 字面量才加登记），
+        本文件零改动。22 这个历史值由 id_reconcile 主例在三向对账里守护。
+        """
+        from tests.test_achievements_id_reconcile import _unlock_literal_ids
+        assert len(ACHIEVEMENTS) == len(_unlock_literal_ids())
 
     def test_all_have_category(self):
         valid_cats = {"streak", "language", "path", "special"}
