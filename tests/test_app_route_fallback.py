@@ -109,3 +109,34 @@ def test_every_sidebar_route_is_dispatched():
     )
     # 未知路由分支的存在性也钉住：删掉 else 分支 = 静默白屏，比报错更糟
     assert "未知路由" in app_src
+
+def test_unknown_route_recover_via_language_item_full_session_keys(tmp_path, monkeypatch):
+    """l1002-12（l922-115 遗留）：兜底态点侧栏「按语言练习」语言项的端到端恢复——
+    navigate_to_problem 写入的 5 个会话键逐键断言＋编辑器渲染面。"""
+    at = _app(tmp_path, monkeypatch)
+    at.run()
+    at.session_state["route"] = "no_such_page"
+    at.run()
+    assert len(at.error) == 1, "前置：兜底横幅在册"
+
+    lang_btn = [b for b in at.button if b.label == "🐍  Python"]
+    assert lang_btn, "侧栏须渲染出 Python 语言项（icon+name 形态）"
+    lang_btn[0].click().run()
+
+    assert not at.exception
+    # 5 个会话键逐键断言（navigate_to_problem 无 topic_slug 分支写入面＋language 页消费终态）：
+    assert at.session_state["route"] == "language", "键1 route"
+    assert at.session_state["selected_lang"] == "python", "键2 selected_lang"
+    assert at.session_state["selected_topic_idx"] == 0, "键3 selected_topic_idx（无 topic_slug 重置）"
+    assert at.session_state["selected_problem_idx"] == 0, "键4 selected_problem_idx"
+    # 键5 selection：navigate 写入后由 language 页 pop 消费（一次性传递键，转成 idx 落位）——
+    # 终态不在 session_state 是**既定语义**（pop 消费式），用「不在册」钉住。
+    assert "selection" not in at.session_state, "selection 应被 language 页一次性消费"
+
+    assert len(at.error) == 0, "恢复后不得残留未知路由横幅"
+    # 编辑器渲染面：language 页对 python 首题渲染出代码编辑器——
+    # 会话键 editor_<pid>_<epoch>（_editor_key 形态，AppTest 的 session_state 不暴露 keys()，用 contains 断言）。
+    from core.loader import load_language
+    first_problem = load_language("python")[0].problems[0]
+    editor_key = f"editor_{first_problem.id}_0"
+    assert editor_key in at.session_state, f"编辑器会话键 {editor_key} 应在册（epoch 0）"
