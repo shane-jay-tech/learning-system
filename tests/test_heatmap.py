@@ -2,6 +2,7 @@
 import pytest
 from datetime import date, timedelta, datetime, timezone
 from core.progress import ProgressDAO
+from ui.pages.dashboard import HEATMAP_SQL  # l1002-65：同源化——与 dashboard 侧共用一份 SQL，杜绝副本过期
 
 
 @pytest.fixture
@@ -15,9 +16,7 @@ def dao(tmp_path):
 class TestHeatmapAggregation:
     def test_empty_db_returns_empty(self, dao):
         rows = dao.conn.execute(
-            "SELECT DATE(ts) AS d, COUNT(*) AS n, SUM(passed) AS p "
-            "FROM attempts WHERE ts >= datetime('now', '-90 days') "
-            "GROUP BY d ORDER BY d"
+            HEATMAP_SQL
         ).fetchall()
         assert rows == []
 
@@ -26,9 +25,7 @@ class TestHeatmapAggregation:
         dao.record_attempt("python", "p2", "x=2", False, "")
         dao.record_attempt("python", "p3", "x=3", True, "")
         rows = dao.conn.execute(
-            "SELECT DATE(ts) AS d, COUNT(*) AS n, SUM(passed) AS p "
-            "FROM attempts WHERE ts >= datetime('now', '-90 days') "
-            "GROUP BY d ORDER BY d"
+            HEATMAP_SQL
         ).fetchall()
         assert len(rows) == 1
         assert rows[0][1] == 3  # count
@@ -46,10 +43,7 @@ class TestHeatmapAggregation:
             ("python", "p2", "x", 1, "", f"{today} 09:00:00")
         )
         dao.conn.commit()
-        rows = dao.conn.execute(
-            "SELECT DATE(ts) AS d, COUNT(*) AS n FROM attempts "
-            "WHERE ts >= datetime('now', '-90 days') GROUP BY d ORDER BY d"
-        ).fetchall()
+        rows = dao.conn.execute(HEATMAP_SQL).fetchall()
         assert len(rows) == 2
 
 

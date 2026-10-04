@@ -583,15 +583,20 @@ def _render_achievements(dao):
                 )
 
 
+# l1002-65（l922-110 遗留同源化）：热力图 SQL 单源——tests/test_heatmap.py 引用同一常量，
+# 本侧改口径（localtime/91 天）时测试编译即知，杜绝"测试测自己那份拷贝"的假绿。
+HEATMAP_SQL = (
+    "SELECT DATE(ts, 'localtime') AS d, COUNT(*) AS n, SUM(passed) AS p "
+    "FROM attempts WHERE ts >= datetime('now', '-91 days') "
+    "GROUP BY d ORDER BY d"
+)
+
+
 def _render_heatmap(dao):
     """13 周（91 个日格）学习热力图。"""
     section_title("📅 学习热力图（最近 13 周）")
 
-    rows = dao.conn.execute(
-        "SELECT DATE(ts, 'localtime') AS d, COUNT(*) AS n, SUM(passed) AS p "
-        "FROM attempts WHERE ts >= datetime('now', '-91 days') "
-        "GROUP BY d ORDER BY d"
-    ).fetchall()
+    rows = dao.conn.execute(HEATMAP_SQL).fetchall()
     if not rows:
         render_empty_state("还没有提交记录", "开始做题后这里会展示热力图")
         return
