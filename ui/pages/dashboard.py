@@ -499,7 +499,7 @@ def _render_cross_recommend(dao):
                     "recommendation_id": rec_id, "reason_code": "cross_path", "rank": rank,
                 }
             except Exception:
-                logger.debug("dashboard: 跨路径推荐展示异常", exc_info=True)
+                logger.debug("dashboard: 跨路径推荐展示数据异常", exc_info=True)  # l1002-86：「数据异常」用词与主区统一；跨路径前缀保两区可辨识
 
     for _rank, it in checked_cross:  # l930-04：渲染循环同吃预检结果（LANG_META 取值处不再裸奔）
         meta = LANG_META[it["lang"]]

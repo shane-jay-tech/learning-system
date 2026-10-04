@@ -435,7 +435,7 @@ def test_navigate_runs_after_the_delivered_emit_not_instead_of_it(wire, fake_st,
 #     见 docs/insights/learn-shown-writeorder-design-20260923.md（本文件例 B 的第 ④ 条断言）。
 # ---------------------------------------------------------------------------
 
-CROSS_MSG = "dashboard: 跨路径推荐展示异常"          # l923-07 起：展示侧专用（新 except 真在用）
+CROSS_MSG = "dashboard: 跨路径推荐展示数据异常"      # l1002-86：用词与主区统一（「数据异常」）；跨路径前缀保可辨识
 CROSS_CLICK_MSG = "dashboard: 跨路径推荐点击上报异常"  # l923-07 名实订正后的点击侧文案
 CROSS_SHOWN_KEY = "_cross_rec_shown_ids"
 
@@ -510,7 +510,7 @@ def test_cross_shown_event_failure_is_contained_per_item(wire, monkeypatch, fake
     :349-367），与 dashboard 区 :169-183 同型。本例现在钉四件事：
       ① 异常不外窜（函数正常返回）；
       ② 连带半径归零——首条炸了，第 2、3 条仍各上报一次并送达事件库；
-      ③ 展示侧日志真发出：DEBUG、带栈、文案「跨路径推荐展示异常」（本区现在配得上这句话）；
+      ③ 展示侧日志真发出：DEBUG、带栈、文案「跨路径推荐展示数据异常」（l1002-86 用词统一后形态）；
       ④ 🔴 **l927-37 翻面**：写序已由 `add → impressions → emit` 换成 `emit → add → impressions`
          （A2，设计稿 docs/insights/learn-shown-writeorder-design-20260923.md §三 A2／§七）。
          旧断言钉的是"失败那条本地有账、库里永无 ⇒ 本地比事件库多 1"（悬空账），
