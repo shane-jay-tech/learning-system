@@ -11,8 +11,10 @@ from ui.components import ALL_LANGS, LANG_META
 # 这句原本只写在面板页面（ui/pages/dashboard.py 报告区的 st.caption，l923-11 实测现值 :232；
 # 原注写的 :189 是 l922-106 时点数，此后该文件长了 40+ 行早已失真），下载的 .md/.html
 # 与「预览报告」都不含它——注记随文件流失，跨期纵向对比失真的风险被带走。
-# 现在 report_to_markdown / report_to_html 两条渲染出口共用本常量（面板 caption 保留不删）。
-# 文案改动须与 a-47/c-04 的面板同步；tests/test_report_markdown_contract.py 有同句用例兜底。
+# 现在 report_to_markdown / report_to_html 两条渲染出口与面板 caption **直接引用本常量**
+# （l923-11 后面板同步是构造性事实，不再是人工义务；l1002-83 订正——原注「面板 caption
+# 保留不删」「文案改动须与 a-47/c-04 的面板同步」两句已过期）。
+# tests/test_report_markdown_contract.py 有同句用例兜底。
 CALIBER_NOTE = "口径提示：任务条数口径随阅读合并规则变更，不同期的周报/月报条数不可直接纵向比较。"
 
 
