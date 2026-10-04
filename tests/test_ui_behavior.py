@@ -625,7 +625,7 @@ def test_mistakes_wrapper_and_nonempty_tabs(monkeypatch):
     monkeypatch.setattr(mistakes_page, "ProgressDAO", lambda: dao)
     sections = []
     monkeypatch.setattr(mistakes_page, "_render_due_reviews", lambda d, rows: sections.append("due"))
-    monkeypatch.setattr(mistakes_page, "_render_wrong_problems", lambda d, rows: sections.append("wrong"))
+    monkeypatch.setattr(mistakes_page, "_render_wrong_problems", lambda rows: sections.append("wrong"))  # l1002-69 同批：dao 死形参已清
     monkeypatch.setattr(mistakes_page, "_render_weak_topics", lambda d, rows: sections.append("weak"))
     mistakes_page.render_mistakes()
     assert sections == ["due", "wrong", "weak"]
