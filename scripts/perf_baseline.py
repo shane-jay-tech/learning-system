@@ -5,6 +5,7 @@ Usage:
     python scripts/perf_baseline.py --quick  # 1 sample (CI / quick check)
     python scripts/perf_baseline.py --json   # Output JSON to stdout
 """
+import argparse
 import json
 import statistics
 import sys
@@ -55,9 +56,15 @@ def measure_once(name, fn, target_ms):
 
 def main():
     global _quiet
-    quick = "--quick" in sys.argv
-    json_out = "--json" in sys.argv
-    md_out = "--markdown" in sys.argv
+    # l1002-65：argparse 化统一 --help（无参默认行为不变；旗标语义与原 sys.argv in 判定逐字等价）
+    parser = argparse.ArgumentParser(description="Performance baseline — measures key operations with multi-sampling")
+    parser.add_argument("--quick", action="store_true", help="1 sample per operation (CI / quick check)")
+    parser.add_argument("--json", action="store_true", help="Output JSON to stdout")
+    parser.add_argument("--markdown", action="store_true", help="Output markdown table to stdout")
+    args = parser.parse_args()
+    quick = args.quick
+    json_out = args.json
+    md_out = args.markdown
     _quiet = json_out or md_out
     samples = 1 if quick else SAMPLES
     mode = "quick (1 sample)" if quick else f"multi-sample ({samples}x + {WARMUP} warmup)"

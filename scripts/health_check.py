@@ -4,6 +4,7 @@ Checks: Python version, sqlite3, llm_call.py, g++ (C++), Rscript (R).
 Prints ASCII-only output (Windows GBK consoles cannot render emoji).
 """
 import os
+import argparse
 import sys
 import shutil
 import subprocess
@@ -29,6 +30,8 @@ def _check(name: str, ok: bool, detail: str = "") -> bool:
 
 
 def main() -> int:
+    # l1002-65：argparse 化统一 --help（无参默认行为不变）
+    argparse.ArgumentParser(description="learning-system environment health check (read-only)").parse_args()
     print("learning-system health check")
     print("-" * 40)
     failed = []
