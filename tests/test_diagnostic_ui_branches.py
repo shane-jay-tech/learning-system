@@ -15,6 +15,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import ui.components as components
 import ui.pages.diagnostic as diagnostic_page
 from core.diagnostic import DIAGNOSTIC_QUESTIONS
 
@@ -49,6 +50,8 @@ def fake(monkeypatch):
     """默认：提交按钮按下。radio 结果与按钮由用例经 fake.radios/fake.buttons 调。"""
     f = DiagnosticFakeStreamlit(buttons={"提交诊断": True})
     monkeypatch.setattr(diagnostic_page, "st", f)
+    # l1002-78 双侧接线：warning 档迁 render_notice（落在 components.st），单侧录不到。
+    monkeypatch.setattr(components, "st", f)
     return f
 
 

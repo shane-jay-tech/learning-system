@@ -7,7 +7,7 @@ import streamlit as st
 from core.loader import load_language
 from core.paths import LearningPath, Milestone, get_milestone_topics_flat, load_all_paths, load_path
 from core.progress import ProgressDAO
-from ui.components import render_empty_state, render_error_notice
+from ui.components import render_empty_state, render_error_notice, render_info_notice, render_success_notice
 from ui.components import hero, navigate_to_problem
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def _render_diagnostic_prompt(dao: ProgressDAO):
     result = get_diagnostic_result(dao)
     if result:
         rec = result["recommendation"]
-        st.success(f"📋 诊断推荐：{rec['message']}")
+        render_success_notice(f"📋 诊断推荐：{rec['message']}")
     else:
         with st.container(border=True):
             st.markdown("**不确定从哪开始？** 做个 2 分钟诊断，帮你找到最适合的路径。")
@@ -136,7 +136,7 @@ def _render_milestone(path: LearningPath, milestone: Milestone, idx: int, dao: P
 
         if not prereqs_met:
             prereq_names = [m.title for m in path.milestones if m.id in milestone.prereqs]
-            st.info(f"建议先完成：{', '.join(prereq_names)}（可跳过）")
+            render_info_notice(f"建议先完成：{', '.join(prereq_names)}（可跳过）")
 
         if progress["total"]:
             st.progress(progress["pct"])

@@ -397,6 +397,7 @@ def test_diagnostic_wrapper_and_result_render(monkeypatch):
     fake = FakeStreamlit()
     original_render_result = diagnostic_page._render_result
     monkeypatch.setattr(diagnostic_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # l1002-78 双侧接线：info/success 档走 render_* 族
     monkeypatch.setattr(diagnostic_page, "hero", lambda *a, **kw: None)
 
     class DAO:
@@ -577,6 +578,7 @@ def test_path_page_rendering_branches(monkeypatch):
 def test_path_prompt_card_and_milestone_render(monkeypatch):
     fake = FakeStreamlit(buttons={"开始诊断": True})
     monkeypatch.setattr(path_page, "st", fake)
+    monkeypatch.setattr(components, "st", fake)  # l1002-78 双侧接线：success 档走 render_success_notice
     monkeypatch.setattr("core.diagnostic.get_diagnostic_result", lambda dao: None)
     path_page._render_diagnostic_prompt(SimpleNamespace())
     assert fake.session_state.route == "diagnostic"

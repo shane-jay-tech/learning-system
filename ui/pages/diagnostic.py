@@ -11,7 +11,7 @@ from core.diagnostic import (
     save_diagnostic_result,
 )
 from core.progress import ProgressDAO
-from ui.components import hero
+from ui.components import hero, render_info_notice, render_notice, render_success_notice
 
 # l923-14（授权出处：docs/insights 之外的信箱档 zcode-bridge/done/l922-112-diag-retake-state.result.md
 # 的「改动留授权」出口，由主班派单 l923-14 放行）：
@@ -71,7 +71,7 @@ def render_diagnostic():
 
 
 def _render_quiz(dao):
-    st.info("按第一感觉选择即可；结果只用于推荐起点，不会限制后续课程。")
+    render_info_notice("按第一感觉选择即可；结果只用于推荐起点，不会限制后续课程。")
 
     answers = {}
     for i, q in enumerate(DIAGNOSTIC_QUESTIONS):
@@ -96,7 +96,7 @@ def _render_quiz(dao):
     with col1:
         if st.button("提交诊断", type="primary", use_container_width=True):
             if unanswered:
-                st.warning(f"还有 {len(unanswered)} 题未作答：第 {', '.join(map(str, unanswered))} 题。")
+                render_notice(f"还有 {len(unanswered)} 题未作答：第 {', '.join(map(str, unanswered))} 题。")
             else:
                 result = evaluate_diagnostic(answers)
                 save_diagnostic_result(dao, result)
@@ -113,10 +113,10 @@ def _render_result(result, dao):
     total = result["total_questions"]
     rec = result["recommendation"]
 
-    st.success(f"诊断完成！答对 {score}/{total} 题")
+    render_success_notice(f"诊断完成！答对 {score}/{total} 题")
 
     st.markdown("### 推荐学习路径")
-    st.info(rec["message"])
+    render_info_notice(rec["message"])
 
     col1, col2 = st.columns(2)
     with col1:

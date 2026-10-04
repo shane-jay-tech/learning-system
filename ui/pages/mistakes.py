@@ -9,7 +9,7 @@ from core.loader import find_problem, load_language
 # 三处字面量 50（limit 实参/汇总行文案/打满判据）一并引用，口径不变仅单源化。
 RECENT_LIMIT = 50
 from core.progress import ProgressDAO, format_local_ts
-from ui.components import render_empty_state
+from ui.components import render_empty_state, render_success_notice
 from ui.components import ALL_LANGS, LANG_META, ai_feedback_block, code_highlight_lang, hero, navigate_to_problem, section_title
 
 # find_problem 每次全量线性扫描该语言题库；错题本里每道错题都会调一次。
@@ -97,7 +97,7 @@ def _render_mistakes_body(dao: ProgressDAO):
             st.caption(f"实际到期共 {due_total} 道 · 上面只列出最先到期的 {overdue_count} 道")
 
     if wrong_count == 0 and overdue_count == 0:
-        st.success("没有错题也没有到期复习，做得不错！")
+        render_success_notice("没有错题也没有到期复习，做得不错！")
         return
 
     tab_labels = []

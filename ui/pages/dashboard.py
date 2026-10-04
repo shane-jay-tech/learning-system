@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 from core.achievements import check_achievements, get_all_earned, get_all_with_state, get_progress_summary, get_achievement
 from core.loader import find_problem
 from core.progress import ProgressDAO, format_local_ts
-from ui.components import render_empty_state, render_error_notice, render_notice
+from ui.components import render_empty_state, render_error_notice, render_info_notice, render_notice, render_success_notice
 from core.recommend import cross_recommend, recommend
 from core.report import CALIBER_NOTE, generate_report, report_to_html, report_to_markdown
 from ui.components import ALL_LANGS, LANG_META, hero, metric_tile, navigate_to_problem, section_title
@@ -123,7 +123,7 @@ def _render_dashboard_body(dao):
     # 上一次导入成功的反馈：只回显一帧，pop 掉即自动清除（想立刻清就是再触发一次 rerun）。
     _feedback = st.session_state.pop("_import_feedback", None)
     if _feedback:
-        st.success(_import_feedback_text(_feedback))
+        render_success_notice(_import_feedback_text(_feedback))
 
     streak = dao.daily_streak()
     summary = dao.summary_by_lang()
@@ -180,7 +180,7 @@ def _render_dashboard_body(dao):
     section_title("今日推荐（优先错题，再做新题）")
     plan = recommend(n=5, dao=dao)  # 复用当前连接，不再内部另开 DAO
     if not plan:
-        st.info("题库还没加载到推荐项；试着进入语言主页直接选题。")
+        render_info_notice("题库还没加载到推荐项；试着进入语言主页直接选题。")
     else:
         shown_key = "_rec_shown_ids"
         impressions_key = "_rec_impressions"
@@ -543,7 +543,7 @@ def _render_achievements(dao):
         for aid in newly:
             a = get_achievement(aid)
             if a:
-                st.success(f"🎉 解锁新成就：**{a.icon} {a.title}** — {a.description}")
+                render_success_notice(f"🎉 解锁新成就：**{a.icon} {a.title}** — {a.description}")
 
     if progress["earned"] == 0:
         render_empty_state("还没有解锁任何成就", "开始做题即可获得第一枚徽章")
