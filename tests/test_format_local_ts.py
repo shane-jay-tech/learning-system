@@ -86,3 +86,11 @@ def test_输出格式不含秒也不含时区尾巴():
         if junk != ":":
             assert not out.endswith(junk), f"输出不该带 {junk!r} 尾巴"
     datetime.strptime(out, FMT)                              # 可再解析：口径自洽
+
+
+def test_non_string_truthy_input_falls_back_without_crash():
+    """l1002-79（l924-23 遗留）：非字符串真值（int 等）原会 .split 抛 AttributeError
+    （except (ValueError, TypeError) 接不住）崩渲染面——守卫归一 str 后走兜底链不抛。"""
+    assert format_local_ts(1791149549) == "1791149549", "int 入参走兜底原样返回、不抛"
+    assert format_local_ts(None) == "", "None 维持 falsy 早退空串"
+    assert format_local_ts("2026-09-30 08:41:55") == "2026-09-30 16:41", "字符串路径零变化"

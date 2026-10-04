@@ -41,6 +41,11 @@ def format_local_ts(ts_str: Optional[str]) -> str:
     """
     if not ts_str:
         return ""
+    if not isinstance(ts_str, str):
+        # l1002-79（l924-23 遗留）：非字符串真值（如 int 时间戳）原会 .split 抛
+        # AttributeError（except (ValueError, TypeError) 接不住）崩渲染面——归一为
+        # str 后走既有解析/兜底链，崩点收口；字符串路径行为零变化。
+        ts_str = str(ts_str)
     try:
         from datetime import datetime, timezone
         dt = datetime.strptime(ts_str.split('.')[0], "%Y-%m-%d %H:%M:%S")
