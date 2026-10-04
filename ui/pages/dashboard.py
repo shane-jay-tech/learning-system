@@ -42,14 +42,24 @@ def _build_chart_data(daily, days: int = 14):
     return series, pass_series
 
 
-def _count_rows(dao, sql: str) -> int:
-    """导出缓存键专用的单表 COUNT(*)：一次计数远小于再序列化一遍全库 JSON。
-
-    sql 一律是本模块内写死的字面量（不接外部输入），故直接 execute；
-    取不到值时按 0 计，宁可多序列化一次也不能少。
-    """
-    row = dao.conn.execute(sql).fetchone()
-    return int(row[0]) if row and row[0] is not None else 0
+# l1002-64（l922-104 遗留收口）：六表「行数＋MAX(时戳)」合并为单条子查询 SELECT——
+# 一次 execute 取全部 12 个键组件（原 12 次往返）；COUNT 恒非 NULL、MAX 已 COALESCE，
+# 12 列全非空，语义与逐条执行逐位等价。
+_EXPORT_KEY_SQL = """
+SELECT
+  (SELECT COUNT(*) FROM attempts),
+  (SELECT COALESCE(MAX(ts), '') FROM attempts),
+  (SELECT COUNT(*) FROM problems_status),
+  (SELECT COALESCE(MAX(last_attempt_ts), '') FROM problems_status),
+  (SELECT COUNT(*) FROM review_state),
+  (SELECT COALESCE(MAX(updated_ts), '') FROM review_state),
+  (SELECT COUNT(*) FROM rubric_scores),
+  (SELECT COALESCE(MAX(ts), '') FROM rubric_scores),
+  (SELECT COUNT(*) FROM learning_events),
+  (SELECT COALESCE(MAX(created_at), '') FROM learning_events),
+  (SELECT COUNT(*) FROM meta),
+  (SELECT COALESCE(MAX(updated_ts), '') FROM meta)
+"""
 
 
 def _import_feedback_text(stats: dict) -> str:
@@ -347,19 +357,8 @@ def _render_dashboard_body(dao):
         # 键组件数＝2×导出面表数（test_export_cache_hit_path 的守卫已同步 2×N 口径）。
         # 已知盲区（如实登记）：绕过写端直接 UPDATE 且不刷时戳列的写入仍不可见——
         # 那属「绕过生产写端」的同一信任前提，彻底解法是 DAO 侧统一作废（备选案，未采）。
-        _exp_key = "_".join(str(v) for v in (
-            _count_rows(dao, "SELECT COUNT(*) FROM attempts"),
-            str(dao.conn.execute("SELECT COALESCE(MAX(ts), '') FROM attempts").fetchone()[0]),
-            _count_rows(dao, "SELECT COUNT(*) FROM problems_status"),
-            str(dao.conn.execute("SELECT COALESCE(MAX(last_attempt_ts), '') FROM problems_status").fetchone()[0]),
-            _count_rows(dao, "SELECT COUNT(*) FROM review_state"),
-            str(dao.conn.execute("SELECT COALESCE(MAX(updated_ts), '') FROM review_state").fetchone()[0]),
-            _count_rows(dao, "SELECT COUNT(*) FROM rubric_scores"),
-            str(dao.conn.execute("SELECT COALESCE(MAX(ts), '') FROM rubric_scores").fetchone()[0]),
-            _count_rows(dao, "SELECT COUNT(*) FROM learning_events"),
-            str(dao.conn.execute("SELECT COALESCE(MAX(created_at), '') FROM learning_events").fetchone()[0]),
-            _count_rows(dao, "SELECT COUNT(*) FROM meta"),
-            str(dao.conn.execute("SELECT COALESCE(MAX(updated_ts), '') FROM meta").fetchone()[0])))
+        # l1002-64：12 组件改由 _EXPORT_KEY_SQL 单条子查询一次取回（原 12 次往返）。
+        _exp_key = "_".join(str(v) for v in dao.conn.execute(_EXPORT_KEY_SQL).fetchone())
         if st.session_state.get("_export_cache_key") != _exp_key:
             st.session_state["_export_cache_json"] = export_json(dao)
             st.session_state["_export_cache_key"] = _exp_key

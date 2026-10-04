@@ -40,7 +40,13 @@ def _dao():
         "buckets": {"1_3": 2, "4_7": 1, "7_plus": 0},
     }
     conn = MagicMock()
-    conn.execute.return_value.fetchone.return_value = (6.5,)
+    # l1002-64：导出缓存键改单条子查询 SELECT（12 组件一次取回），fetchone 返回 12 元组
+    # （行数×6 占位 6＋MAX 时戳×6 占位值；键只看稳定性，语义等价）。
+    conn.execute.return_value.fetchone.return_value = (
+        6, "2026-09-01 12:00", 6, "2026-09-01 12:00",
+        6, "2026-09-01 12:00", 6, "2026-09-01 12:00",
+        6, "2026-09-01 12:00", 6, "2026-09-01 12:00",
+    )
     dao.conn = conn
     dao.get_meta.return_value = None
     dao.close.return_value = None
@@ -234,7 +240,13 @@ def _wire_health(monkeypatch, fake, dao):
     monkeypatch.setattr(components, "st", fake)
     monkeypatch.setattr(dashboard_page, "render_empty_state", lambda *a, **kw: None)
     conn = MagicMock()
-    conn.execute.return_value.fetchone.return_value = (6.5,)
+    # l1002-64：导出缓存键改单条子查询 SELECT（12 组件一次取回），fetchone 返回 12 元组
+    # （行数×6 占位 6＋MAX 时戳×6 占位值；键只看稳定性，语义等价）。
+    conn.execute.return_value.fetchone.return_value = (
+        6, "2026-09-01 12:00", 6, "2026-09-01 12:00",
+        6, "2026-09-01 12:00", 6, "2026-09-01 12:00",
+        6, "2026-09-01 12:00", 6, "2026-09-01 12:00",
+    )
     dao.conn = conn
     dao.get_meta.return_value = None
 
