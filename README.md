@@ -49,12 +49,23 @@ streamlit run app.py
 
 ## 学习闭环
 
-- 5 种语言并行学，进度独立；403 题、85 知识点、6 条学习路径（三项计数会随题库与 `content/paths/` 扩充变动，逐数字的复跑命令与对账见 `docs/insights/learn-readme-numbers-20260922.md`；补题需同批同步的等值点清单见 `plan.md`「题库内容规范」）。
+- 5 种语言并行学，进度独立；408 题、85 知识点、6 条学习路径（三项计数会随题库与 `content/paths/` 扩充变动，逐数字的复跑命令与对账见 `docs/insights/learn-readme-numbers-20260922.md`；补题需同批同步的等值点清单见 `plan.md`「题库内容规范」）。
 - 每题：讲解 + 编辑器 + 沙箱运行 + AI 老师点评（难度分层）+ 多轮追问 + 错题本。
 - AI 出变式题、自适应间隔复习、学习面板、报告导出、AI 进展自查。
 - 开放题按 rubric 逐维度评分并追踪历史。
 - 多路径交叉推荐：完成一条路径里程碑后，自动推荐其他路径的互补内容。
 - 学习数据可导出、可迁移、可备份；关键行为写入学习事件账本。
+
+## 信任模型（沙箱边界）
+
+（本节即首页提示所称的「安全边界」章节。）
+
+代码执行器（`core/runners/`）是**护栏而非安全边界**。按部署形态分两档：
+
+- **本机单人（默认，`RUNNER_SECURITY_MODE` 未设或 `local_only`，见 `core/config.py`）**：执行器假设操作者＝机器所有者，隔离目标是「防学生代码的意外事故」（死循环拖机、超大输出、误写文件），不是防恶意用户。现有护栏：子进程隔离＋墙钟超时＋输出/输入字节上限＋工作目录临时化＋env 白名单与 PATH 收窄（见 `core/runners/python_runner.py` 的 `_ENV_ALLOWLIST` 与 `_safe_env`）。已知未管控面：网络出站、文件系统写位（护栏外）、解释器目录内的旁路可执行文件——单人场景按可接受风险对待，材料见 `docs/insights/sandbox-network-identity-path-material-20261006.md`（F-2/F-5/F-6）与 `docs/insights/l927-11-fs-constraint-adjudication.md`（F-1 文件系统）。
+- **公开部署（`RUNNER_SECURITY_MODE=public` 或 `PUBLIC_DEPLOY=1`）**：执行器**直接拒绝运行学生代码**（`core/runners/base.py` 的 `check_security`），只保留浏览与讲解。这是当前唯一支持的公开姿态；「公开环境受控执行」所需的资源限额（`docs/insights/sandbox-resource-limits-design-20261006.md`）、出站管控与身份隔离均属未落地的安全面清单，放开前必须逐项补齐。
+
+不要把本系统暴露到公网或多人共用环境后依赖沙箱护栏充当安全边界——那是它明确不提供的保证。
 
 ## 当前能力亮点（v0.6.5）
 
