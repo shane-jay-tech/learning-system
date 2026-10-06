@@ -15,9 +15,9 @@
     session_state、不写库，`ui/components.py:54-73` 实测）⇒ 盘上必须一字不变。
   * 重新进入 = 换一条连接重开同一库再答错 ⇒ 仍不得多出第二行状态。
 
-「提示逐级展示」这条**按盘上实况否证后收窄**（见 `test_hints_are_rendered_in_one_pass...`
-与本单 result 的证据节）：`ui/pages/language.py:285-288` 是在**单个** expander 里
-一次性列出全部 hints，没有任何按失败次数/尝试数递进的门槛。
+「提示展示形态」这条已**转正为正式契约**（l1006-05/l1004-14，用户 2026-10-06 拍板一次性
+展示为正确口径）：判据挪至 `tests/test_hints_disclosure_contract.py`——一次性展示＋组合词
+防暗做扫描＋1-3 条契约机器判据（含装载层 hints[:3] 夹钳）都在那边钉。
 """
 import sqlite3
 from pathlib import Path
@@ -217,49 +217,11 @@ def test_reentry_after_passing_keeps_it_out_of_mistakes(db_path):
 
 # ------------------------------------------------------------- 提示展示形态
 
-def test_hints_are_rendered_in_one_pass_without_a_failure_gate():
-    """判据里的「提示逐级展示」在盘上**没有**对应实现 ⇒ 按实况钉住现有形态并点名分歧。
-
-    实测：`ui/pages/language.py` 的提示块是**单个** expander 内一次遍历全部 hints，
-    块内没有任何按尝试数/失败数/掌握度递进的门槛。这条用例的判别力在两处：
-      ① 精确圈出提示块的作用域（切到下一个 8 空格缩进的 `with st.expander` 为止），
-         块内必须**只有**那一次 `st.markdown(f"- {h}")`，多一档就红；
-      ② 整个 `ui/` 目录扫「提示/hint × level|stage|step|index|逐级|分档|递进」的组合词，
-         现值 0 命中 ⇒ 若有人日后真做了逐级展示，②会红，逼那次改动回来重读本条判据，
-         而不是让「逐级展示」一直停在纸面要求上。
-    """
-    src = (REPO_ROOT / "ui" / "pages" / "language.py").read_text(encoding="utf-8")
-
-    # 现有形态的必要部件（名字法取，不锚行号）
-    assert 'if active.get("hints"):' in src
-    assert 'st.expander("💡 不会做？看提示", expanded=False)' in src
-
-    block = src.split('if active.get("hints"):')[1].split('\n        with st.expander')[0]
-    assert 'for h in active["hints"]:' in block, block
-    assert block.count('st.markdown(f"- {h}")') == 1, block
-    assert "attempt_count" not in src                      # 没有按尝试次数门控
-    assert "if st.session_state" not in block              # 提示块前没有任何会话态条件
-
-    import re
-    pat = re.compile(r"(hint|提示).{0,24}(level|stage|step|index|逐级|分档|递进)")
-    hits = []
-    for path in sorted((REPO_ROOT / "ui").rglob("*.py")):
-        for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if pat.search(line):
-                hits.append(f"{path.name}:{i}:{line.strip()}")
-    assert hits == [], hits
-
-
-def test_problem_hints_are_lists_and_the_three_hint_contract_leaks():
-    """数据侧：hints 必须是 list（装载层有防拆字符串的防御），并把「1-3 条」契约的破口钉住。
-
-    `core/ai_generate.py:25,29` 对 AI 写的是「hints 3 条以内／1-3 条」，
-    但**手工内容根不受该契约约束**：现取全量题库实测有 2 道题带 4 条提示
-    （`r/10_stringr_lubridate/06_date_parsing`、`agent_dev/05_modular_config/03_split_function`）。
-    装载层 `core/loader.py::_build_problem` 不截断，页面一次性全列 ⇒
-    "上限 3" 目前只是生成提示词里的口头约定，不是任何代码里的夹钳。
-    这条用例不替那个缺口背书（不断言 ≤3），只钉：①类型必为 list、②长度分布现值、
-    ③破口的**具体题号**——这样下次有人加夹钳或删除那两题，本用例立刻报数变化。
+def test_problem_hints_are_lists_and_the_three_hint_contract():
+    """【l1006-05 翻正】「1-3 条」契约已是机器夹钳（l1004-15）：装载层 hints[:3] 在位，
+    源头两道 4 条题已同批合并整改（语义零丢失，源头分布判据见
+    tests/test_hints_disclosure_contract.py）。本例翻正为正向契约钉：类型必为 list、
+    装载分布 ≤3、无越界题。（改名前为 ..._contract_leaks「破口钉」，钉的是夹钳缺失实况。）
     """
     from core.loader import _build_problem, load_language
 
@@ -278,11 +240,9 @@ def test_problem_hints_are_lists_and_the_three_hint_contract_leaks():
                 if len(p.hints) > 3:
                     over_cap.append(p.id)
     assert sum(lengths.values()) > 0, "一道题都没读到 ⇒ 本用例空跑"
-    assert sorted(lengths) == [1, 2, 3, 4], lengths          # 现值：无 0 条的题
-    assert sorted(over_cap) == [
-        "agent_dev/05_modular_config/03_split_function",
-        "r/10_stringr_lubridate/06_date_parsing",
-    ], over_cap
+    # 【l1006-05 翻正】夹钳落地：装载分布 ≤3、无越界题（原破口两题已合并整改）
+    assert sorted(lengths) == [1, 2, 3], lengths
+    assert over_cap == [], over_cap
 
 
 def inspect_source(fn):

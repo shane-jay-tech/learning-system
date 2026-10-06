@@ -608,6 +608,10 @@ def test_真题库_run题现状字节_等于原文加恰一行judge_mode_run():
     changed = 0
     for f in _real_r_files():
         rel = str(f).replace("\\", "/")
+        # l1006-05 豁免：06_date_parsing 的 hints 经用户 2026-10-06 拍板合并整改（l1004-15），
+        # 本钉「+恰一行 judge_mode」的唯一编辑史在该题终止于该次授权编辑——剔除出字节钉名单。
+        if f.name == "06_date_parsing.yaml":
+            continue
         old_path = backup / f.parent.name / f.name
         if not old_path.exists():
             continue
@@ -621,7 +625,7 @@ def test_真题库_run题现状字节_等于原文加恰一行judge_mode_run():
             changed += 1
         else:
             assert _norm_lf(new) == _norm_lf(old), "%s（ai_open）不该被动过" % rel
-    assert changed == 70, "run 题数量漂移：%d" % changed
+    assert changed == 69, "run 题数量漂移：%d（l1006-05 豁免 06_date_parsing 后 70→69）" % changed
 
 
 def test_真题库_check通过_70_14分布门禁():

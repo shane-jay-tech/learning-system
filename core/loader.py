@@ -73,12 +73,21 @@ def get_load_diagnostics() -> List[LoadDiag]:
 
 
 def _record_load_error(yaml_path: str, exc: BaseException) -> None:
+    # l1007-02 同族（l1004-04 遗留）：[:200] 头切吃掉异常尾部（出错位置通常在 message 尾），
+    # 改头尾保留——头＋省略标记＋尾总量 ≤200：头 115（异常类型/上下文）＋尾 60（出错点）＋标记。
+    full = str(exc)
+    if len(full) <= 200:
+        message = full
+    else:
+        tail = full[-60:]
+        head_n = 200 - len(tail) - 30  # 30 = 省略标记长度上限余量
+        message = full[:head_n] + f"...[中段省略 {len(full) - head_n - 60} 字符]..." + tail
     _last_load_errors.append(
         LoadDiag(path=str(yaml_path), error_type=type(exc).__name__,
-                 message=str(exc)[:200])
+                 message=message)
     )
     logger.warning("Isolate broken content file %s: %s: %s",
-                   yaml_path, type(exc).__name__, str(exc)[:200])
+                   yaml_path, type(exc).__name__, message)
 
 
 _H1_RE = re.compile(r"^\s*#\s+(.+?)\s*$", re.MULTILINE)
@@ -197,6 +206,9 @@ def _build_problem(lang: str, slug: str, yaml_path: str, data: dict) -> Problem:
     tags = list(raw_tags) if isinstance(raw_tags, list) else [str(raw_tags)]
     raw_hints = data.get("hints") or []
     hints = list(raw_hints) if isinstance(raw_hints, list) else [str(raw_hints)]
+    # l1006-05/l1004-15：「1-3 条」契约的机器夹钳——超界行截断（内容源头已合并整改，
+    # 此处防未来手写/AI 写越界；截断留档见 yaml 原文）
+    hints = hints[:3]
     # difficulty=0 应保留 0（之前 `or 1` 把 0 强转 1）
     raw_diff = data.get("difficulty")
     difficulty = int(raw_diff) if raw_diff is not None else 1

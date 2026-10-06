@@ -20,7 +20,6 @@ expected_output: |
   2024-03-15
   2024-03-15
 hints:
-  - "ymd() 解析 YYYY-MM-DD 格式"
-  - "dmy() 解析 DD/MM/YYYY 格式"
+  - "ymd() 解析 YYYY-MM-DD 格式；dmy() 解析 DD/MM/YYYY 格式"
   - "mdy() 解析 Month DD, YYYY 格式"
   - "用 format(date, '%Y-%m-%d') 或直接 cat() 输出"

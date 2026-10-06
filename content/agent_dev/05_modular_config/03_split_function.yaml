@@ -17,5 +17,4 @@ expected_output: |
 hints:
   - "def read_data(): return [10,20,30,40,50]"
   - "def compute_avg(d): return sum(d)/len(d)"
-  - "def show(v): print(int(v))"
-  - "main: data = read_data(); avg = compute_avg(data); show(avg)"
+  - "def show(v): print(int(v))；main 组装：data = read_data(); avg = compute_avg(data); show(avg)"
