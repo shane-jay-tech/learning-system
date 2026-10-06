@@ -128,7 +128,7 @@ def test_import_touching_only_review_and_status_is_visible_in_next_export(tmp_pa
         stats = import_json(dao, json.dumps(_pkg(
             problems_status=[{"lang": "python", "problem_id": P2, "status": "solved",
                               "last_attempt_ts": "2026-09-20 10:00:00"}],
-            review_state=[{"lang": "python", "problem_id": P2, "interval_days": 4, "ease": 2.3,
+            review_state=[{"lang": "python", "problem_id": P2, "interval_days": 4, "ease": 2.0,
                            "review_streak": 2, "next_due_date": "2026-09-26", "last_result": "ok",
                            "updated_ts": "2026-09-20 10:00:00"}])))
         dao._clear_memo()                                 # 与 :241 导入成功后的动作一致
@@ -217,11 +217,12 @@ def test_ui_import_overwriting_same_rows_without_changing_counts_invalidates_cac
         rows_before = len(exports)
 
         # 另一台机器上同一道题已做对：同 (lang, problem_id) 键、行数不变、值被覆盖
+        # l1006-02/l1004-09 归并案①：同键覆盖须导入行 ts 更新（本地行是今天 mark 的，旧 ts 不再覆盖）
         pkg = _pkg(problems_status=[{"lang": "python", "problem_id": P1, "status": "solved",
-                                    "last_attempt_ts": "2026-09-21 08:00:00"}],
+                                    "last_attempt_ts": "2027-01-01 08:00:00"}],
                    review_state=[{"lang": "python", "problem_id": P1, "interval_days": 11,
-                                  "ease": 2.6, "review_streak": 5, "next_due_date": "2026-10-02",
-                                  "last_result": "ok", "updated_ts": "2026-09-21 08:00:00"}])
+                                  "ease": 2.0, "review_streak": 5, "next_due_date": "2027-01-12",
+                                  "last_result": "ok", "updated_ts": "2027-01-01 08:00:00"}])
         fake.calls.clear()
         fake.buttons[UPLOAD_LABEL] = True                  # 本次渲染里按了「确认导入」
         render(upload=_Upload(pkg))

@@ -50,7 +50,7 @@ def _pkg():
                      "last_attempt_ts": "2026-09-20 09:30:00"}],
                 "review_state": [
                     {"lang": "python", "problem_id": "python/01_x/01_p", "interval_days": 6,
-                     "ease": 2.4, "review_streak": 3, "next_due_date": "2026-09-27",
+                     "ease": 2.0, "review_streak": 3, "next_due_date": "2026-09-27",
                      "last_result": "ok", "updated_ts": "2026-09-20 09:00:00"}],
                 "meta": [{"key": "migrated_from", "value": "old-laptop",
                           "updated_ts": "2026-09-20 09:00:00"}]}}

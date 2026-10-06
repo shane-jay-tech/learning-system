@@ -403,6 +403,13 @@ class ProgressDAO:
         else:
             interval, ease, streak = 3, 2.0, 0
 
+        # l1006-02/l1004-13：值域夹钳护全通道——脏行（手改/损坏导出）在下一次写库时被夹回。
+        # ease 严档 2.0＝初值稳态上界（生产库普查 MAX(ease)=None、0 行，零回填成本）；
+        # interval/Review streak 与下界夹钳对称补齐，防 ease 失控恒顶格与负 streak 入库。
+        interval = min(max(interval, 0), 30)
+        ease = min(max(ease, 1.5), 2.0)
+        streak = max(streak, 0)
+
         if passed:
             streak += 1
             interval = min(max(interval + 1, int(interval * ease)), 30)

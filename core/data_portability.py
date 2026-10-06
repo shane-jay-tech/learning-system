@@ -115,28 +115,55 @@ def import_all(dao: ProgressDAO, payload: dict) -> dict:
          "score", "comment", "prompt_version", "model", "ts"],
         data["rubric_scores"])
 
-    # 键控表：INSERT OR REPLACE 合并（导入方数据覆盖同键旧值）
+    # 键控表：按业务 ts 归并（l1006-02/l1004-09 案①）——导入行仅在
+    # 其 updated/last_attempt ts 更新（或本地 ts 为 NULL 视作最旧）时才覆盖，
+    # 堵「旧事件冒充新事件」（导入方旧作答覆盖本地新结果）的跨设备合并病。
+    # 导入行自身 ts 为 NULL ⇒ 比较恒假 ⇒ 不覆盖现有值（保守不丢本地现行值）。
     for r in data["problems_status"]:
         if not isinstance(r, dict):
             continue
         with dao.conn:
             dao.conn.execute(
-                "INSERT OR REPLACE INTO problems_status (lang, problem_id, status, last_attempt_ts) "
-                "VALUES (?,?,?,?)",
+                "INSERT INTO problems_status (lang, problem_id, status, last_attempt_ts) "
+                "VALUES (?,?,?,?) "
+                "ON CONFLICT(lang, problem_id) DO UPDATE SET "
+                "status=excluded.status, last_attempt_ts=excluded.last_attempt_ts "
+                "WHERE excluded.last_attempt_ts > problems_status.last_attempt_ts "
+                "OR problems_status.last_attempt_ts IS NULL",
                 (r.get("lang"), r.get("problem_id"), r.get("status"), r.get("last_attempt_ts")))
         stats["problems_status"] += 1
+    skipped_review = 0
     for r in data["review_state"]:
         if not isinstance(r, dict):
             continue
+        iv = r.get("interval_days", 3)
+        ez = r.get("ease", 2.0)
+        st = r.get("review_streak", 0)
+        # l1006-02/l1004-13 折中案：值域外行跳过不导入＋计数告警（不整份拒绝、
+        # 不删数据——脏行仍留在导出文件中可人工修）；与写侧夹钳同域。
+        if not (isinstance(iv, (int, float)) and not isinstance(iv, bool) and 0 <= iv <= 30
+                and isinstance(ez, (int, float)) and not isinstance(ez, bool) and 1.5 <= ez <= 2.0
+                and isinstance(st, (int, float)) and not isinstance(st, bool) and st >= 0):
+            skipped_review += 1
+            continue
         with dao.conn:
             dao.conn.execute(
-                "INSERT OR REPLACE INTO review_state "
+                "INSERT INTO review_state "
                 "(lang, problem_id, interval_days, ease, review_streak, next_due_date, "
-                " last_result, updated_ts) VALUES (?,?,?,?,?,?,?,?)",
-                (r.get("lang"), r.get("problem_id"), r.get("interval_days", 3),
-                 r.get("ease", 2.0), r.get("review_streak", 0),
+                " last_result, updated_ts) VALUES (?,?,?,?,?,?,?,?) "
+                "ON CONFLICT(lang, problem_id) DO UPDATE SET "
+                "interval_days=excluded.interval_days, ease=excluded.ease, "
+                "review_streak=excluded.review_streak, next_due_date=excluded.next_due_date, "
+                "last_result=excluded.last_result, updated_ts=excluded.updated_ts "
+                "WHERE excluded.updated_ts > review_state.updated_ts "
+                "OR review_state.updated_ts IS NULL",
+                (r.get("lang"), r.get("problem_id"), iv, ez, st,
                  r.get("next_due_date"), r.get("last_result"), r.get("updated_ts")))
         stats["review_state"] += 1
+    if skipped_review:
+        print(f"[import] review_state 跳过 {skipped_review} 行值域外数据"
+              f"（值域：interval∈[0,30], ease∈[1.5,2.0], streak≥0）——脏行保留在导出文件中未导入")
+        stats["review_state_skipped"] = skipped_review
     for r in data["meta"]:
         if not isinstance(r, dict) or not r.get("key"):
             continue

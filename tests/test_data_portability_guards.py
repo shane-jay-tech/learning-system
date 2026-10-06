@@ -35,10 +35,10 @@ def _payload() -> dict:
                 "垃圾行（非 dict）",
             ],
             "review_state": [
-                {"lang": "python", "problem_id": "g1", "interval_days": 3, "ease": 2.5,
+                {"lang": "python", "problem_id": "g1", "interval_days": 3, "ease": 2.0,
                  "review_streak": 1, "next_due_date": "2026-09-20", "last_result": "pass",
                  "updated_ts": "2026-09-15T00:00:00"},
-                {"lang": "python", "problem_id": "g2", "interval_days": 3, "ease": 2.5,
+                {"lang": "python", "problem_id": "g2", "interval_days": 3, "ease": 2.0,
                  "review_streak": 1, "next_due_date": "2026-09-20", "last_result": "pass",
                  "updated_ts": "2026-09-15T00:00:00"},
                 "垃圾行（非 dict）",
