@@ -586,7 +586,13 @@ def test_真题库_每行删掉再插回_字节完全相等():
 
 
 def test_真题库_run题现状字节_等于原文加恰一行judge_mode_run():
-    """70 道 run 题的现状字节 == 备份的改动前字节 + 恰一行（对照 data/backups 的 pre-D6 基线）。"""
+    """70 道 run 题的现状字节 == 备份的改动前字节 + 恰一行（对照 data/backups 的 pre-D6 基线）。
+
+    l927-24（2026-09-30）起行尾统一 LF（.gitattributes eol=lf，24 个 yaml 盘上规范化），
+    本钉改为**EOL 归一字节对照**：两侧各自 CRLF→LF 归一后再比，"恰一行"语义不变——
+    仍证明现状 = 改动前原文 + 恰一行 judge_mode，不允任何其他编辑。备份原件不动
+    （manifest sha256 仍对**原始字节**核，证据链不受本钉翻新影响）。
+    """
     backup = Path("data/backups/content-20260920-133722/content/r")
     if not backup.is_dir():
         pytest.skip("pre-D6 备份不在盘上（%s），跳过字节基线对照" % backup)
@@ -595,6 +601,10 @@ def test_真题库_run题现状字节_等于原文加恰一行judge_mode_run():
             .read_text(encoding="utf-8").splitlines():
         h, p = line.split(None, 1)
         manifest[p.replace("\\", "/")] = h
+
+    def _norm_lf(b: bytes) -> bytes:
+        return b.replace(b"\r\n", b"\n")
+
     changed = 0
     for f in _real_r_files():
         rel = str(f).replace("\\", "/")
@@ -602,15 +612,15 @@ def test_真题库_run题现状字节_等于原文加恰一行judge_mode_run():
         if not old_path.exists():
             continue
         old = old_path.read_bytes()
-        # 备份自身完整性：manifest 的 sha256 必须对得上（证据链）
+        # 备份自身完整性：manifest 的 sha256 必须对得上（证据链，核原始字节）
         assert hashlib.sha256(old).hexdigest() == manifest[rel], "备份文件被改动：%s" % rel
         new = f.read_bytes()
         if yaml.safe_load(new.decode("utf-8"))["judge_mode"] == "run":
-            assert new == _expected_after_insert(old, MARK_LINE), \
-                "%s 不等于「改动前原文 + 恰一行」" % rel
+            assert _norm_lf(new) == _expected_after_insert(_norm_lf(old), MARK_LINE), \
+                "%s 不等于「改动前原文 + 恰一行」（EOL 归一口径）" % rel
             changed += 1
         else:
-            assert new == old, "%s（ai_open）不该被动过" % rel
+            assert _norm_lf(new) == _norm_lf(old), "%s（ai_open）不该被动过" % rel
     assert changed == 70, "run 题数量漂移：%d" % changed
 
 

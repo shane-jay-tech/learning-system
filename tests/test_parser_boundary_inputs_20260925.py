@@ -174,15 +174,17 @@ class TestSyntaxErrorLocation:
         # 反向对照：不折算的原始行号确实是 9（证明 3 不是"恰好等于行数"的巧合）
         assert "line 9" in r.stderr
 
-    def test_column_is_never_located_for_python(self, runner):
-        """**缺陷 D-12**：卷宗要求"行列"，本仓 Python 侧**只有行**——
-        解释器已在 caret 行里给出列，但 `locate_column` 只对 cpp 生效。
+    def test_column_now_located_for_python_d12_fixed(self, runner):
+        """**D-12 已修（l927-02，2026-09-30）**：解释器 caret 行里的列不再被丢掉。
+        原钉（本文件旧版）钉的是缺陷实况 `locate_column("python", …) is None`；
+        修法落地后本钉翻转为修复钉，cpp 对照原样保留。列号口径＝去缩进显示行
+        （CPython 3.12 打印即去缩进，4 空格打印前缀），详见 error_feedback docstring。
         """
         r = runner.run("a = 1\nb = 2\nprint(\n")
         caret = [ln for ln in r.stderr.splitlines() if set(ln.strip()) == {"^"}]
         assert caret, "解释器本身是给了列位置的"
         assert caret[0].index("^") > 0
-        assert locate_column("python", r.stderr) is None      # 实况：列被丢掉
+        assert locate_column("python", r.stderr) == caret[0].index("^") - 3
         assert locate_column("cpp", "main.cpp(3:6): error: expected ';'") == 6  # 对照：cpp 有列
 
     def test_undefined_name_and_syntax_land_in_different_classes(self, runner):

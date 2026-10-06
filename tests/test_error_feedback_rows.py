@@ -70,7 +70,8 @@ def test_行号折算回编辑器行_偏移量由preamble现算():
 def test_折算端到端_diff_hint里出现的行号就是编辑器行号():
     r = PythonRunner().run(CODE_LINE5)
     hint = _row_feedback("python", r)
-    assert "第 5 行：" in hint, hint
+    # l927-02 后反馈带列号（"第 5 行第 7 列："），行号钉从"第 5 行："放宽到"第 5 行"
+    assert "第 5 行" in hint, hint
     # 反例自证：原始诊断里那个更大的行号仍在 stderr（可追溯），但没漏进反馈
     assert re.search(r"line \d+", hint) is None, f"反馈里混进了未折算的行号：{hint}"
 

@@ -114,9 +114,17 @@ def headline(kind: str) -> str:
 
 _PY_FILE_LINE_RE = re.compile(r'File "[^"]*main\.(?:py|R)", line (\d+)')
 _PY_ANY_LINE_RE = re.compile(r'File "[^"]*main\.py", line (\d+)')
+#: 帧头（不带行号捕获，取**位置**用）：caret 必须锚定"最后一个 main.py 帧"——
+#: 库帧会排在学生帧之后（3.11+ 每帧都带 caret），取"最后一个 caret 块"会指到库帧头上。
+_PY_FRAME_RE = re.compile(r'File "[^"]*main\.(?:py|R)"')
+#: caret 标记行：只有空白与 ^/~（`~~~~^~~~~` 形态也算），3.12 会把 `~` 画在非错误端上
+_PY_CARET_LINE_RE = re.compile(r"[ \t]*[\^~]+")
 _CPP_RE = re.compile(r"main\.cpp\((\d+)(?::(\d+))?\)\s*:\s*(?:fatal\s+)?(?:error|warning)")
 _CPP_COLON_RE = re.compile(r"main\.cpp:(\d+)(?::(\d+))?\s*:\s*(?:fatal\s+)?(?:error|warning)")
 _R_LINE_RE = re.compile(r"at\s+#?(\d+)\s*[:|]|line\s+(\d+)\b|main\.R\((\d+)\)")
+#: R ≥ 4.3 解析错报文自带 `行:列:`（如 `Error: main.R:2:7: unexpected symbol`）。
+#: 只在含 "Error" 的行上找，防把学生自己打印的时间戳（12:30: …）当成坐标。
+_R_LINE_COL_RE = re.compile(r"(?<!\d)(\d+):(\d+):(?=\s)")
 _SQL_NEAR_RE = re.compile(r'near "([^"]*)"')
 
 
@@ -144,14 +152,56 @@ def locate(lang: str, stderr: str) -> Optional[int]:
     return None  # sql 跑的是内存里的一条语句，没有"第几行"可言
 
 
-def locate_column(lang: str, stderr: str) -> Optional[int]:
-    if lang != "cpp":
+def _py_caret_column(stderr: str) -> Optional[int]:
+    """从 CPython 诊断里抽 caret 列：锚定最后一个 main.py 帧，取其后**本帧段**内首个 caret 行。
+
+    列号口径＝CPython 3.12 把源码行**去缩进**后打印（4 空格打印前缀），
+    故这里给出的是"去缩进显示行"上的列——与解释器自己画的 caret 同一口径。
+    学生行首有缩进时，编辑器里的绝对列还要加上缩进宽（stderr 里无从得知，如实缺省）。
+    """
+    frames = list(_PY_FRAME_RE.finditer(stderr))
+    if not frames:
         return None
-    for rx in (_CPP_RE, _CPP_COLON_RE):
-        m = rx.search(stderr or "")
-        if m and m.group(2):
-            return int(m.group(2))
+    start = frames[-1].end()
+    nxt = stderr.find('File "', start)
+    segment = stderr[start: nxt] if nxt != -1 else stderr[start:]
+    for line in segment.splitlines():
+        m = _PY_CARET_LINE_RE.match(line)
+        if m and set(line.strip()) <= {"^", "~"}:
+            idx = len(m.group(0)) - len(m.group(0).lstrip(" \t"))  # 首个 ^/~ 的下标
+            if idx >= 4:  # 前缀 4 空格是打印产物；caret 不该落在前缀里
+                return idx - 3
+            return None
     return None
+
+
+def locate_column(lang: str, stderr: str) -> Optional[int]:
+    """返回**学生代码里**的列号；抽不到返回 None（宁缺勿错，绝不瞎猜）。
+
+    - cpp：g++ 报文 `main.cpp(行:列)`／`main.cpp:行:列:`。
+    - python/agent_dev：CPython 3.11+ 的 caret 标记行（含 `~~~^~~~` 形态），
+      列号相对去缩进显示行（见 `_py_caret_column`）。
+    - r：R ≥ 4.3 解析错报文自带 `行:列:`；运行期错误不带位置 ⇒ None。
+      （本机暂无 Rscript，形态按 R 4.3 报文钉合成用例；工具链在位窗复测。）
+    - sql：SQLite 报文不带任何位置信息 ⇒ 恒 None（实测契约，不是缺口）。
+    """
+    text = stderr or ""
+    if lang == "cpp":
+        for rx in (_CPP_RE, _CPP_COLON_RE):
+            m = rx.search(text)
+            if m and m.group(2):
+                return int(m.group(2))
+        return None
+    if lang in _STUDENT_LANGS:
+        return _py_caret_column(text)
+    if lang == "r":
+        for line in text.splitlines():
+            if "Error" in line:
+                m = _R_LINE_COL_RE.search(line)
+                if m:
+                    return int(m.group(2))
+        return None
+    return None  # sql：SQLite 报文不带位置信息，见 docstring
 
 
 def where_phrase(lang: str, stderr: str) -> str:

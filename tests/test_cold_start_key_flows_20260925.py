@@ -205,7 +205,9 @@ def test_python_runtime_error_is_located_at_student_line_not_runner_preamble(col
 
 
 def test_sql_wrong_answer_is_located_at_row_and_column(cold_db):
-    """环节⑤错误定位（SQL 路）：报「第 N 行第 M 列」并给出实际/期望值。"""
+    """环节⑤错误定位（SQL 路）：报「第 N 行第 M 列」坐标。
+    l927-15（K-3，2026-09-30）起定位**不给值**（原钉「99/10 在 hint 里」是 154241 登记的
+    逐格 oracle 泄漏面），改钉坐标＋该列类型；行号折算与反向对照原样保留。"""
     p = {"id": "sql/locate/1", "title": "t", "statement": "s",
          "setup_sql": "CREATE TABLE t(a INTEGER, b INTEGER); "
                       "INSERT INTO t VALUES (1,10),(2,20);",
@@ -213,7 +215,8 @@ def test_sql_wrong_answer_is_located_at_row_and_column(cold_db):
     r = judge("sql", p, "SELECT a, b FROM t ORDER BY a", dao=cold_db)
     assert r.passed is False
     assert "第 1 行第 2 列" in r.diff_hint, r.diff_hint
-    assert "99" in r.diff_hint and "10" in r.diff_hint, f"定位里没带实际/期望值：{r.diff_hint}"
+    assert "整数" in r.diff_hint, f"定位该给该列类型：{r.diff_hint}"
+    assert "99" not in r.diff_hint and "10" not in r.diff_hint, f"K-3 后定位不得携带值：{r.diff_hint}"
 
     ok = judge("sql", {**p, "id": "sql/locate/2", "expected_rows": [[1, 10], [2, 20]]},
                "SELECT a, b FROM t ORDER BY a", dao=cold_db)

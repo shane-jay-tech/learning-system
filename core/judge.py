@@ -242,8 +242,10 @@ def _run_test_cases(runner, lang: str, code: str, pdict: dict) -> tuple:
                     if len(actual_rows) != len(expected_rows):
                         diff_hint = f"行数：实际 {len(actual_rows)} / 期望 {len(expected_rows)}"
                     else:
-                        r_i, c_i, av, ev = _first_diff_cell(actual_rows, expected_rows)
-                        diff_hint = (f"第 {r_i} 行第 {c_i} 列不一致：实际 {av} / 期望 {ev}。"
+                        r_i, c_i, _av, ev = _first_diff_cell(actual_rows, expected_rows)
+                        # K-3（154241 验收③）：逐格 oracle 不给值，只给坐标与该列类型——
+                        # 「实际 Alice / 期望 1」可被反复提交逐格试探重建整个结果集
+                        diff_hint = (f"第 {r_i} 行第 {c_i} 列与期望不一致（该列类型＝{_type_cn(ev)}）。"
                                      f"请检查 SELECT 字段顺序与 ORDER BY。")
                     break
             else:
@@ -270,16 +272,41 @@ def _run_test_cases(runner, lang: str, code: str, pdict: dict) -> tuple:
     return passed, last_run_result, diff_hint
 
 
-def _build_display(lang: str, pdict: dict, run_result) -> tuple:
-    """构造 expected_display 和 actual_display。"""
+def _type_cn(v) -> str:
+    """期望单元格值的类型中文名（K-3：定位给类型，不给值）。"""
+    if isinstance(v, bool):
+        return "布尔"
+    if isinstance(v, int):
+        return "整数"
+    if isinstance(v, float):
+        return "小数"
+    if v is None:
+        return "空值"
+    return "文本"
+
+
+def _build_display(lang: str, pdict: dict, run_result, passed: bool = True) -> tuple:
+    """构造 expected_display 和 actual_display。
+    K-2（154241 验收③）：未通过只下发规模差异（行数差/行数+字符数），通过后才全量对照
+    （earned reveal，与开放题「写完再看」同构）；学生自己的 actual_display 不是泄漏面，原样。"""
     if pdict.get("expected_rows") is not None:
-        expected_display = _format_rows(pdict["expected_rows"])
+        if passed:
+            expected_display = _format_rows(pdict["expected_rows"])
+        else:
+            expected_display = (f"期望 {len(pdict['expected_rows'])} 行"
+                                f"（未通过时只显示行数差异，答对后展示全量对照）")
         actual_display = (
             _format_rows(run_result.rows) if run_result and run_result.rows is not None
             else ((run_result.stdout or "") if run_result else "(空)")
         ) or "(空)"
     else:
-        expected_display = _normalize(pdict.get("expected_output") or "", lang) or "(空)"
+        expected_text = _normalize(pdict.get("expected_output") or "", lang) or "(空)"
+        if passed:
+            expected_display = expected_text
+        else:
+            n_lines = len(expected_text.splitlines())
+            expected_display = (f"期望 {n_lines} 行 / {len(expected_text)} 字符"
+                                f"（未通过时只显示规模，答对后展示全量对照）")
         actual_display = _normalize(run_result.stdout if run_result else "", lang) or "(空)"
     return expected_display, actual_display
 
@@ -288,12 +315,12 @@ def judge(lang: str, problem, code: str, dao: Optional[ProgressDAO] = None) -> J
     pdict = _to_problem_dict(problem)
 
     if not (code or "").strip():
-        # 空代码：直接友好拒绝，四语言行为统一（此前 Python/R 空代码会"通过"）
-        expected_display, _ = _build_display(lang, pdict, None)
+        # 空代码：直接友好拒绝，四语言行为统一（此前 Python/R 空代码会"通过"）。
+        # K-1（154241 验收③）：不构造期望显示——零努力提交从「即得答案」变为「只得到拒绝话术」
         return JudgeResult(
             passed=False, run_result=None,
             ai_feedback="代码为空：请在编辑器中写下你的解答，再点「提交」。",
-            expected_display=expected_display, actual_display="(空)",
+            expected_display="", actual_display="(空)",
             diff_hint="代码为空",
         )
 
@@ -310,7 +337,7 @@ def judge(lang: str, problem, code: str, dao: Optional[ProgressDAO] = None) -> J
 
     runner = _RUNNERS[lang]
     passed, run_result, diff_hint = _run_test_cases(runner, lang, code, pdict)
-    expected_display, actual_display = _build_display(lang, pdict, run_result)
+    expected_display, actual_display = _build_display(lang, pdict, run_result, passed)
     feedback = review(lang, pdict, code, run_result, passed)
     difficulty = int(pdict.get("difficulty") or 3)
     _record_attempt(lang, pdict.get("id") or "", code, passed, feedback, dao, difficulty)
