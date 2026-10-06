@@ -98,8 +98,8 @@ class TestNoBareGlobalKeyLeft:
 
     def test_language_page_reads_and_writes_only_via_helper(self):
         src = Path(language_page.__file__).read_text(encoding="utf-8")
-        # 6 处 = 1 写（:335）+ 2 读（:348 判空 / :351 取值）+ 3 清（:279/:292/:318）
-        assert src.count("judge_result_key(active_id)") == 6, (
+        # 7 处 = 1 写 + 2 读 + 3 清 + 1 禁点判断（l1006-03：同题同码已判定时 disabled）
+        assert src.count("judge_result_key(active_id)") == 7, (
             "language.py 里按 active_id 取键的站点数变了：读写必须同源于 "
             "ui.components.judge_result_key，任何一处自己拼字面量都会「写在一格、读在另一格」"
         )

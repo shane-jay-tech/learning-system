@@ -216,7 +216,14 @@ def test_dispatcher层_loader形态与裸dict形态四路一致(monkeypatch, tmp
     monkeypatch.setattr(judge_mod, "review", lambda *a, **kw: "FB")
     dao = ProgressDAO(str(tmp_path / "j2.db"))
     try:
-        got = [_judge_fields("r", p, CODE, dao) for p in (explicit, missing, p_base, p_alt)]
+        # l1006-03 幂等后：同库同题同码第四路会命中重放形态——本例意图是输入形态归一，
+        # 逐路清结算行使重放不介入（幂等行为由 test_submission_idempotency_l100603.py 专钉）
+        got = []
+        for _p in (explicit, missing, p_base, p_alt):
+            got.append(_judge_fields("r", _p, CODE, dao))
+            _pid_v = _p.get("id") if isinstance(_p, dict) else getattr(_p, "id", "")
+            dao.conn.execute("DELETE FROM attempts WHERE lang=? AND problem_id=?", ("r", _pid_v or ""))
+            dao.conn.commit()
     finally:
         dao.close()
     assert got[0] == got[1] == got[2] == got[3], "四种输入形态的结果不一致：%r" % (got,)

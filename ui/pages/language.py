@@ -378,7 +378,15 @@ def _render_body(lang, topics, topic, dao):
         run_col, reset_col, ask_col = st.columns([2, 1, 2])
         with run_col:
             btn_label = "📝 提交给 AI 评判" if is_open else "▶ 提交运行"
-            run_clicked = st.button(btn_label, type="primary", use_container_width=True, key=f"run_{active_id}")
+            # ①l1006-03/l1004-07：同题同代码已判定时禁点（挡手抖重复提交；改代码即解禁）
+            _already_judged = (
+                st.session_state.get(judge_result_key(active_id)) is not None
+                and (code or "") == (st.session_state.get(f"submitted_code::{active_id}") or "")
+            )
+            run_clicked = st.button(btn_label, type="primary", use_container_width=True,
+                                    key=f"run_{active_id}", disabled=_already_judged)
+            if _already_judged:
+                st.caption("↻ 本次代码已判定（重复提交不会重复计分）；改动代码后可再次提交。")
         with reset_col:
             if st.button("↺ 重置", use_container_width=True, key=f"reset_{active_id}"):
                 st.session_state[key] = active.get("starter_code", "")
@@ -404,6 +412,7 @@ def _render_body(lang, topics, topic, dao):
                 result = judge(lang, active, code or "", dao=judge_dao)
             st.session_state[judge_result_key(active_id)] = result
             st.session_state.last_judge_pid = active_id
+            st.session_state[f"submitted_code::{active_id}"] = code or ""
             # 判定完成即时提示：结果区在编辑器下方，rerun 后页面回顶，用户容易看不到
             st.toast("✅ 已判定，结果在下方" if result.passed else "❌ 未通过，看下方对比与点评")
             st.session_state[f"chat_ctx::{active_id}"] = {

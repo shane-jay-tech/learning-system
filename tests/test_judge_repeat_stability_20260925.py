@@ -100,6 +100,14 @@ def offline_llm(monkeypatch):
     return calls
 
 
+# l1006-03 幂等后：本件意图是「判分函数确定性」（同输入同输出），而 submission 幂等会让
+# 第二击起走重放形态（expected_display 空 + 重复提示）——与确定性正交。各例在每击后清结算行，
+# 使重放不介入；幂等行为本身由 tests/test_submission_idempotency_l100603.py 专钉。
+def _clear_attempts(dao, lang, pid):
+    dao.conn.execute("DELETE FROM attempts WHERE lang=? AND problem_id=?", (lang, pid))
+    dao.conn.commit()
+
+
 def _snapshot(r):
     """判题结果里「学生可见」的五元组——`run_result` 是每次新开的对象，不参与比对。"""
     return (r.passed, r.ai_feedback, r.expected_display, r.actual_display, r.diff_hint)
@@ -115,7 +123,10 @@ def test_same_python_submission_five_times_is_identical(dao, offline_llm, tmp_pa
     problem = {"id": "python/stab/01", "title": "t", "statement": "s",
                "expected_output": "Hello\n"}
     code = 'print("Hello")'
-    snaps = [_snapshot(judge("python", problem, code, dao=dao)) for _ in range(5)]
+    snaps = []
+    for _ in range(5):
+        snaps.append(_snapshot(judge("python", problem, code, dao=dao)))
+        _clear_attempts(dao, "python", problem["id"])
     assert all(s == snaps[0] for s in snaps), snaps
     assert snaps[0][0] is True
 
@@ -132,7 +143,10 @@ def test_failing_python_submission_diff_hint_has_no_temp_path(dao, offline_llm):
     problem = {"id": "python/stab/02", "title": "t", "statement": "s",
                "expected_output": "ok\n"}
     code = "print(undefined_name)\n"
-    snaps = [_snapshot(judge("python", problem, code, dao=dao)) for _ in range(3)]
+    snaps = []
+    for _ in range(3):
+        snaps.append(_snapshot(judge("python", problem, code, dao=dao)))
+        _clear_attempts(dao, "python", problem["id"])
     assert all(s == snaps[0] for s in snaps), snaps
     assert snaps[0][0] is False
     joined = " | ".join(str(x) for x in snaps[0])
@@ -152,11 +166,13 @@ def test_result_independent_of_process_rng_state(dao, offline_llm):
                "expected_output": "Hello\n"}
     code = 'print("Hello")'
     base = _snapshot(judge("python", problem, code, dao=dao))
+    _clear_attempts(dao, "python", problem["id"])
     assert base[0] is True, base
     for seed in (0, 12345, 987654321):
         random.seed(seed)
         [random.random() for _ in range(50)]
         assert _snapshot(judge("python", problem, code, dao=dao)) == base, f"seed={seed} 下结果漂移"
+        _clear_attempts(dao, "python", problem["id"])
 
 
 def test_real_content_problem_rejudges_identically(dao, offline_llm):
@@ -177,7 +193,9 @@ def test_real_content_problem_rejudges_identically(dao, offline_llm):
 
     bad = "SELECT 1 FROM this_table_does_not_exist"
     for d in pool[:3]:
-        snaps = [_snapshot(judge("sql", d, bad, dao=dao)) for _ in range(2)]
+        snaps = [_snapshot(judge("sql", d, bad, dao=dao))]
+        _clear_attempts(dao, "sql", d.get("id"))
+        snaps.append(_snapshot(judge("sql", d, bad, dao=dao)))
         assert snaps[0][0] is False, d.get("id")
         assert snaps[0] == snaps[1], f"真实题 {d.get('id')} 两次判题不一致"
 
@@ -201,6 +219,7 @@ def test_feedback_cache_key_separates_lang_pid_and_code(dao, monkeypatch):
     p = {"id": "python/cache/1", "title": "t", "statement": "s", "expected_output": "Hello\n"}
     code = 'print("Hello")'
     first = _snapshot(judge("python", p, code, dao=dao))
+    _clear_attempts(dao, "python", p["id"])
     assert n["c"] == 1, n
     again = _snapshot(judge("python", p, code, dao=dao))
     assert n["c"] == 1, "同输入重复判题又外呼了一次 ⇒ 缓存没生效"
@@ -229,6 +248,7 @@ def test_ai_feedback_cache_never_stores_unavailable_text(dao, monkeypatch):
     code = 'print("Hello")'
     r1 = _snapshot(judge("python", p, code, dao=dao))
     assert "暂时不可用" in r1[1], r1
+    _clear_attempts(dao, "python", p["id"])
     mode["ok"] = True
     r2 = _snapshot(judge("python", p, code, dao=dao))
     # l930-19 必随桩：R-3 强制后「真点评已恢复」（无动作标记）会被追加纠偏清单——

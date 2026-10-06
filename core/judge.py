@@ -9,6 +9,13 @@ from core.runners import error_feedback
 from core.runners.python_runner import PythonRunner
 from core.runners.r_runner import RRunner
 from core.runners.sql_runner import SQLRunner
+import hashlib
+
+# l1006-03/l1004-07②：submission 幂等窗口——同 (lang, pid, code) 在窗口内的重复提交
+# 返回首次判定、不重复计分（SRS/结算/事件零推进）。
+SUBMISSION_IDEMPOTENCY_WINDOW_MIN = 10
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +178,14 @@ def _check_recommendation_completed(d: ProgressDAO, lang: str, pid: str) -> None
         ).fetchone()
         if row:
             import json
+            # ③（l1006-03/l1004-07 D3 面）：当日同题已有 completed 则跳过——1 shown : 1 completed
+            from datetime import date as _date
+            already = d.conn.execute(
+                "SELECT COUNT(*) FROM learning_events WHERE event_type='recommendation_completed' "
+                "AND lang=? AND problem_id=? AND local_date=?",
+                (lang, pid, _date.today().isoformat())).fetchone()[0]   # 本地日期＝写侧口径（date('now') 是 UTC，时区坑）
+            if already:
+                return
             payload = json.loads(row[0]) if row[0] else {}
             d.emit_event("recommendation_completed", lang=lang, problem_id=pid,
                          payload={
@@ -198,12 +213,18 @@ def _record_attempt(lang: str, pid: str, code: str, passed: bool,
     own_dao = dao is None
     d = dao or ProgressDAO()
     try:
-        d.record_attempt_and_status(lang, pid, code, passed, feedback)
+        attempt_id = d.record_attempt_and_status(lang, pid, code, passed, feedback)
         d.update_review_state(lang, pid, passed, difficulty)
+        # ④payload 归一（222f#3）：发射点 A 补 attempt_id，与 backfill_events 形态一致；
+        # ③事件当日去重（l1004-07）：code_hash 当日同键跳过，报表 1:N→1:1（SRS/attempts 不动）。
+        code_hash = hashlib.sha256(code.encode("utf-8")).hexdigest()[:16]
         d.emit_event("attempt_submitted", lang=lang, problem_id=pid,
-                     payload={"passed": passed})
+                     payload={"passed": passed, "attempt_id": attempt_id, "code_hash": code_hash},
+                     dedup_code_hash=code_hash)
         event_type = "problem_passed" if passed else "problem_failed"
-        d.emit_event(event_type, lang=lang, problem_id=pid)
+        d.emit_event(event_type, lang=lang, problem_id=pid,
+                     payload={"attempt_id": attempt_id, "code_hash": code_hash},
+                     dedup_code_hash=code_hash)
         if passed:
             _check_recommendation_completed(d, lang, pid)
     except Exception as e:
@@ -323,6 +344,27 @@ def judge(lang: str, problem, code: str, dao: Optional[ProgressDAO] = None) -> J
             expected_display="", actual_display="(空)",
             diff_hint="代码为空",
         )
+
+    pid = pdict.get("id") or ""
+    if dao is not None and pid and not pid.startswith("AI_VARIANT::"):
+        # 幂等查询仅在调用方显式传 dao 时启用（生产 UI 主路传 dao；
+        # dao=None 的测试/脚本路径不自开库——A5①闸），
+        d0 = dao
+        if True:
+            recent = d0.conn.execute(
+                "SELECT passed, ai_feedback FROM attempts "
+                "WHERE lang=? AND problem_id=? AND code=? "
+                "AND ts >= datetime('now', ?) ORDER BY id DESC LIMIT 1",
+                (lang, pid, code, f"-{SUBMISSION_IDEMPOTENCY_WINDOW_MIN} minutes"),
+            ).fetchone()
+        if recent is not None:
+            # ②重放：窗口内同题同码 ⇒ 沿用首次判定，零重复计分（安全重试语义）
+            return JudgeResult(
+                passed=bool(recent[0]), run_result=None,
+                ai_feedback=recent[1] or "与刚才的提交相同（未重复计分）",
+                expected_display="", actual_display="",
+                diff_hint=f"重复提交未重复计分（{SUBMISSION_IDEMPOTENCY_WINDOW_MIN} 分钟内相同代码）",
+            )
 
     if pdict.get("judge_mode") == "ai_open":
         return _judge_open(lang, pdict, answer=code, dao=dao)

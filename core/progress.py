@@ -204,7 +204,13 @@ class ProgressDAO:
             return cur.lastrowid
 
     # 兼容旧 API（test_progress 等）
+    # l1007-07 守卫告警（l1004-10 遗留 1 ③支，零破坏）：旧双 API 生产调用面=0
+    # （l1004-10 取证），现存调用集中在测试。若生产面出现调用 ⇒ 告警（收口①删旧前置观察）。
     def record_attempt(self, lang: str, pid: str, code: str, passed: bool, ai_feedback: str) -> int:
+        import logging
+        logging.getLogger(__name__).warning(
+            "[legacy-api-guard] record_attempt 被调用（lang=%s pid=%s）——旧双 API 收口③观察期，"
+            "生产面应走 record_attempt_and_status 单事务正身", lang, pid)
         with self.conn:
             cur = self.conn.execute(
                 "INSERT INTO attempts (lang, problem_id, code, passed, ai_feedback) VALUES (?,?,?,?,?)",
@@ -214,6 +220,10 @@ class ProgressDAO:
             return cur.lastrowid
 
     def mark_status(self, lang: str, pid: str, status: str) -> None:
+        import logging
+        logging.getLogger(__name__).warning(
+            "[legacy-api-guard] mark_status 被调用（lang=%s pid=%s status=%s）——旧双 API 收口③观察期，"
+            "生产面应走 record_attempt_and_status 单事务正身", lang, pid, status)
         with self.conn:
             self.conn.execute(
                 "INSERT OR REPLACE INTO problems_status (lang, problem_id, status, last_attempt_ts) "
@@ -558,10 +568,25 @@ class ProgressDAO:
 
     def emit_event(self, event_type: str, lang: str = None, topic_id: str = None,
                    problem_id: str = None, path_id: str = None,
-                   milestone_id: str = None, payload: Dict = None) -> int:
-        """Record a learning event."""
+                   milestone_id: str = None, payload: Dict = None,
+                   dedup_code_hash: str = None) -> int:
+        """Record a learning event.
+        l1006-03/l1004-07③：dedup_code_hash 非空时，当日同 (event_type, lang, problem_id,
+        payload.code_hash) 已存在则跳过不写（报表 1:N→1:1；返回 -1）；attempts/SRS 不动。"""
         import json
         from datetime import date
+        if dedup_code_hash is not None:
+            local_date = date.today().isoformat()
+            rows = self.conn.execute(
+                "SELECT payload_json FROM learning_events "
+                "WHERE event_type=? AND lang=? AND problem_id IS ? AND local_date=?",
+                (event_type, lang, problem_id, local_date)).fetchall()
+            for (pj,) in rows:
+                try:
+                    if json.loads(pj or "{}").get("code_hash") == dedup_code_hash:
+                        return -1
+                except Exception:
+                    continue
         local_date = date.today().isoformat()
         payload_json = json.dumps(payload, ensure_ascii=False) if payload else None
         with self.conn:

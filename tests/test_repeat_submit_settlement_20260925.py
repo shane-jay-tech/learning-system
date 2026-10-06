@@ -85,12 +85,11 @@ CODE = 'print("Hello")'
 
 # ------------------------------------------------ 一次点击 = 几行结算（逐层读数）
 def test_five_clicks_settle_five_times_in_append_tables_but_once_in_status(dao, no_llm):
-    """重复点击的真实结算面：append 层 5 次、状态层 1 行。
+    """【l1006-03 翻正】幂等三件套落地后：五连击＝恰 1 次结算（submission 窗口幂等）。
 
-    断言分两半，各带鉴别力：
-      · attempts / attempt_submitted / problem_passed 必须 **恰为 5**（若将来加了幂等键
-        变成 1，本条会红 ⇒ 那时该改判据而不是留着当恒真式）；
-      · `problems_status` 以 (lang, problem_id) 为主键 ⇒ 无论点几次都 **恰为 1 行**（真幂等层）。
+    原判据（append 层恰 5）钉的是「无幂等键」现状；l1006-03/l1004-07②（用户 2026-10-06 拍板
+    全落）落地后同 (lang,pid,code) 窗口内重复提交返回首次判定、零重复计分——判据随之翻正：
+    attempts / attempt_submitted / problem_passed 均 **恰为 1**，与 problems_status 同为 1 行。
     """
     from core.judge import judge
 
@@ -98,11 +97,11 @@ def test_five_clicks_settle_five_times_in_append_tables_but_once_in_status(dao, 
         r = judge("python", PROBLEM, CODE, dao=dao)
         assert r.passed is True
 
-    assert _count(dao, "SELECT COUNT(*) FROM attempts WHERE problem_id=?", PROBLEM["id"]) == 5
+    assert _count(dao, "SELECT COUNT(*) FROM attempts WHERE problem_id=?", PROBLEM["id"]) == 1
     assert _count(dao, "SELECT COUNT(*) FROM learning_events WHERE event_type='attempt_submitted' "
-                       "AND problem_id=?", PROBLEM["id"]) == 5
+                       "AND problem_id=?", PROBLEM["id"]) == 1
     assert _count(dao, "SELECT COUNT(*) FROM learning_events WHERE event_type='problem_passed' "
-                       "AND problem_id=?", PROBLEM["id"]) == 5
+                       "AND problem_id=?", PROBLEM["id"]) == 1
     assert _count(dao, "SELECT COUNT(*) FROM problems_status WHERE problem_id=?", PROBLEM["id"]) == 1
     assert dao.get_status("python", PROBLEM["id"]) == "solved"
 
@@ -132,11 +131,13 @@ def test_repeat_submission_pushes_srs_forward_every_click(dao, no_llm):
     s1 = state()
     assert s1[2] == 1, s1
     for _ in range(4):
-        judge("python", PROBLEM, CODE, dao=dao)
+        r = judge("python", PROBLEM, CODE, dao=dao)
+        assert r.passed is True, r
     s5 = state()
-    assert s5[2] == 5, f"streak 未按点击次数推进（期望 5）：{s5}"
-    assert s5[0] > s1[0], f"间隔没变长：{s1} -> {s5}"
-    assert s5[3] >= s1[3], f"到期日没往后推：{s1} -> {s5}"
+    # 【l1006-03 翻正】幂等落地：重复点击零推进——streak 恒 1、间隔与到期日纹丝不动
+    #（SRS 曲线整体变平属拍板预期；切换公告已含「历史数值不可比」标注）
+    assert s5[2] == 1, f"重复提交不该推进 streak（期望恒 1）：{s5}"
+    assert s5[0] == s1[0] and s5[3] == s1[3], f"重复提交不该动间隔/到期日：{s1} -> {s5}"
 
 
 def test_settlement_tables_have_no_idempotency_key_column(dao):
@@ -293,4 +294,5 @@ def test_recommendation_completed_event_emitted_per_settlement(dao, no_llm):
 
     shown = _count(dao, "SELECT COUNT(*) FROM learning_events WHERE event_type='recommendation_shown'")
     done = _count(dao, "SELECT COUNT(*) FROM learning_events WHERE event_type='recommendation_completed'")
-    assert (shown, done) == (1, 3), f"shown={shown} completed={done}，与现状假设不符，判据需重读"
+    # 【l1006-03 翻正】幂等重放＋completed 当日去重后：1 shown : 1 completed
+    assert (shown, done) == (1, 1), f"shown={shown} completed={done}，判据需重读"
