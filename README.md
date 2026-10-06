@@ -47,6 +47,8 @@ streamlit run app.py
 
 浏览器自动打开 http://localhost:8511（与心理系统 8501 错开）。
 
+> **AI 判题链路前提（l1007-14）**：AI 点评依赖 `openai` 包。`.venv` 默认未装（`python -c "import openai"` 报 ModuleNotFoundError）；需 AI 判题时用**根解释器**起服务（根 Python 已装 openai），或经主班批准后向 `.venv` 补装。自检：`python -c "import openai"`。
+
 ## 学习闭环
 
 - 5 种语言并行学，进度独立；408 题、85 知识点、6 条学习路径（三项计数会随题库与 `content/paths/` 扩充变动，逐数字的复跑命令与对账见 `docs/insights/learn-readme-numbers-20260922.md`；补题需同批同步的等值点清单见 `plan.md`「题库内容规范」）。
@@ -111,6 +113,8 @@ ui/                        Streamlit 页面与组件
 content/                   python / cpp / r / sql / agent_dev 题库与知识点
 content/paths/             学习路径定义（YAML，与 README「学习闭环」的路径数同源）
 content/datasets/          SQL / R 练习用的示例数据（CSV ＋ 生成脚本）
+                           hr_recruitment/hr_survey 两件＝确定性测试夹具资产（l1006-05 案B转正登记：
+                           tests/test_hr_dataset_determinism.py md5 硬钉＋生成器固有产物，题面暂未消费，hr 族扩题可直接引用）
 scripts/                   健康检查、备份、审计、性能与维护脚本（含 1 个 PowerShell 件）
 tests/                     测试套件
 docs/                      系统报告与巡检留痕 insights/
