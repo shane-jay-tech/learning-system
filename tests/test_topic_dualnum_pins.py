@@ -28,7 +28,8 @@ from collections import Counter
 
 from core.loader import load_language
 
-LANGS = ("python", "sql", "cpp", "r", "agent_dev")
+from ui.components import ALL_LANGS  # R-04（361f 遗留2）：语言轴单一来源
+LANGS = tuple(ALL_LANGS)
 
 # 现状清单：键为 (语言, 号数)，值为 loader 实际给出的顺序（即字典序下的展示序）
 DUAL_GROUPS = {

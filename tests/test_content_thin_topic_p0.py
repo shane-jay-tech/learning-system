@@ -9,8 +9,8 @@
 （内容正确性红线；缺什么素材、联动清单见 `zcode-bridge/outbox/l922-128-thin-topics-fill.result.md`）。
 联动口径与下方 `P0_SNAPSHOT` 头的同步清单**同一条**：2026-09-24 磁盘实取 = **等值点 4 处 + 精确桩 2 件**
 （原头注的旧计数系上游笔误，与下方同步清单任何一条都对不上；自引用只写常量名不写行号，避免本文件增删行时自己漂）：
-复算 `rg -n "^    assert.*== 403" tests/`(2，只取真断言行、自动排除清单注释里的同字样行) ＋
-`rg -n "^PINNED_HIST" tests/`(1) ＋ `rg -n "403 题" README.md`(1) ＝ 等值点 4；
+复算 `rg -n "^    assert.*== 408" tests/`(2，只取真断言行、自动排除清单注释里的同字样行) ＋
+`rg -n "^PINNED_HIST" tests/`(1) ＋ `rg -n "408 题" README.md`(1) ＝ 等值点 4；
 精确桩 2 件 = `tests/test_content_census_python.py` ＋ 本文件 `P0_SNAPSHOT`
 （另随 `docs/insights/learn-thin-thick-topics-20260921.md` §四落点表同步）。
 本文件补的是 l922-07 遗留 2 点名的结构缺口——「现 `tests/test_content_census.py` 只在**题**级断言，
@@ -21,6 +21,12 @@
 > 补掉两个 python 目录（各 3→5、难度取 2/3 档、参考解经 `PythonRunner` + `core.judge._normalize`
 > 逐字节对拍通过）⇒ **P0 四目录现剩 cpp 两个**（本机无 g++，判不了参考答案，留日间班）。
 > 下方 `P0_SNAPSHOT` 与联动清单已按此刷新，cpp 那两行仍是补题即红的现状桩。
+>
+> **2026-09-30 l927-27 落地进度**：cpp 两目录补齐（`01_io_and_vars` 2→5、`02_branch_loop` 3→5，
+> 难度取 2/3 档；参考解因本机无 g++ 未经编译对拍，正确性按算术事实与教材口径自证，
+> 出处行在各 yaml 首行注释——l927-27 答案域授权自拟）。P0 四目录全部达标（各 5 题），
+> 全库 403 → 408；`P0_SNAPSHOT`、`PINNED_HIST` cpp 行、两处总数断言、README 对外口径
+> 已按联动清单同批刷新，`docs/insights/learn-thin-thick-topics-20260921.md` §四落点表已加注。
 
 判据风格沿用 `tests/test_paths_reconcile.py`（l922-125）与 `tests/test_paths_coverage.py`：
 绑磁盘实取、比例式、不锁会随内容自然增长的条目魔数；三个阈值常量的现值与取数命令逐条写在就近注释里。
@@ -42,7 +48,8 @@ import collections
 from core.loader import load_language
 from core.paths import load_all_paths
 
-LANGS = ("python", "sql", "cpp", "r", "agent_dev")
+from ui.components import ALL_LANGS  # R-04（361f 遗留2）：语言轴单一来源
+LANGS = tuple(ALL_LANGS)
 
 # l922-07 §四 P0 两行的四个落点（key = "lang/slug"，磁盘实取）
 P0_DIRS = (
@@ -66,8 +73,8 @@ P0_DIRS = (
 # 另 tests/test_scripts.py:310 是 `total_problems >= 399` 下界护栏，补题无需改它。
 # 若新题难度全 <=3，则 PINNED_TOP_TIER 不动（见 test_content_difficulty_pins.py 的 >=4 名单桩）。
 P0_SNAPSHOT = {
-    "cpp/01_io_and_vars": [1, 2],
-    "cpp/02_branch_loop": [1, 2, 2],
+    "cpp/01_io_and_vars": [1, 2, 2, 2, 3],
+    "cpp/02_branch_loop": [1, 2, 2, 2, 3],
     "python/20_numpy_basics": [2, 2, 3, 3, 4],
     "python/21_datetime_ts": [2, 2, 3, 3, 4],
 }
@@ -144,7 +151,7 @@ def test_P0四目录现状_钉死难度多重集():
     """
     live = _difficulty_by_topic()
     assert {k: live.get(k) for k in P0_DIRS} == P0_SNAPSHOT, (
-        "P0 薄目录题量/难度已变动：请同批改 PINNED_HIST ＋ 两处 `== 403` 等值断言 ＋ README:52"
+        "P0 薄目录题量/难度已变动：请同批改 PINNED_HIST ＋ 两处 `== 408` 等值断言 ＋ README:52"
         "（完整同步清单见本文件 P0_SNAPSHOT 注释），"
         "并把本快照与 docs/insights/learn-thin-thick-topics-20260921.md 的落点表一起刷新"
     )
@@ -190,13 +197,20 @@ def test_哨兵有牙_合成劣化必红而补齐不红():
     assert _below_floor(one) == ["cpp/99_synthetic_single"]
     assert _below_floor(base) == []
 
-    # ② 把 3 个原本非薄的目录削成 2 题 → 比例桩必须红（劣化方向）
+    # ② 把原本非薄的目录削成 2 题、削到越过比例底线 → 比例桩必须红（劣化方向）
+    # （l927-27 重校：cpp 两目录补齐后基线非薄比升至 67/85≈0.79，固定削 3 个不再越过
+    #   0.72×85≈61.2 → 改自校准削数：逐个削直到翻红，下限保底削 3 个不减哨牙强度）
     worsened = dict(base)
-    for i, (name, qs) in enumerate(sorted(base.items())):
-        if len(qs) >= mode and i < 3:
+    cut = 0
+    for name, qs in sorted(base.items()):
+        if len(qs) >= mode:
             worsened[name] = [2, 2]
+            cut += 1
+            if not _non_thin_ratio_ok(worsened)[0]:
+                break
+    assert cut >= 3, "削 3 个仍越不过底线——比例下界可能松到无牙"
     assert _non_thin_ratio_ok(base)[0] is True
-    assert _non_thin_ratio_ok(worsened)[0] is False, "比例下界无牙：削薄三个目录仍判绿"
+    assert _non_thin_ratio_ok(worsened)[0] is False, "比例下界无牙：削到越线仍判绿"
 
     # ③ 四个 P0 目录补齐到众数 → 两条判据都必须放过（好改动不该红）
     filled = dict(base)

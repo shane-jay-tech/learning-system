@@ -17,7 +17,8 @@ import pytest
 
 from core.loader import load_language
 
-LANGS = ("python", "sql", "cpp", "r", "agent_dev")
+from ui.components import ALL_LANGS  # R-04（361f 遗留2）：语言轴单一来源
+LANGS = tuple(ALL_LANGS)
 ASSERT_PAT = re.compile(r"(?:应该约|应约为|期望约|期望：?)\s*([0-1]\.\d{2,4})")
 OUT_NUM = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])")
 

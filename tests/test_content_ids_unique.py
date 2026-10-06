@@ -12,7 +12,8 @@ from collections import Counter
 
 from core.loader import load_language
 
-LANGS = ("python", "sql", "cpp", "r", "agent_dev")
+from ui.components import ALL_LANGS  # R-04（361f 遗留2）：语言轴单一来源
+LANGS = tuple(ALL_LANGS)
 
 # 已知跨语言 slug 冲突现状（l918-28 钉桩；修复后更新此清单）
 KNOWN_CROSS_SLUG_CONFLICTS = ["04_functions"]

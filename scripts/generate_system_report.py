@@ -18,7 +18,8 @@ sys.path.insert(0, str(ROOT))
 
 def count_problems():
     from core.loader import load_language
-    langs = ["python", "sql", "cpp", "r", "agent_dev"]
+    from ui.components import ALL_LANGS  # R-04（361f 遗留2）：语言轴单一来源
+    langs = list(ALL_LANGS)
     result = {}
     total = 0
     for lang in langs:

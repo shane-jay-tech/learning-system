@@ -23,7 +23,8 @@ def audit():
 
     errors = []
     warnings = []
-    langs = ["python", "sql", "cpp", "r", "agent_dev"]
+    from ui.components import ALL_LANGS  # R-04（361f 遗留2）：语言轴单一来源（ui/components.LANG_META 键序）
+    langs = list(ALL_LANGS)
 
     for lang in langs:
         topics = load_language(lang, str(ROOT / "content"))

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""403 题字段完整性普查钉桩（l918-14，内容审计①；口径 399→403 由 l923-03 补 python 4 题）。
+"""408 题字段完整性普查钉桩（l918-14，内容审计①；口径 399→403 由 l923-03 补 python 4 题、403→408 由 l927-27 补 cpp 5 题）。
 
-全量加载 5 语言题库（core.loader.load_language，403 题），断言：
+全量加载 5 语言题库（core.loader.load_language，408 题），断言：
   ① statement/答案字段（expected_output|expected_rows|tests|rubric 按键集）非空；
   ② difficulty 落在 1-5；
   ③ 缺 hints 的题数 == 0（l919-01 翻桩：原 4 题已补齐——任何题再丢 hints 都会让本用例红，强制内容审计知悉）。
@@ -11,20 +11,21 @@ import pytest
 
 from core.loader import load_language
 
-LANGS = ("python", "sql", "cpp", "r", "agent_dev")
+from ui.components import ALL_LANGS  # R-04（361f 遗留2）：语言轴单一来源
+LANGS = tuple(ALL_LANGS)
 
 def _all_problems():
     for lang in LANGS:
         for topic in load_language(lang):
             yield lang, topic.slug, topic.problems
 
-def test_总数_403_且每题statement非空():
+def test_总数_408_且每题statement非空():
     total = 0
     for lang, slug, problems in _all_problems():
         for p in problems:
             total += 1
             assert p.statement and p.statement.strip(), f"{lang}/{slug}/{p.id} 题干为空"
-    assert total == 403, f"题库总量漂移：{total} != 403（README 官方口径，变更须有意）"
+    assert total == 408, f"题库总量漂移：{total} != 408（README 官方口径，变更须有意）"
 
 def test_答案字段按键集非空():
     for lang, slug, problems in _all_problems():
