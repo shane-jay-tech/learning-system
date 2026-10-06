@@ -94,7 +94,8 @@ def test_转移矩阵_通过时ease仅在难度不小于4时降0_1():
 def test_转移矩阵_通过后间隔按interval乘ease增长且封顶30():
     for st in GRID:
         r = _step(st, True, 3)
-        assert r["interval"] == min(int(st[0] * st[1]), MAX_INTERVAL), (st, r)
+        # l1006-01/l1004-25 乙案：前进下界 max(interval+1, ...) 先并，再整体封顶——两式都保留
+        assert r["interval"] == min(max(st[0] + 1, int(st[0] * st[1])), MAX_INTERVAL), (st, r)
         assert r["interval"] >= MIN_INTERVAL
         assert r["streak"] == st[2] + 1
         assert r["last_result"] == "pass"
@@ -123,14 +124,15 @@ def test_转移矩阵_可达集合与next_due_date口径():
     assert min(seen_ez) == MIN_EASE and max(seen_ez) == 2.0, sorted(seen_ez)
 
 
-def test_转移矩阵_低间隔配低ease时乘积取整会原地踏步():
-    """可达集合里最容易漏的一格：(1, 1.5, 0) 通过后 int(1*1.5)=1 ⇒ 间隔不涨。
-    本例把该"原地踏步"钉住（是既有行为，不改口径，只记事实）。"""
+def test_转移矩阵_低间隔配低ease时前进下界托底线性起步():
+    """l1006-01/l1004-25 乙案（用户 2026-10-06 拍板）：通过必前进——(1, 1.5, 0) 通过后
+    原本 int(1*1.5)=1 原地踏步，现由 max(interval+1, ...) 下界托底转线性（本例语义反转，
+    改名前为「乘积取整会原地踏步」，该行为已被乙案替代）。"""
     r = _step((1, 1.5, 0), True, 3)
-    assert r["interval"] == 1, f"1*1.5 取整应为 1，实得 {r}"
+    assert r["interval"] == 2, f"前进下界应托到 2，实得 {r}"
     assert r["streak"] == 1
     r2 = _step((2, 1.8, 1), True, 3)
-    assert r2["interval"] == 3, r2          # int(3.6)=3，向下取整
+    assert r2["interval"] == 3, r2          # max(2+1, int(3.6))=max(3,3)=3，两式恰等
 
 
 def test_转移矩阵_有牙_若去掉封顶则矩阵会在24之后失守():
@@ -149,6 +151,18 @@ def test_转移矩阵_有牙_若去掉封顶则矩阵会在24之后失守():
     assert capped != uncapped, f"夹具无判别力：有无封顶同值 {capped}"
     assert capped[3:] == [30] * 3 and uncapped[3:] == [48, 96, 192], (capped, uncapped)
 
+
+def test_转移矩阵_乙案低ease起步序列线性转几何():
+    """l1006-01/l1004-25 乙案配方序列：ease=1.5 初值 1 连续通过 ⇒ 2,3,4,6,9,13,19,28
+    （低速段线性 +1 托底，ease 复利接管后回归几何；封顶语义不变）。"""
+    cur, seq = (1, 1.5, 0), []
+    for _ in range(8):
+        r = _step(cur, True, 3)
+        seq.append(r["interval"])
+        cur = (r["interval"], r["ease"], r["streak"])
+    assert seq == [2, 3, 4, 6, 9, 13, 19, 28], seq
+    r9 = _step(cur, True, 3)
+    assert r9["interval"] == 30, r9          # min(max(29, 42), 30)=30，封顶保持
 
 # ==========================================================================
 # B. 推荐间隔不是用户强制门槛

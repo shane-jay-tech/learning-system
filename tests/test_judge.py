@@ -101,6 +101,21 @@ def test_ai_open_passed(monkeypatch, dao):
     assert dao.get_status("python", "python/open01") == "solved"
 
 
+def test_ai_open_d4_passed_eases_down(monkeypatch, dao):
+    """l1006-01/l1004-12 丢参修复直测：ai_open d4 题答对 ⇒ ease 降档分支触发（2.0→1.9）。
+    修前三参丢 difficulty，ease 恒 2.0；修后四参按真值计分。"""
+    def fake_grade(lang, problem, answer):
+        return {"passed": True, "score": 90, "feedback": "OK", "llm_ok": True}
+    monkeypatch.setattr(judge_mod, "grade_open_answer", fake_grade)
+
+    problem = {"id": "python/open03", "judge_mode": "ai_open", "difficulty": 4}
+    r = judge("python", problem, "student answer", dao=dao)
+    assert r.passed is True
+    row = dao.conn.execute(
+        "SELECT interval_days, ease, review_streak FROM review_state WHERE lang=? AND problem_id=?",
+        ("python", "python/open03")).fetchone()
+    assert row == (6, 1.9, 1), row          # d4: ease 2.0-0.1=1.9；interval max(4, int(3*2.0))=6
+
 def test_ai_open_failed(monkeypatch, dao):
     """开放题判为未通过；DAO 记 wrong。"""
     def fake_grade(*a, **kw):

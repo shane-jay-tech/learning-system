@@ -130,7 +130,9 @@ def test_fixed_sequence_keeps_mastery_within_bounds(dao):
 
 
 def test_no_upward_jump_beyond_ease_factor(dao):
-    """「无跳变」：答对一次的涨幅不得超过 `上一值 × ease`（上限截断后取小）。"""
+    """「无跳变」：答对一次的涨幅不得超过 `上一值 × ease`（上限截断后取小）。
+    l1006-01/l1004-25 乙案：前进下界 max(interval+1, ...) 托底后，判据同步为
+    「涨幅 ≤ 乘积帽 与 线性 +1 托底 的较大者」——低 ease 起步段允许 +1 前进。"""
     prev = None
     for passed, difficulty in FIXED_SEQUENCE:
         before = read_state(dao) if prev is not None else None
@@ -139,7 +141,8 @@ def test_no_upward_jump_beyond_ease_factor(dao):
         if before is not None and passed:
             ease_before = before["ease"]
             ceiling = min(int(before["interval_days"] * ease_before), MAX_INTERVAL)
-            assert s["interval_days"] <= max(ceiling, MIN_INTERVAL), (
+            floor_fwd = before["interval_days"] + 1          # 乙案前进下界
+            assert s["interval_days"] <= max(ceiling, floor_fwd), (
                 before, s, ceiling)
             # 答对绝不该让 interval 变负或归零
             assert s["interval_days"] >= MIN_INTERVAL
@@ -180,7 +183,7 @@ def test_parameters_traceable_to_ddl_defaults(dao):
     assert defaults["review_streak"] == "0"
 
     # 上限／下限常数也必须能从源码里逐字反查（不是"读现值等于现值"）
-    assert "min(int(interval * ease), 30)" in src
+    assert "min(max(interval + 1, int(interval * ease)), 30)" in src   # 乙案前进下界同笔溯源
     assert "max(1.5, ease - 0.1)" in src
     assert "max(1.5, ease - 0.2)" in src
     assert "interval = 1" in src

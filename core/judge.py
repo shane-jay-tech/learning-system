@@ -342,7 +342,8 @@ def _judge_open(lang: str, pdict: dict, answer: str, dao: Optional[ProgressDAO] 
         d = dao or ProgressDAO()
         try:
             attempt_id = d.record_attempt_and_status(lang, pid, answer, res["passed"], res["feedback"])
-            d.update_review_state(lang, pid, res["passed"])
+            difficulty = int(pdict.get("difficulty") or 3)
+            d.update_review_state(lang, pid, res["passed"], difficulty)
             dimensions = res.get("dimensions") or []
             if dimensions and attempt_id:
                 d.record_rubric_scores(lang, pid, attempt_id, dimensions,

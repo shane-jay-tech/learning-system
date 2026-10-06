@@ -405,7 +405,7 @@ class ProgressDAO:
 
         if passed:
             streak += 1
-            interval = min(int(interval * ease), 30)
+            interval = min(max(interval + 1, int(interval * ease)), 30)
             if difficulty >= 4:
                 ease = max(1.5, ease - 0.1)
         else:
