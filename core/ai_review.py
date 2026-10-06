@@ -318,6 +318,13 @@ def _post_check(text: str, difficulty: int, passed: bool) -> str:
     return text
 
 
+def is_degraded_feedback(text: str) -> bool:
+    """l1006-04/l1004-08 C 案①：判 run 臂点评是否为断线降级文案（结构化标记的判定源）。
+    「AI 点评暂时不可用」前缀是 _offline_fallback 的稳定契约（多个测试钉住），
+    把「文案即标记」升级为可复用的判定函数——attempts 计数零变化，只加可观测位。"""
+    return "AI 点评暂时不可用" in (text or "")
+
+
 def _offline_fallback(passed: bool, stderr: str) -> str:
     """LLM 不可用时的兜底点评：命中具体错误模式就给离线指引。"""
     msg = "AI 点评暂时不可用（网络或服务异常），请稍后再试。判题本身不受影响。"

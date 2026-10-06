@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from core.ai_review import review, grade_open_answer
+from core.ai_review import review, grade_open_answer, is_degraded_feedback
 from core.progress import ProgressDAO
 from core.runners.cpp_runner import CppRunner
 from core.runners import error_feedback
@@ -202,7 +202,7 @@ def _check_recommendation_completed(d: ProgressDAO, lang: str, pid: str) -> None
 
 def _record_attempt(lang: str, pid: str, code: str, passed: bool,
                     feedback: str, dao: Optional[ProgressDAO],
-                    difficulty: int = 3) -> None:
+                    difficulty: int = 3, llm_degraded: bool = False) -> None:
     """统一的作答持久化：run 题和开放题共用，避免两处逻辑漂移。"""
     if not pid:
         return
@@ -218,8 +218,10 @@ def _record_attempt(lang: str, pid: str, code: str, passed: bool,
         # ④payload 归一（222f#3）：发射点 A 补 attempt_id，与 backfill_events 形态一致；
         # ③事件当日去重（l1004-07）：code_hash 当日同键跳过，报表 1:N→1:1（SRS/attempts 不动）。
         code_hash = hashlib.sha256(code.encode("utf-8")).hexdigest()[:16]
+        # ①l1006-04/l1004-08 C 案：降级态结构化入事件位（attempts 计数零变化）
         d.emit_event("attempt_submitted", lang=lang, problem_id=pid,
-                     payload={"passed": passed, "attempt_id": attempt_id, "code_hash": code_hash},
+                     payload={"passed": passed, "attempt_id": attempt_id, "code_hash": code_hash,
+                              "llm_degraded": llm_degraded},
                      dedup_code_hash=code_hash)
         event_type = "problem_passed" if passed else "problem_failed"
         d.emit_event(event_type, lang=lang, problem_id=pid,
@@ -382,7 +384,8 @@ def judge(lang: str, problem, code: str, dao: Optional[ProgressDAO] = None) -> J
     expected_display, actual_display = _build_display(lang, pdict, run_result, passed)
     feedback = review(lang, pdict, code, run_result, passed)
     difficulty = int(pdict.get("difficulty") or 3)
-    _record_attempt(lang, pdict.get("id") or "", code, passed, feedback, dao, difficulty)
+    _record_attempt(lang, pdict.get("id") or "", code, passed, feedback, dao, difficulty,
+                    llm_degraded=is_degraded_feedback(feedback))
 
     return JudgeResult(
         passed=passed,
@@ -405,8 +408,17 @@ def _judge_open(lang: str, pdict: dict, answer: str, dao: Optional[ProgressDAO] 
         actual_display=answer or "(空)",
         diff_hint="",
     )
-    if res.get("llm_ok") and not str(pdict.get("id") or "").startswith("AI_VARIANT::"):
-        pid = pdict.get("id") or ""
+    _pid = str(pdict.get("id") or "")
+    if not res.get("llm_ok") and dao is not None and _pid and not _pid.startswith("AI_VARIANT::"):
+        # ②l1006-04/l1004-08 C 案：开放题断线发降级事件（不写 attempt——不把基础设施故障
+        # 算成用户失败），断线事故在事件层可对账，与 run 臂口径统一为「可见但不混入计分」。
+        try:
+            dao.emit_event("ai_open_degraded", lang=lang, problem_id=_pid,
+                           payload={"reason": "llm_unavailable"})
+        except Exception:
+            logger.warning("ai_open_degraded emit failed", exc_info=True)
+    if res.get("llm_ok") and not _pid.startswith("AI_VARIANT::"):
+        pid = _pid
         own_dao = dao is None
         d = dao or ProgressDAO()
         try:
@@ -418,8 +430,11 @@ def _judge_open(lang: str, pdict: dict, answer: str, dao: Optional[ProgressDAO] 
                 d.record_rubric_scores(lang, pid, attempt_id, dimensions,
                                        prompt_version=res.get("prompt_version"),
                                        model=res.get("model"))
+            # ③l1006-04/l1004-08 C 案：脏 JSON（score=None/维度空）显式 degraded 位——
+            # 统计面按 payload 键过滤，attempts/rubric_scores 零 schema 改动。
             d.emit_event("ai_open_scored", lang=lang, problem_id=pid,
-                         payload={"score": res.get("score"), "passed": res["passed"]})
+                         payload={"score": res.get("score"), "passed": res["passed"],
+                                  "degraded": res.get("score") is None or not dimensions})
         except Exception as e:
             logger.warning("_judge_open record failed: %s", e)
         finally:
