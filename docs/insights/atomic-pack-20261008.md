@@ -47,3 +47,16 @@ $ sed -n '187,206p' core/progress.py → 单事务原文
 $ sed -n '403,445p' 同文件 → update_review_state（含 :411-413 自建分支）
 $ sed -n '223,224p;433,434p' core/judge.py → 两调用点序贯原文
 $ sed -n '238,239p' core/judge.py → except 吞异常（自愈第三重）
+
+
+## 五、行号锚复点（l1007-24，2026-10-08 收编后）
+
+**收编态**：judge.py/progress.py porcelain 净（l1007-21 judge.py 注释与本班面均已入库；k1007-145 批 3 收 workspace/progress 面在途）。l1007-08 原审计三锚**全部漂移**，现值重锚：
+
+| 原锚（l1007-08 时点） | 现值锚 | 锚文本 |
+|---|---|---|
+| judge.py:217 | **judge.py:222** | `attempt_id = d.record_attempt_and_status(lang, pid, code, passed, feedback)` |
+| judge.py:417 | **judge.py:431** | `attempt_id = d.record_attempt_and_status(lang, pid, answer, res["passed"], res["feedback"])` |
+| judge.py:419 | **judge.py:434** | `d.update_review_state(lang, pid, res["passed"], difficulty)` |
+
+漂移源＝l1007-21（:144 前插 *Error* 优先查 +7 行）等后续改动推移行号。本档 §一/§二 原引用「:223-224/:433-434」即现值近邻（record 行 :222/:431 未单列），语义不受影响；后续引用一律以本节现值锚为准。
