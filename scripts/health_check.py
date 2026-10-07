@@ -29,9 +29,11 @@ def _check(name: str, ok: bool, detail: str = "") -> bool:
     return ok
 
 
-def main() -> int:
+def main(argv=None) -> int:
     # l1002-65：argparse 化统一 --help（无参默认行为不变）
-    argparse.ArgumentParser(description="learning-system environment health check (read-only)").parse_args()
+    # l1007-32：main(argv=None) 形态——测试直调 main() 时 argparse 会吃进 pytest 的 sys.argv
+    # （"unrecognized arguments: tests/test_scripts.py -q" SystemExit），argv 注入后测试传 [] 即可。
+    argparse.ArgumentParser(description="learning-system environment health check (read-only)").parse_args(argv)
     print("learning-system health check")
     print("-" * 40)
     failed = []

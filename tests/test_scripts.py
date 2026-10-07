@@ -376,7 +376,7 @@ def test_health_check_output_and_public_mode(monkeypatch, capsys):
     monkeypatch.setattr("core.config.get_runner_security_mode", lambda: "public")
     monkeypatch.setattr("core.config.is_public_deploy", lambda: True)
     # llm_call 缺失只是降级（判题不受影响），不是致命失败
-    assert health_check.main() == 0
+    assert health_check.main([]) == 0
     output = capsys.readouterr().out
     assert "learning-system health check" in output
     assert "missing: Z:/missing/llm_call.py" in output
@@ -389,7 +389,7 @@ def test_health_check_fails_on_core_dependency_missing(monkeypatch, capsys):
     monkeypatch.setattr(health_check.sys, "version_info", (3, 8))
     monkeypatch.setattr("core.runners.cpp_runner.CppRunner._resolve_compiler", lambda self: None)
     monkeypatch.setattr("core.runners.r_runner.RRunner._resolve_rscript", lambda self: None)
-    assert health_check.main() == 1
+    assert health_check.main([]) == 1
     assert "FAILED" in capsys.readouterr().out
 
 
