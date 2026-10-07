@@ -54,7 +54,7 @@ $ python （content/ 全量 yaml tags 提取 → 编辑距离规则：d=1 且两
 | 7 | from | from / moved-from / yield-from | ☐ | ☐ | ☐ | cpp/py 语法面 |
 | 8 | open | is_open / open / with-open | ☐ | ☐ | ☐ | 状态/动作/语句 |
 | 9 | with | starts_with / with / with-open | ☐ | ☐ | ☐ | 跨语言 |
-| 10 | （矿表第 10 家族未列变体；本班复算 ≥3 写法仅 9 家族——差额 1 待主班对 222f 原探针输出核对） | — | ☐ | ☐ | ☐ | 差额登记 |
+| 10 | feature（222f 原探针 bank_token_families_top.families 实录在列：feature/feature-importance/feature_importance 三变体——l1007-17 复跑 10-08 再证；l1004-30 矿表未列全变体系收紧规则口径，两口径各自为真；**k1007-131 勘误建议：矿表第 10 家族行无需勘误，补 feature 变体全列即可**） | feature/feature-importance/feature_importance | ☐ | ☐ | ☐ | 差额闭合（l1007-31） |
 
 ## §三 边界
 
