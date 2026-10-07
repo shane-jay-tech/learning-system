@@ -57,7 +57,7 @@ def _render_security_notice(dao):
                 "本系统的代码执行器使用 subprocess 隔离，适合本机单人学习。\n"
                 "- 不要暴露到公网或校园网共享服务器\n"
                 "- 不要在多人共用环境运行\n\n"
-                "如需了解详情，请参阅 README.md 的「安全边界」章节。"
+                "如需了解详情，请参阅 README.md 的「信任模型」章节。"
             )
             if st.button("我知道了，不再提示", key="dismiss_security"):
                 dao.set_meta("security_notice_seen", "done")
