@@ -168,7 +168,10 @@ def load_language(lang: str, content_dir: Optional[str] = None) -> List[Topic]:
                 with open(lesson_path, "r", encoding="utf-8") as f:
                     lesson_md = f.read()
             except OSError as e:
-                logger.warning("Read lesson failed %s: %s", lesson_path, e)
+                # l1007-36（l1007-19 遗留·通道统一批第一件）：lesson 面接诊断通道——
+                # 与 yaml 面同走 _record_load_error（error_type=OSError ∈ 内容错组，
+                # 分组口径见 l1007-32 注记），UI 诊断面不再漏 lesson 读取失败。
+                _record_load_error(lesson_path, e)
 
         problems: List[Problem] = []
         for yaml_path in sorted(glob.glob(os.path.join(topic_path, "*.yaml"))):
