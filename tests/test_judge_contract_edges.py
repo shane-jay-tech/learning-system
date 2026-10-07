@@ -56,3 +56,21 @@ def test_error_summary_empty_stderr_returns_literal():
 def test_error_summary_prefers_error_line():
     err = "Traceback (most recent call last):\n  File x\nValueError: bad"
     assert "ValueError: bad" in judge._error_summary(err)
+
+
+def test_error_summary_prefers_error_word_line_over_first_nonempty():
+    """l1007-21（l1007-03 遗留 2）：首非空行为进度噪声时，取首个 *Error* 形态行。"""
+    err = "loading model v2.1 ...\n[progress] 50%\nRuntimeError: cuda out of memory\n  at forward"
+    assert judge._error_summary(err) == "RuntimeError: cuda out of memory"
+
+
+def test_error_summary_falls_back_when_no_error_word():
+    """无 *Error* 行 ⇒ 维持既有回退（过滤 Traceback/File 后最后一行）。"""
+    err = "loading...\nTraceback (most recent call last):\n  File x\n    body\nexit status 1"
+    assert judge._error_summary(err) == "exit status 1"
+
+
+def test_error_summary_exception_word_counts_too():
+    """Exception 形态同域（TimeoutException/HTTPException 等）。"""
+    err = "banner\nTimeoutException: read timed out"
+    assert judge._error_summary(err) == "TimeoutException: read timed out"

@@ -10,6 +10,7 @@ from core.runners.python_runner import PythonRunner
 from core.runners.r_runner import RRunner
 from core.runners.sql_runner import SQLRunner
 import hashlib
+import re
 
 # l1006-03/l1004-07②：submission 幂等窗口——同 (lang, pid, code) 在窗口内的重复提交
 # 返回首次判定、不重复计分（SRS/结算/事件零推进）。
@@ -137,6 +138,11 @@ def _error_summary(stderr: str) -> str:
     lines = [l.strip() for l in stderr.splitlines() if l.strip()]
     if not lines:
         return "运行失败"
+    # l1007-21（l1007-03 遗留 2）：stderr 首行可能是空行后的进度噪声（加载条/版本横幅），
+    # 异常类型行（*Error* 形态）才是摘要应取的——优先取首个 *Error* 行，无则回退既有逻辑。
+    for l in lines:
+        if re.search(r"\b\w+(Error|Exception)\b", l) and not l.startswith("Traceback"):
+            return l[:120]
     for l in lines:
         if "error:" in l.lower() and not l.lower().startswith("traceback"):
             return l[:120]
