@@ -88,7 +88,8 @@ def test_3_脏JSON_degraded位_true且attempt照写(dao, monkeypatch):
     assert r.passed is True
     payload = json.loads(dao.conn.execute(
         "SELECT payload_json FROM learning_events WHERE event_type='ai_open_scored'").fetchone()[0])
-    assert payload["degraded"] is True and payload["score"] is None, payload
+    # l1007-27 C 案翻正：score=None 钳制后 payload 不写 score 键（degraded 位仍显式）
+    assert payload["degraded"] is True and "score" not in payload, payload
     assert _count(dao, "SELECT COUNT(*) FROM attempts WHERE problem_id=?", OPEN_P["id"]) == 1
     # 维度空 ⇒ rubric_scores 无行（既有的半防护保持，degraded 位使其可观测）
     assert _count(dao, "SELECT COUNT(*) FROM rubric_scores WHERE problem_id=?", OPEN_P["id"]) == 0

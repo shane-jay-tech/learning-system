@@ -438,9 +438,14 @@ def _judge_open(lang: str, pdict: dict, answer: str, dao: Optional[ProgressDAO] 
                                        model=res.get("model"))
             # ③l1006-04/l1004-08 C 案：脏 JSON（score=None/维度空）显式 degraded 位——
             # 统计面按 payload 键过滤，attempts/rubric_scores 零 schema 改动。
-            d.emit_event("ai_open_scored", lang=lang, problem_id=pid,
-                         payload={"score": res.get("score"), "passed": res["passed"],
-                                  "degraded": res.get("score") is None or not dimensions})
+            # l1007-27（l1007-06 遗留 1 C 案落地）：score=None 钳制——payload 不写 score 键
+            # （统计面 SUM/AVG 天然忽略缺键，钳 0 会污染均值）；基线 0 起步（k1007-06 普查空集）。
+            _score = res.get("score")
+            _payload = {"passed": res["passed"],
+                        "degraded": _score is None or not dimensions}
+            if _score is not None:
+                _payload["score"] = _score
+            d.emit_event("ai_open_scored", lang=lang, problem_id=pid, payload=_payload)
         except Exception as e:
             logger.warning("_judge_open record failed: %s", e)
         finally:
