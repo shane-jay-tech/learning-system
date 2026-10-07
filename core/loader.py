@@ -56,7 +56,11 @@ class Topic:
 
 @dataclass
 class LoadDiag:
-    """单条坏文件诊断：路径 + 错误类型 + 消息摘要（隔离，不中断整批）。"""
+    """单条坏文件诊断：路径 + 错误类型 + 消息摘要（隔离，不中断整批）。
+
+    error_type 分组口径（l1007-32）：内容错 {YAMLError, UnicodeDecodeError, OSError}
+    vs 结构错 {TypeError, ValueError, AttributeError}——新消费方按 error_type ∈ 两组
+    分组，勿匹配 message 文本。"""
     path: str
     error_type: str
     message: str
@@ -168,6 +172,10 @@ def load_language(lang: str, content_dir: Optional[str] = None) -> List[Topic]:
 
         problems: List[Problem] = []
         for yaml_path in sorted(glob.glob(os.path.join(topic_path, "*.yaml"))):
+            # 错误分组口径（l1007-32 执行，l1007-18 遗留——新消费方分组按 error_type 勿匹配 message）：
+            #   内容错组 = {YAMLError, UnicodeDecodeError, OSError}（yaml 语法/编码/IO——文件本身的问题）；
+            #   结构错组 = {TypeError, ValueError, AttributeError}（yaml 可解析但字段形状/类型/缺键——内容对形态错）。
+            # 两组对应下方三个 except 捕获段与 _record_load_error 的 error_type 记录面。
             try:
                 with open(yaml_path, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f) or {}
