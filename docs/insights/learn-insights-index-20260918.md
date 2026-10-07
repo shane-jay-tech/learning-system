@@ -185,3 +185,59 @@
 | docs/insights/l927-26-topdiff-list.md | 20260929 | cpp／sql／r 末档难度上抬**补题清单**（13 个题位＝cpp 改档 7 ＋ sql 新增 3 ＋ r 新增 3），每题只给「题干／输入输出／判分标准」三要素的**规格约束**，零写题、零自拟标准答案（出题面与题源授权属人工）；工作树终值恰 1 行＝本档，题库 yaml／core／tests／plan.md／数据库零改动。🔴 否证姊妹稿 l923-28 的排序前提：它把「本机无 g++」当 cpp 末档上抬整体的前置门，而本单卷宗动词是「挑」＝改档只动 yaml 第 3 行一个数字、不动答案面 ⇒ **cpp 的 7 个题位今天就能落地、不需要 g++**，被工具链真正挡住的只有「新增 run 型题」（sql 走内置 sqlite3 不受阻、r 只有 ai_open 路线不受阻） | 待人工（题源与标准答案授权） | 0 |
 | docs/insights/l927-42-display-gate.md | 20260929 | 展示门 N/P/E 三案**终版裁决材料**：零选路、零改判据、零动展示门代码（收工工作树终值恰本档一行）。只读实证四条坐实"三案全部没落地、盘上仍是 N"——门仍在 `ui/pages/language.py:419`（条件仍是 `last_judge_pid == active_id`）、锁 1 的 4 个 drop 调用点全在（`components.py:89` ＋ `language.py:224/277/297`）；并给出三案各自的代价与可批形状，裁决点未被前几班蚕食 | 待人工（三案未拍） | 0 |
 | docs/insights/l927-36-funnel-a2a3.md | 20260930 | A2 残余风险量化／A3 计数口径变更影响／两区写序一致性——l923-06 三条待裁决的汇编材料（l927-36，只读、零写数据）：🔴 盘上实况与档内 09-23 口径已不同——跨路径区自 e9a1606（l927-37）起就在跑 A2，待裁决 1 实为追认而非采纳，待裁决 3 原形态已关单、在册的是反向遗留（今日推荐 :211-225 仍 B 型，两区点击语义亦不一致，主班 09-28 已自标人工项）；否证设计稿 §三 的 A3 字面形态——三腿共用同一 rid（dashboard.py:253／:481、judge.py:166-181），:memory: 探针实测全表表达式唯一索引当场 IntegrityError、同 rid 的 clicked 与 completed rowcount 均为 0、第 2 条空 rid clicked 也被吞，可行形态仅部分索引 WHERE event_type='recommendation_shown'，其硬前置＝先普查历史同 rid 重复行（本机 0 组、本机不可外推）；订正档内一处量级（空 rid 上限＝本帧失败条数，单区 ≤5／≤3，不是「最多 1 条」）；盘上另有一枚不改口径的去重先例 ui/pages/path.py:202-216 的 meta-key；emit_event 调用点 12 枚且零枚消费返回值（其中 4 枚在 core/judge.py 判分红线，只登记不签）；本机库零写现取 shown 10／clicked 0／completed 0／learning_events 81 行／payload_json NULL 19 行、sha256 读前读后同为 cd2dbce4…（122,880 B）；定向三件 49 passed，本档落盘后索引哨兵预期红（磁盘 137 对索引 136） | 待人工（三条各两案＋推荐已汇编，A3 计数口径与 judge.py 判分层只登记不签） | 0 |
+| docs/insights/a360-resume-20261008.md | 2026-10-08 | resume-20261008 | yes | — |
+| docs/insights/ai-latency-real-measurement-20261006.md | 2026-10-06 | latency-real-measurement-20261006 | yes | — |
+| docs/insights/ai-open-difficulty-fix-package-20261006.md | 2026-10-06 | open-difficulty-fix-package-20261006 | yes | — |
+| docs/insights/atomic-pack-20261008.md | 2026-10-08 | pack-20261008 | yes | — |
+| docs/insights/build-goals-truncation-adjudication-20261005.md | 2026-10-05 | goals-truncation-adjudication-20261005 | yes | — |
+| docs/insights/chapter-prefix-collision-design-20261006.md | 2026-10-06 | prefix-collision-design-20261006 | yes | — |
+| docs/insights/count-source-lines-caliber-20261005.md | 2026-10-05 | source-lines-caliber-20261005 | yes | — |
+| docs/insights/demo-docx-metadata-adjudication-20261006.md | 2026-10-06 | docx-metadata-adjudication-20261006 | yes | — |
+| docs/insights/demo-file-protocol-evidence-20261006.md | 2026-10-06 | file-protocol-evidence-20261006 | yes | — |
+| docs/insights/demo-manifest-drift-proposal-20261006.md | 2026-10-06 | manifest-drift-proposal-20261006 | yes | — |
+| docs/insights/demo-pixel-overlap-p4p8-20261006.md | 2026-10-06 | pixel-overlap-p4p8-20261006 | yes | — |
+| docs/insights/difficulty-caliber-adjudication-20261005.md | 2026-10-05 | caliber-adjudication-20261005 | yes | — |
+| docs/insights/early-review-admission-material-20261006.md | 2026-10-06 | review-admission-material-20261006 | yes | — |
+| docs/insights/error-kind-vocab-adjudication-20261006.md | 2026-10-06 | kind-vocab-adjudication-20261006 | yes | — |
+| docs/insights/feedback-cache-key-note-20261006.md | 2026-10-06 | cache-key-note-20261006 | yes | — |
+| docs/insights/feedback-sample-fixture-plan-20261006.md | 2026-10-06 | sample-fixture-plan-20261006 | yes | — |
+| docs/insights/friendly-hub-hit-rate-adjudication-20261006.md | 2026-10-06 | hub-hit-rate-adjudication-20261006 | yes | — |
+| docs/insights/heatmap-timebase-adjudication-20261005.md | 2026-10-05 | timebase-adjudication-20261005 | yes | — |
+| docs/insights/hints-disclosure-adjudication-material-20261006.md | 2026-10-06 | disclosure-adjudication-material-20261006 | yes | — |
+| docs/insights/hints-overrun-adjudication-material-20261006.md | 2026-10-06 | overrun-adjudication-material-20261006 | yes | — |
+| docs/insights/idempotency-adjudication-material-20261006.md | 2026-10-06 | adjudication-material-20261006 | yes | — |
+| docs/insights/import-dryrun-wiring-design-20261006.md | 2026-10-06 | dryrun-wiring-design-20261006 | yes | — |
+| docs/insights/import-order-adjudication-material-20261006.md | 2026-10-06 | order-adjudication-material-20261006 | yes | — |
+| docs/insights/interval-treadmill-caliber-material-20261006.md | 2026-10-06 | treadmill-caliber-material-20261006 | yes | — |
+| docs/insights/l927-01-interrupt.md |  | 01-interrupt | worktree | — |
+| docs/insights/l927-02-caret.md |  | 02-caret | worktree | — |
+| docs/insights/l927-15-judge-k123.md |  | 15-judge-k123 | yes | — |
+| docs/insights/l927-23-note.md |  | 23-note | worktree | — |
+| docs/insights/l927-24-crlf.md |  | 24-crlf | worktree | — |
+| docs/insights/l927-27-p0-nine.md |  | 27-p0-nine | worktree | — |
+| docs/insights/l930-02-writeseq-note.md |  | 02-writeseq-note | yes | — |
+| docs/insights/l930-03-click-note.md |  | 03-click-note | yes | — |
+| docs/insights/l930-10-download-guards-note.md |  | 10-download-guards-note | yes | — |
+| docs/insights/l930-11-gap-claim-sentinel.md |  | 11-gap-claim-sentinel | yes | — |
+| docs/insights/l930-12-fingerprint-note.md |  | 12-fingerprint-note | yes | — |
+| docs/insights/l930-30-index-backfill-material.md |  | 30-index-backfill-material | yes | — |
+| docs/insights/legacy-api-status-wrong-material-20261006.md | 2026-10-06 | api-status-wrong-material-20261006 | yes | — |
+| docs/insights/legacy-guard-observe-20261008.md | 2026-10-08 | guard-observe-20261008 | yes | — |
+| docs/insights/llm-outage-write-caliber-material-20261006.md | 2026-10-06 | outage-write-caliber-material-20261006 | yes | — |
+| docs/insights/loader-diag-surface-material-20261006.md | 2026-10-06 | diag-surface-material-20261006 | yes | — |
+| docs/insights/loader-silent-fallback-material-20261006.md | 2026-10-06 | silent-fallback-material-20261006 | yes | — |
+| docs/insights/milestone-once-per-path-adjudication-20261005.md | 2026-10-05 | once-per-path-adjudication-20261005 | yes | — |
+| docs/insights/orphan-hr-datasets-disposition-20261006.md | 2026-10-06 | hr-datasets-disposition-20261006 | yes | — |
+| docs/insights/problems-status-pid-census-20261005.md | 2026-10-05 | status-pid-census-20261005 | yes | — |
+| docs/insights/r-runner-rows-design-20261005.md | 2026-10-05 | runner-rows-design-20261005 | yes | — |
+| docs/insights/report-zero-count-attribution-20261005.md | 2026-10-05 | zero-count-attribution-20261005 | yes | — |
+| docs/insights/review-state-value-range-material-20261006.md | 2026-10-06 | state-value-range-material-20261006 | yes | — |
+| docs/insights/runner-output-surface-material-20261006.md | 2026-10-06 | output-surface-material-20261006 | yes | — |
+| docs/insights/sandbox-network-identity-path-material-20261006.md | 2026-10-06 | network-identity-path-material-20261006 | yes | — |
+| docs/insights/sandbox-resource-limits-design-20261006.md | 2026-10-06 | resource-limits-design-20261006 | yes | — |
+| docs/insights/sem-basics-difficulty-portrait-20261006.md | 2026-10-06 | basics-difficulty-portrait-20261006 | yes | — |
+| docs/insights/streamlit-viewport-occlusion-measure-20261006.md | 2026-10-06 | viewport-occlusion-measure-20261006 | yes | — |
+| docs/insights/tag-signoff-checklist-20261006.md | 2026-10-06 | signoff-checklist-20261006 | yes | — |
+| docs/insights/test-count-attribution-20261005.md | 2026-10-05 | count-attribution-20261005 | yes | — |
+| docs/insights/tmp-l927-51-census-20261005.md | 2026-10-05 | l927-51-census-20261005 | yes | — |
+| docs/insights/traceback-trigger-20261008.md | 2026-10-08 | trigger-20261008 | yes | — |
