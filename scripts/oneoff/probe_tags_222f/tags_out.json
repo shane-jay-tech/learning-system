@@ -1,0 +1,1660 @@
+{
+  "prod_db_sha8_before": "cd2dbce4",
+  "db_copy_sha8": "cd2dbce4",
+  "db_copy_sidecars": [
+    "prod_copy.db",
+    "prod_copy.db-shm",
+    "prod_copy.db-wal"
+  ],
+  "bank_census": {
+    "yaml_files": 409,
+    "unique_tags": 416,
+    "occurrences": 898,
+    "singletons": 265,
+    "files_without_tags": 6,
+    "files_without_tags_list": [
+      "content/paths/agent_mastery.yaml",
+      "content/paths/cpp_foundation.yaml",
+      "content/paths/people_analytics.yaml",
+      "content/paths/python_advanced.yaml",
+      "content/paths/quick_stats.yaml",
+      "content/paths/r_advanced.yaml"
+    ],
+    "raw_yaml_types": {
+      "list": 403,
+      "item:str": 898
+    },
+    "top30": [
+      [
+        "ai_judge",
+        28
+      ],
+      [
+        "spec",
+        20
+      ],
+      [
+        "pandas",
+        14
+      ],
+      [
+        "sklearn",
+        13
+      ],
+      [
+        "hr",
+        13
+      ],
+      [
+        "debug",
+        12
+      ],
+      [
+        "open",
+        12
+      ],
+      [
+        "real-data",
+        12
+      ],
+      [
+        "iteration",
+        11
+      ],
+      [
+        "review",
+        10
+      ],
+      [
+        "sum",
+        10
+      ],
+      [
+        "groupby",
+        10
+      ],
+      [
+        "real-task",
+        8
+      ],
+      [
+        "string",
+        7
+      ],
+      [
+        "count",
+        7
+      ],
+      [
+        "filter",
+        7
+      ],
+      [
+        "regex",
+        7
+      ],
+      [
+        "git",
+        6
+      ],
+      [
+        "decompose",
+        6
+      ],
+      [
+        "io",
+        6
+      ],
+      [
+        "for",
+        6
+      ],
+      [
+        "loop",
+        6
+      ],
+      [
+        "template",
+        6
+      ],
+      [
+        "scipy",
+        6
+      ],
+      [
+        "datetime",
+        6
+      ],
+      [
+        "dplyr",
+        6
+      ],
+      [
+        "window",
+        6
+      ],
+      [
+        "list",
+        5
+      ],
+      [
+        "frontier",
+        5
+      ],
+      [
+        "security",
+        5
+      ]
+    ]
+  },
+  "bank_separator_convention": {
+    "multi_word_tags": 90,
+    "separator_mix": {
+      "hyphen": 67,
+      "under": 23
+    },
+    "note": "多词 tag 的分隔符主流写法（映射方向按现值多数派，不改语义）"
+  },
+  "bank_auto_mergeable": {
+    "rule": "A 级：trim + lowercase + 空白/连字符→下划线；只合并同形不同分隔符",
+    "cluster_count": 3,
+    "clusters": {
+      "error_handling": {
+        "error-handling": 1,
+        "error_handling": 1
+      },
+      "feature_importance": {
+        "feature_importance": 1,
+        "feature-importance": 1
+      },
+      "group_by": {
+        "group-by": 3,
+        "group_by": 1
+      }
+    },
+    "evidence_files": {
+      "error_handling": [
+        "content/agent_dev/08_read_code/04_silent_error.yaml"
+      ],
+      "feature_importance": [
+        "content/python/22_hr_model/02_feature_importance.yaml"
+      ],
+      "group_by": [
+        "content/sql/02_aggregate/03_pass_fail_count.yaml",
+        "content/sql/04_joins/05_join_groupby.yaml"
+      ]
+    }
+  },
+  "bank_auto_mergeable_tierB": {
+    "rule": "B 级：去掉所有分隔符（- _ 空格 .）后完全同形 ⇒ 同一词只差分隔符",
+    "cluster_count": 5,
+    "clusters": {
+      "effectsize": {
+        "effectsize": 2,
+        "effect-size": 1
+      },
+      "errorhandling": {
+        "error-handling": 1,
+        "error_handling": 1
+      },
+      "featureimportance": {
+        "feature_importance": 1,
+        "feature-importance": 1
+      },
+      "groupby": {
+        "groupby": 10,
+        "group-by": 3,
+        "group_by": 1
+      },
+      "ifelse": {
+        "if-else": 3,
+        "ifelse": 2
+      }
+    },
+    "evidence_files": {
+      "effectsize": [
+        "content/python/15_ab_text/02_cohens_d.yaml",
+        "content/r/06_mixed_apa/03_cohens_d.yaml",
+        "content/r/06_mixed_apa/04_eta_squared.yaml"
+      ],
+      "errorhandling": [
+        "content/agent_dev/08_read_code/04_silent_error.yaml",
+        "content/agent_dev/08_review_pr/04_review_error_handling.yaml"
+      ],
+      "featureimportance": [
+        "content/python/22_hr_model/02_feature_importance.yaml",
+        "content/python/23_sklearn_advanced/02_feature_importance.yaml"
+      ],
+      "groupby": [
+        "content/python/10_pandas_filter_group/02_groupby_mean.yaml",
+        "content/python/10_pandas_filter_group/03_groupby_count.yaml",
+        "content/python/10_pandas_filter_group/05_agg_multi.yaml"
+      ],
+      "ifelse": [
+        "content/cpp/02_branch_loop/02_max_of_three.yaml",
+        "content/cpp/04_functions/02_max_three.yaml",
+        "content/python/04_functions/02_max_of_two.yaml"
+      ]
+    },
+    "superset_of_tierA": false
+  },
+  "bank_case_significant": {
+    "ValueError": 1,
+    "ZeroDivisionError": 1,
+    "IQR": 1,
+    "Surv": 1
+  },
+  "bank_dot_bearing": {
+    "which.max": 1,
+    "data.frame": 4
+  },
+  "bank_other_punct": {
+    "operator+": 1,
+    "operator==": 1,
+    "operator<<": 1,
+    "operator[]": 1,
+    "operator()": 1
+  },
+  "bank_near_duplicate_candidates": {
+    "rule": "编辑距离1(两侧≥4字符) 或 距离2(两侧≥6字符且同 4 字前缀)，且归一后仍不同名 ⇒ 不可自动合并",
+    "pair_count": 27,
+    "pairs": [
+      {
+        "pair": [
+          "comprehension",
+          "comprehensive"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          2,
+          3
+        ],
+        "roots": [
+          "agent_dev",
+          "python"
+        ],
+        "files": [
+          "content/agent_dev/08_read_code/01_what_does_it_do.yaml",
+          "content/agent_dev/11_real_tasks/08_end_to_end.yaml",
+          "content/agent_dev/12_spec_iteration/05_iterative_refinement.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "concat",
+          "concept"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          4
+        ],
+        "roots": [
+          "r",
+          "sql"
+        ],
+        "files": [
+          "content/r/14_sem_basics/01_sem_concept.yaml",
+          "content/r/15_cfa/01_alpha_concept.yaml",
+          "content/r/15_cfa/02_cfa_concept.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "effect-size",
+          "effectsize"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          1,
+          2
+        ],
+        "roots": [
+          "python",
+          "r"
+        ],
+        "files": [
+          "content/python/15_ab_text/02_cohens_d.yaml",
+          "content/r/06_mixed_apa/03_cohens_d.yaml",
+          "content/r/06_mixed_apa/04_eta_squared.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "fstream",
+          "ifstream"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          5,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/12_file_io/01_write_read.yaml",
+          "content/cpp/12_file_io/02_count_lines.yaml",
+          "content/cpp/12_file_io/03_sum_words.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "fstream",
+          "ofstream"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          5,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/12_file_io/01_write_read.yaml",
+          "content/cpp/12_file_io/02_count_lines.yaml",
+          "content/cpp/12_file_io/03_sum_words.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "function",
+          "functions"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          3,
+          1
+        ],
+        "roots": [
+          "agent_dev",
+          "cpp"
+        ],
+        "files": [
+          "content/agent_dev/05_modular_config/03_split_function.yaml",
+          "content/cpp/04_functions/01_add.yaml",
+          "content/cpp/04_functions/02_max_three.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "function",
+          "functor"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          3,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/04_functions/01_add.yaml",
+          "content/cpp/04_functions/02_max_three.yaml",
+          "content/cpp/04_functions/04_is_prime.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "glm",
+          "lm"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          2,
+          4
+        ],
+        "roots": [
+          "r"
+        ],
+        "files": [
+          "content/r/05_lm_anova/01_lm_coef.yaml",
+          "content/r/05_lm_anova/02_lm_r2.yaml",
+          "content/r/05_lm_anova/05_multivar.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "group-by",
+          "groupby"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          3,
+          10
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ],
+        "files": [
+          "content/python/10_pandas_filter_group/02_groupby_mean.yaml",
+          "content/python/10_pandas_filter_group/03_groupby_count.yaml",
+          "content/python/10_pandas_filter_group/05_agg_multi.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "group_by",
+          "groupby"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          1,
+          10
+        ],
+        "roots": [
+          "python",
+          "r",
+          "sql"
+        ],
+        "files": [
+          "content/python/10_pandas_filter_group/02_groupby_mean.yaml",
+          "content/python/10_pandas_filter_group/03_groupby_count.yaml",
+          "content/python/10_pandas_filter_group/05_agg_multi.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "groupby",
+          "groups"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          10,
+          1
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ],
+        "files": [
+          "content/python/10_pandas_filter_group/02_groupby_mean.yaml",
+          "content/python/10_pandas_filter_group/03_groupby_count.yaml",
+          "content/python/10_pandas_filter_group/05_agg_multi.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "in",
+          "int"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          2,
+          1
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ],
+        "files": [
+          "content/python/06_strings/02_count_vowels.yaml",
+          "content/python/08_files_exceptions/05_file_sum.yaml",
+          "content/sql/05_subqueries_case/02_in_subquery.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "line",
+          "lines"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          2,
+          1
+        ],
+        "roots": [
+          "python"
+        ],
+        "files": [
+          "content/python/08_files_exceptions/04_count_lines.yaml",
+          "content/python/11_matplotlib/01_line_max.yaml",
+          "content/python/21_hr_viz/03_turnover_trend.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "map",
+          "map2"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          2,
+          1
+        ],
+        "roots": [
+          "cpp",
+          "r"
+        ],
+        "files": [
+          "content/cpp/05_stl_basics/02_word_freq.yaml",
+          "content/r/09_purrr_map/01_map_sqrt.yaml",
+          "content/r/09_purrr_map/02_map2.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator()",
+          "operator+"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/01_money_add.yaml",
+          "content/cpp/09_operator_overload/05_functor.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator()",
+          "operator<<"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/03_stream_out.yaml",
+          "content/cpp/09_operator_overload/05_functor.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator()",
+          "operator=="
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/02_vec_eq.yaml",
+          "content/cpp/09_operator_overload/05_functor.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator()",
+          "operator[]"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/04_subscript.yaml",
+          "content/cpp/09_operator_overload/05_functor.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator+",
+          "operator<<"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/01_money_add.yaml",
+          "content/cpp/09_operator_overload/03_stream_out.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator+",
+          "operator=="
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/01_money_add.yaml",
+          "content/cpp/09_operator_overload/02_vec_eq.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator+",
+          "operator[]"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/01_money_add.yaml",
+          "content/cpp/09_operator_overload/04_subscript.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator<<",
+          "operator=="
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/02_vec_eq.yaml",
+          "content/cpp/09_operator_overload/03_stream_out.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator<<",
+          "operator[]"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/03_stream_out.yaml",
+          "content/cpp/09_operator_overload/04_subscript.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "operator==",
+          "operator[]"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp"
+        ],
+        "files": [
+          "content/cpp/09_operator_overload/02_vec_eq.yaml",
+          "content/cpp/09_operator_overload/04_subscript.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "recursion",
+          "recursive"
+        ],
+        "edit_distance": 2,
+        "counts": [
+          1,
+          1
+        ],
+        "roots": [
+          "cpp",
+          "sql"
+        ],
+        "files": [
+          "content/cpp/04_functions/03_factorial_recursion.yaml",
+          "content/sql/07_cte/04_recursive_cte.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "string",
+          "stringr"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          7,
+          3
+        ],
+        "roots": [
+          "cpp",
+          "r"
+        ],
+        "files": [
+          "content/cpp/03_arrays_strings/03_reverse_string.yaml",
+          "content/cpp/03_arrays_strings/04_word_count.yaml",
+          "content/cpp/03_arrays_strings/05_count_char.yaml"
+        ]
+      },
+      {
+        "pair": [
+          "tidy",
+          "tidyr"
+        ],
+        "edit_distance": 1,
+        "counts": [
+          1,
+          4
+        ],
+        "roots": [
+          "r"
+        ],
+        "files": [
+          "content/r/06_mixed_apa/02_tidy_coef.yaml",
+          "content/r/08_tidyr/01_pivot_longer.yaml",
+          "content/r/08_tidyr/02_pivot_wider.yaml"
+        ]
+      }
+    ]
+  },
+  "bank_near_duplicate_raw_unfiltered": {
+    "note": "宽口径（编辑距离≤2 不加长度门槛）的 pair 数，用来说明为什么必须收紧",
+    "count": 349
+  },
+  "bank_token_families_top": {
+    "note": "同一 token 下挂了 ≥3 种写法；跨概念，不可自动合并，只列前 12 个家族",
+    "families": {
+      "template": [
+        "class-template",
+        "function-template",
+        "template"
+      ],
+      "data": [
+        "data",
+        "data-quality",
+        "real-data"
+      ],
+      "feature": [
+        "feature",
+        "feature-importance",
+        "feature_importance"
+      ],
+      "from": [
+        "from",
+        "moved-from",
+        "yield-from"
+      ],
+      "open": [
+        "is_open",
+        "open",
+        "with-open"
+      ],
+      "pivot": [
+        "pivot_longer",
+        "pivot_table",
+        "pivot_wider"
+      ],
+      "virtual": [
+        "pure-virtual",
+        "virtual",
+        "virtual-destructor"
+      ],
+      "with": [
+        "starts_with",
+        "with",
+        "with-open"
+      ],
+      "ttest": [
+        "ttest_1samp",
+        "ttest_ind",
+        "ttest_rel"
+      ]
+    }
+  },
+  "bank_cross_root_variants": {
+    "count": 62,
+    "items": {
+      "accumulate": {
+        "spellings": [
+          "accumulate"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "aggregate": {
+        "spellings": [
+          "aggregate"
+        ],
+        "roots": [
+          "r",
+          "sql"
+        ]
+      },
+      "anova": {
+        "spellings": [
+          "anova"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "arithmetic": {
+        "spellings": [
+          "arithmetic"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "array": {
+        "spellings": [
+          "array"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "bar": {
+        "spellings": [
+          "bar"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "basics": {
+        "spellings": [
+          "basics"
+        ],
+        "roots": [
+          "agent_dev",
+          "python",
+          "r"
+        ]
+      },
+      "boxplot": {
+        "spellings": [
+          "boxplot"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "class": {
+        "spellings": [
+          "class"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "cleaning": {
+        "spellings": [
+          "cleaning"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "cohens_d": {
+        "spellings": [
+          "cohens-d"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "comparison": {
+        "spellings": [
+          "comparison"
+        ],
+        "roots": [
+          "cpp",
+          "r"
+        ]
+      },
+      "comprehension": {
+        "spellings": [
+          "comprehension"
+        ],
+        "roots": [
+          "agent_dev",
+          "python"
+        ]
+      },
+      "count": {
+        "spellings": [
+          "count"
+        ],
+        "roots": [
+          "cpp",
+          "python",
+          "sql"
+        ]
+      },
+      "diff": {
+        "spellings": [
+          "diff"
+        ],
+        "roots": [
+          "agent_dev",
+          "r",
+          "sql"
+        ]
+      },
+      "duplicates": {
+        "spellings": [
+          "duplicates"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "error_handling": {
+        "spellings": [
+          "error-handling",
+          "error_handling"
+        ],
+        "roots": [
+          "agent_dev"
+        ]
+      },
+      "exception": {
+        "spellings": [
+          "exception"
+        ],
+        "roots": [
+          "agent_dev",
+          "cpp"
+        ]
+      },
+      "feature_importance": {
+        "spellings": [
+          "feature_importance",
+          "feature-importance"
+        ],
+        "roots": [
+          "python"
+        ]
+      },
+      "file": {
+        "spellings": [
+          "file"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "filter": {
+        "spellings": [
+          "filter"
+        ],
+        "roots": [
+          "python",
+          "r",
+          "sql"
+        ]
+      },
+      "for": {
+        "spellings": [
+          "for"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "format": {
+        "spellings": [
+          "format"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "group_by": {
+        "spellings": [
+          "group_by",
+          "group-by"
+        ],
+        "roots": [
+          "r",
+          "sql"
+        ]
+      },
+      "groupby": {
+        "spellings": [
+          "groupby"
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ]
+      },
+      "if": {
+        "spellings": [
+          "if"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "if_else": {
+        "spellings": [
+          "if-else"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "in": {
+        "spellings": [
+          "in"
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ]
+      },
+      "inheritance": {
+        "spellings": [
+          "inheritance"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "init": {
+        "spellings": [
+          "init"
+        ],
+        "roots": [
+          "agent_dev",
+          "python"
+        ]
+      },
+      "io": {
+        "spellings": [
+          "io"
+        ],
+        "roots": [
+          "cpp",
+          "python",
+          "r"
+        ]
+      },
+      "kmeans": {
+        "spellings": [
+          "kmeans"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "list": {
+        "spellings": [
+          "list"
+        ],
+        "roots": [
+          "agent_dev",
+          "python"
+        ]
+      },
+      "logistic": {
+        "spellings": [
+          "logistic"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "loop": {
+        "spellings": [
+          "loop"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "map": {
+        "spellings": [
+          "map"
+        ],
+        "roots": [
+          "cpp",
+          "r"
+        ]
+      },
+      "max": {
+        "spellings": [
+          "max"
+        ],
+        "roots": [
+          "cpp",
+          "sql"
+        ]
+      },
+      "mean": {
+        "spellings": [
+          "mean"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "method": {
+        "spellings": [
+          "method"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "missing": {
+        "spellings": [
+          "missing"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "modulo": {
+        "spellings": [
+          "modulo"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "override": {
+        "spellings": [
+          "override"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "predict": {
+        "spellings": [
+          "predict"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "r_squared": {
+        "spellings": [
+          "r-squared"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "real_data": {
+        "spellings": [
+          "real-data"
+        ],
+        "roots": [
+          "python",
+          "r",
+          "sql"
+        ]
+      },
+      "regex": {
+        "spellings": [
+          "regex"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "regression": {
+        "spellings": [
+          "regression"
+        ],
+        "roots": [
+          "agent_dev",
+          "python",
+          "r"
+        ]
+      },
+      "replace": {
+        "spellings": [
+          "replace"
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ]
+      },
+      "return": {
+        "spellings": [
+          "return"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "scatter": {
+        "spellings": [
+          "scatter"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "select": {
+        "spellings": [
+          "select"
+        ],
+        "roots": [
+          "r",
+          "sql"
+        ]
+      },
+      "set": {
+        "spellings": [
+          "set"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "sort": {
+        "spellings": [
+          "sort"
+        ],
+        "roots": [
+          "cpp",
+          "python"
+        ]
+      },
+      "split": {
+        "spellings": [
+          "split"
+        ],
+        "roots": [
+          "python",
+          "r"
+        ]
+      },
+      "starter": {
+        "spellings": [
+          "starter"
+        ],
+        "roots": [
+          "cpp",
+          "python",
+          "r",
+          "sql"
+        ]
+      },
+      "strftime": {
+        "spellings": [
+          "strftime"
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ]
+      },
+      "substr": {
+        "spellings": [
+          "substr"
+        ],
+        "roots": [
+          "cpp",
+          "sql"
+        ]
+      },
+      "sum": {
+        "spellings": [
+          "sum"
+        ],
+        "roots": [
+          "cpp",
+          "python",
+          "r",
+          "sql"
+        ]
+      },
+      "template": {
+        "spellings": [
+          "template"
+        ],
+        "roots": [
+          "cpp",
+          "r"
+        ]
+      },
+      "upper": {
+        "spellings": [
+          "upper"
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ]
+      },
+      "vector": {
+        "spellings": [
+          "vector"
+        ],
+        "roots": [
+          "cpp",
+          "r"
+        ]
+      },
+      "where": {
+        "spellings": [
+          "where"
+        ],
+        "roots": [
+          "python",
+          "sql"
+        ]
+      }
+    }
+  },
+  "bank_vs_topic_slug": {
+    "note": "tag 词与 topic slug 词的重叠面（同一概念两处标签，非缺陷但属漂移面）",
+    "topics": 85,
+    "tag_tokens_also_in_slug": 62,
+    "tag_tokens_total": 360
+  },
+  "db_journal_mode": "wal",
+  "record_vocab": {
+    "attempts.lang": [
+      {
+        "value": "python",
+        "rows": 6
+      },
+      {
+        "value": "r",
+        "rows": 5
+      },
+      {
+        "value": "sql",
+        "rows": 4
+      }
+    ],
+    "problems_status.lang": [
+      {
+        "value": "python",
+        "rows": 5
+      },
+      {
+        "value": "r",
+        "rows": 5
+      },
+      {
+        "value": "sql",
+        "rows": 4
+      }
+    ],
+    "problems_status.status": [
+      {
+        "value": "solved",
+        "rows": 14
+      }
+    ],
+    "learning_events.event_type": [
+      {
+        "value": "achievement_unlocked",
+        "rows": 7
+      },
+      {
+        "value": "attempt_submitted",
+        "rows": 30
+      },
+      {
+        "value": "lesson_viewed",
+        "rows": 4
+      },
+      {
+        "value": "problem_failed",
+        "rows": 2
+      },
+      {
+        "value": "problem_passed",
+        "rows": 28
+      },
+      {
+        "value": "recommendation_shown",
+        "rows": 10
+      }
+    ],
+    "learning_events.lang": [
+      {
+        "value": "<NULL>",
+        "rows": 7
+      },
+      {
+        "value": "python",
+        "rows": 36
+      },
+      {
+        "value": "r",
+        "rows": 22
+      },
+      {
+        "value": "sql",
+        "rows": 16
+      }
+    ],
+    "meta.keys": [
+      {
+        "value": "achievements_earned",
+        "rows": 1
+      },
+      {
+        "value": "ai_pulse_monthly",
+        "rows": 1
+      },
+      {
+        "value": "ai_pulse_quarterly",
+        "rows": 1
+      },
+      {
+        "value": "all_mistakes_cleared",
+        "rows": 1
+      },
+      {
+        "value": "security_notice_seen",
+        "rows": 1
+      }
+    ],
+    "review_state rows": 0,
+    "rubric_scores rows": 0
+  },
+  "record_drift": {
+    "code_status_vocabulary": [
+      "solved",
+      "wrong"
+    ],
+    "db_status_values": [
+      "solved"
+    ],
+    "status_in_code_not_in_records": [
+      "wrong"
+    ],
+    "code_event_vocabulary": [
+      "achievement_unlocked",
+      "ai_open_scored",
+      "attempt_submitted",
+      "lesson_viewed",
+      "path_milestone_completed",
+      "path_started",
+      "problem_failed",
+      "problem_passed",
+      "recommendation_clicked",
+      "recommendation_completed",
+      "recommendation_shown"
+    ],
+    "db_event_values": [
+      "achievement_unlocked",
+      "attempt_submitted",
+      "lesson_viewed",
+      "problem_failed",
+      "problem_passed",
+      "recommendation_shown"
+    ],
+    "events_in_code_not_in_records": [
+      "ai_open_scored",
+      "path_milestone_completed",
+      "path_started",
+      "recommendation_clicked",
+      "recommendation_completed"
+    ],
+    "events_in_records_not_in_code": [],
+    "code_lang_vocabulary": [
+      "agent_dev",
+      "cpp",
+      "python",
+      "r",
+      "sql"
+    ],
+    "db_lang_values": [
+      "python",
+      "r",
+      "sql"
+    ],
+    "langs_in_code_not_in_records": [
+      "agent_dev",
+      "cpp"
+    ],
+    "content_roots": [
+      "agent_dev",
+      "cpp",
+      "python",
+      "r",
+      "sql"
+    ],
+    "langs_in_content_not_in_records": [
+      "agent_dev",
+      "cpp"
+    ]
+  },
+  "record_id_orphans": {
+    "referenced_problem_ids": 19,
+    "live_problem_ids": 403,
+    "referenced_but_not_in_bank": [],
+    "shape_check": {
+      "total": 19,
+      "three_segment_slug": 19,
+      "other_shape": []
+    }
+  },
+  "record_count_asymmetry": {
+    "attempts_rows": 15,
+    "attempt_submitted_events": 30,
+    "problem_passed_events": 28,
+    "problem_failed_events": 2,
+    "attempts_passed_0": 1,
+    "attempts_passed_1": 14,
+    "distinct_created_at_clusters": [
+      [
+        "2026-07-05 05:23:57",
+        30
+      ],
+      [
+        "2026-09-25 12:49:09",
+        30
+      ],
+      [
+        "2026-07-15 03:28:49",
+        7
+      ],
+      [
+        "2026-07-15 03:28:48",
+        5
+      ]
+    ],
+    "note": "题面标签漂移不依赖这些计数；此节仅登记不对称，不作归因（在册观察项见纪律档 23.3 learning 行）"
+  },
+  "report_surface": {
+    "weakness_key_shape": [
+      "agent_dev",
+      "cpp",
+      "python",
+      "r",
+      "sql"
+    ],
+    "weakness_keys_total": 85,
+    "weakness_sample_keys": [
+      "agent_dev/01_git_basics",
+      "agent_dev/02_debug_read",
+      "agent_dev/03_spec_writing"
+    ],
+    "note": "报告侧弱项标签用 `lang/topic_slug` 两段键（不含 tags 词表）⇒ tags 在报告面同样零消费",
+    "report_status_literals": [
+      "solved",
+      "wrong"
+    ],
+    "generate_report_signature": "(dao: Optional[core.progress.ProgressDAO] = None, days: int = 7) -> Dict"
+  },
+  "tags_readers": {
+    "note": "AST 之外的正则轨：生产/脚本面读 tags 值的行号",
+    "hit_count": 1,
+    "hits": [
+      "core/loader.py:186"
+    ],
+    "lang_vocab_in_ui": [
+      "agent_dev",
+      "cpp",
+      "python",
+      "r",
+      "sql"
+    ]
+  },
+  "prod_db_sha8_after": "cd2dbce4",
+  "prod_untouched": true
+}
