@@ -1,0 +1,17 @@
+title: "判断正数、负数还是零"
+topic: "02_conditionals"
+difficulty: 1
+tags: ["conditionals", "sign"]
+statement: |
+  读入一个整数，如果是正数输出 `positive`，
+  负数输出 `negative`，零输出 `zero`。
+starter_code: |
+  n = int(input())
+
+  # 判断并输出
+
+expected_output: |
+  positive / negative / zero 三选一
+hints:
+  - "用 if / elif / else 三分支"
+  - "判断条件：n > 0, n < 0, n == 0"

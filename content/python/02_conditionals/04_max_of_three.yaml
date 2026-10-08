@@ -1,0 +1,18 @@
+title: "三数取最大值"
+topic: "02_conditionals"
+difficulty: 2
+tags: ["conditionals", "comparison"]
+statement: |
+  读入三个整数（每行一个），输出其中最大的那个。
+starter_code: |
+  a = int(input())
+  b = int(input())
+  c = int(input())
+
+  # 判断并输出最大值
+
+expected_output: |
+  最大的那个数
+hints:
+  - "可以两两比较：先比 a 和 b，再把大的跟 c 比"
+  - "也可以用 max(a, b, c) 一行搞定"

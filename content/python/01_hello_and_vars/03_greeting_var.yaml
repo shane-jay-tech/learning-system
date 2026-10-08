@@ -1,0 +1,17 @@
+title: "用变量存名字并打招呼"
+topic: "01_hello_and_vars"
+difficulty: 1
+tags: ["io", "variables", "starter"]
+statement: |
+  请定义一个变量 `name`，把你的英文名（用 `"Python"` 即可）存进去，
+  然后用 `print` 输出一行：`Hello, Python!`（把变量和固定字符串拼接）。
+starter_code: |
+  # 定义变量 name
+
+  # 输出 Hello, 名字
+
+expected_output: |
+  Hello, Python!
+hints:
+  - "用 name = \"Python\" 存变量"
+  - "用 print(\"Hello, \" + name + \"!\") 拼接输出"

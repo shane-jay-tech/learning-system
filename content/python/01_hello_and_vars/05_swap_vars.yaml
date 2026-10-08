@@ -1,0 +1,20 @@
+title: "交换两个变量的值"
+topic: "01_hello_and_vars"
+difficulty: 2
+tags: ["variables", "swap"]
+statement: |
+  已知 `a = 1`，`b = 2`，
+  请在一行内交换它们的值（Python 特性），然后按格式输出：`a=2, b=1`。
+starter_code: |
+  a = 1
+  b = 2
+
+  # 一行交换
+
+  # 输出结果
+
+expected_output: |
+  a=2, b=1
+hints:
+  - "Python 可以 a, b = b, a 一行交换"
+  - "print 用 f-string 或格式化拼接均可"

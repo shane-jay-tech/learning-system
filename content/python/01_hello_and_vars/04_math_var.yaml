@@ -1,0 +1,21 @@
+title: "两数运算"
+topic: "01_hello_and_vars"
+difficulty: 1
+tags: ["arithmetic", "variables"]
+statement: |
+  定义两个变量 `a = 3` 和 `b = 4`，
+  分别用 `print` 输出它们的**和**与**积**，各占一行。
+starter_code: |
+  a = 3
+  b = 4
+
+  # 输出和
+
+  # 输出积
+
+expected_output: |
+  7
+  12
+hints:
+  - "print(a + b) 输出和"
+  - "print(a * b) 输出积"
