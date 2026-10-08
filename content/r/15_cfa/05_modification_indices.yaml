@@ -1,0 +1,11 @@
+title: "修正指数（MI）与模型调整"
+topic: "15_cfa"
+difficulty: 4
+tags: ["sem", "cfa", "modification"]
+judge_mode: ai_open
+statement: |
+  用 lavaan 拟合 CFA 后查看 modification indices（modindices(fit)），
+  解释 MI > 10 的含义，并说明什么时候应该（或不应该）根据 MI 加路径。
+  提交完整代码与文字分析。
+starter_code: |
+  library(lavaan)

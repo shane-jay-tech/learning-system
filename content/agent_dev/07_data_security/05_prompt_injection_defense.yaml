@@ -1,0 +1,11 @@
+title: "Prompt 注入防御：输入过滤与输出校验"
+topic: "07_data_security"
+difficulty: 4
+tags: ["security", "prompt_injection", "defense"]
+judge_mode: ai_open
+statement: |
+  Agent 系统的 prompt 注入防御。
+  场景：用户在输入中嵌入指令试图劫持 Agent。
+  请写出三层防御策略并给出关键代码。
+starter_code: |
+  # 三层防御
