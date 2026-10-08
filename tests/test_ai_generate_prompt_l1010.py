@@ -26,8 +26,7 @@ class TestTrim:
 
     def test_custom_n(self):
         # 底层 trim_text 语义：超限截断并附标记；短串原样；空串空返
-        assert ai_generate._trim("abcdef", 4) == "abcd
-[... 已截断（>4 字符）]"
+        assert ai_generate._trim("abcdef", 4) == "abcd" + "\n[... 已截断（>4 字符）]"
         assert ai_generate._trim("abc", 4) == "abc"
         assert ai_generate._trim("", 10) == ""
 
