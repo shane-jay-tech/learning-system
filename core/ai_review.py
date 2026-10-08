@@ -7,6 +7,7 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from core.config import get_llm_script_path
+from core.runners import error_feedback  # l1014-01（R-1 取回，l927-16 案文）：仓内离线提示表
 
 # Offline error guidance via the shared hub (best-effort). When the LLM is down,
 # we still translate the student's runtime error into plain language instead of
@@ -272,7 +273,7 @@ def review(lang: str, problem: dict, code: str, run_result: Any, passed: bool) -
     text, _model = _call_chain(prompt, system, _FAST_CHAIN)
     if text:
         return _cache_feedback(lang, pid, code, _post_check(text, difficulty, passed))
-    return _offline_fallback(passed, stderr)
+    return _offline_fallback(passed, stderr, lang)
 
 
 # l930-19：R-3/R-4 程序化强制（l927-16 遗留——原只有提示词条款，无程序化校验）。
@@ -325,8 +326,40 @@ def is_degraded_feedback(text: str) -> bool:
     return "AI 点评暂时不可用" in (text or "")
 
 
-def _offline_fallback(passed: bool, stderr: str) -> str:
-    """LLM 不可用时的兜底点评：命中具体错误模式就给离线指引。"""
+def _inrepo_offline_hint(lang: str, stderr: str) -> str:
+    """仓内共用提示表（`core/runners/error_feedback`）给出的离线指引行（l1014-01 R-1 取回）。
+
+    查不到就返回**空串**——沿用仓内表"不命中则不编造提示"的口径，
+    这样"未知名保持安静"（`tests/test_ai_review_offline.py::test_offline_fallback_unknown_error_no_noise`）
+    这条既有约束不被本单破坏。
+    `lang` 是仓内表的门控键（`IndexError` 只对 python/agent_dev 生效、`no such table` 只对 sql 生效）
+    ⇒ 没有 lang 就一律不命中，等价于改前行为。
+    """
+    if not lang or not stderr:
+        return ""
+    try:
+        hint = error_feedback.hint_only(lang, stderr)
+        if not hint:
+            return ""
+        # 行号折算是同一张表的另一半价值（preamble 偏移在这层统一处理）
+        where = error_feedback.where_phrase(lang, stderr)
+    except Exception:
+        logger.debug("ai_review: 仓内离线提示查表失败（保持主返回）", exc_info=True)
+        return ""
+    return f"\n\n先给你一个离线提示——{where}{hint}"
+
+
+def _offline_fallback(passed: bool, stderr: str, lang: str = "") -> str:
+    """LLM 不可用时的兜底点评：命中具体错误模式就给离线指引。
+
+    两级指引（l927-16 方案原文＝154242 档 R-1；l1014-01 决议#28 取回落地）：
+      ① 仓外共享 hub `scripts/common/friendly_errors.friendly_explain`（历史接法）；
+      ② **未命中 hub 时回退到仓内**共用提示表 `core/runners/error_feedback.hint_only(lang, stderr)`。
+    为什么 ② 收益更高：同一批 6 个高频错误样例上实测覆盖 **仓内 5/6 vs 仓外 2/6**，
+    且仓内表四语言共用、行号已折算（NameError／SyntaxError／no such table 三例 hub 全不认）。
+    hub 缺失时（`_fe is None`，即 R-5 那条"静默降级"）也不再只剩通用句——②照样接得上。
+    🔴 只加文案，不改判题：`passed`／`ok`／`exit_code`／`error_kind` 一律不碰。
+    """
     msg = "AI 点评暂时不可用（网络或服务异常），请稍后再试。判题本身不受影响。"
     if not passed and stderr and _fe is not None:
         try:
@@ -334,8 +367,11 @@ def _offline_fallback(passed: bool, stderr: str) -> str:
             if fr.title != "出了点问题":  # 仅在命中具体模式时补充，避免废话
                 msg += (f"\n\n先给你一个离线提示——**{fr.title}**：{fr.explanation} "
                         f"👉 {fr.suggested_action}")
+                return msg  # hub 命中即返回，不双写（离线提示恒为一处）
         except Exception:
-            logger.debug("ai_review: 离线提示补充失败（保持主返回）", exc_info=True)
+            logger.debug("ai_review: 离线提示补充失败（转仓内表）", exc_info=True)
+    if not passed and stderr:
+        msg += _inrepo_offline_hint(lang, stderr)
     return msg
 
 
