@@ -1,0 +1,19 @@
+title: "GridSearchCV 超参搜索"
+topic: "23_sklearn_advanced"
+difficulty: 4
+tags: ["sklearn", "grid_search", "tuning"]
+judge_mode: ai_open
+statement: |
+  用 GridSearchCV 搜索 RandomForestClassifier 的最优超参数。
+
+  步骤：
+  1. 读取 ml_dataset.csv
+  2. 定义搜索空间：n_estimators=[50,100,200], max_depth=[3,5,None]
+  3. 5 折交叉验证，评分用 accuracy
+  4. 输出最优参数组合和最优得分
+
+  提交完整代码。
+starter_code: |
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  from sklearn.model_selection import GridSearchCV, train_test_split

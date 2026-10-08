@@ -1,0 +1,21 @@
+title: "分类报告与混淆矩阵"
+topic: "23_sklearn_advanced"
+difficulty: 3
+tags: ["sklearn", "classification_report", "confusion_matrix"]
+judge_mode: ai_open
+statement: |
+  训练模型后输出 classification_report 和混淆矩阵。
+
+  步骤：
+  1. 读取 ml_dataset.csv
+  2. 特征除 target 外全部列，80/20 划分（random_state=42）
+  3. 训练 RandomForestClassifier(n_estimators=100)
+  4. 输出 classification_report（含 precision/recall/f1）
+  5. 输出混淆矩阵
+
+  提交完整代码。
+starter_code: |
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  from sklearn.metrics import classification_report, confusion_matrix
+  from sklearn.model_selection import train_test_split

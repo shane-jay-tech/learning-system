@@ -1,0 +1,24 @@
+title: "SEM 模型拟合与解读"
+topic: "14_sem_basics"
+difficulty: 4
+tags: ["sem", "lavaan", "fit"]
+judge_mode: ai_open
+statement: |
+  用 lavaan 拟合一个简单的 SEM 模型并解读拟合指标。
+
+  步骤：
+  1. 读取 sem_data.csv
+  2. 定义测量模型：F1 =~ x1 + x2 + x3; F2 =~ y1 + y2 + y3
+  3. 定义结构模型：F2 ~ F1
+  4. 用 sem() 拟合（std.lv=TRUE）
+  5. 输出 summary(fit, fit.measures=TRUE) 中的 CFI 和 RMSEA
+  6. 判断 CFI >= 0.90 且 RMSEA <= 0.08 是否同时满足（输出 TRUE/FALSE）
+
+  提交完整代码。
+starter_code: |
+  library(lavaan)
+  model <- '
+    F1 =~ x1 + x2 + x3
+    F2 =~ y1 + y2 + y3
+    F2 ~ F1
+  '

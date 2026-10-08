@@ -1,0 +1,15 @@
+title: "条件筛选向量"
+topic: "01_vectors_and_basics"
+difficulty: 2
+tags: ["vectors", "filtering"]
+judge_mode: run
+statement: |
+  创建向量 `v <- c(15, 8, 22, 3, 17, 10)`，
+  输出所有大于 10 的元素（用条件索引）。
+
+expected_output: |
+  [1] 15 22 17
+hints:
+  - "条件索引：v[v > 10]"
+starter_code: |
+  v <- c(15, 8, 22, 3, 17, 10)

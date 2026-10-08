@@ -1,0 +1,18 @@
+title: "命名向量与 names()"
+topic: "01_vectors_and_basics"
+difficulty: 2
+tags: ["vectors", "names"]
+judge_mode: run
+statement: |
+  创建向量 `scores <- c(85, 92, 78)`，
+  用 `names()` 设定名称为 Alice/Bob/Charlie，
+  然后输出 `scores["Bob"]`。
+
+expected_output: |
+  Bob
+   92
+hints:
+  - "names(scores) <- c('Alice','Bob','Charlie')"
+  - "命名索引：scores['Bob']"
+starter_code: |
+  scores <- c(85, 92, 78)

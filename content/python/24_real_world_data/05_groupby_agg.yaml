@@ -1,0 +1,17 @@
+title: "多列分组聚合"
+topic: "24_real_world_data"
+difficulty: 3
+tags: ["pandas", "groupby", "aggregation"]
+judge_mode: ai_open
+statement: |
+  对清洗后的数据进行多列分组聚合。
+
+  步骤：
+  1. 读取 sales_data.csv
+  2. 按 department 分组
+  3. 同时计算 salary 的均值和 bonus 的总和
+  4. 输出结果 DataFrame（列名：mean_salary, total_bonus）
+
+  提交完整代码。
+starter_code: |
+  import pandas as pd

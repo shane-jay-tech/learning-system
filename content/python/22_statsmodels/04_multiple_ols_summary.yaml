@@ -1,0 +1,19 @@
+title: "多元回归与 OLS 摘要表"
+topic: "22_statsmodels"
+difficulty: 3
+tags: ["statsmodels", "ols", "regression"]
+judge_mode: ai_open
+statement: |
+  用 statsmodels 进行多元线性回归并输出 OLS 摘要表。
+
+  步骤：
+  1. 读取 research_data.csv
+  2. 用 sm.add_constant 构造 X（变量：hours, iq, gpa）
+  3. 目标 y：income
+  4. 拟合 OLS 模型并输出完整摘要表
+  5. 判断 hours 的 p 值是否 < 0.05，输出 True 或 False
+
+  提交完整代码。
+starter_code: |
+  import pandas as pd
+  import statsmodels.api as sm

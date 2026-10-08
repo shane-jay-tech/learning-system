@@ -1,0 +1,17 @@
+title: "中位数与极差"
+topic: "02_logic_and_summary"
+difficulty: 2
+tags: ["summary", "median", "range"]
+judge_mode: run
+statement: |
+  创建向量 `v <- c(23, 18, 35, 12, 27, 31)`，
+  输出中位数和极差（max - min），各占一行。
+
+expected_output: |
+  [1] 25
+  [1] 23
+hints:
+  - "median(v)"
+  - "range 返回最小和最大：diff(range(v))"
+starter_code: |
+  v <- c(23, 18, 35, 12, 27, 31)

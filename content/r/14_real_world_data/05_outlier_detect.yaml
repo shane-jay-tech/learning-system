@@ -1,0 +1,15 @@
+title: "离群值检测与过滤"
+topic: "14_real_world_data"
+difficulty: 3
+tags: ["outliers", "filtering", "real_world"]
+judge_mode: run
+statement: |
+  从 data.csv 读取数据框 df（含 salary 列），
+  用 IQR 方法检测并移除 salary 的离群值（低于 Q1-1.5IQR 或高于 Q3+1.5IQR），
+  输出清洗后的行数。
+
+hints:
+  - "quantile(df$salary, c(0.25, 0.75)) 取四分位"
+  - "IQR() 函数直接返回四分位距"
+starter_code: |
+  df <- read.csv('data.csv')

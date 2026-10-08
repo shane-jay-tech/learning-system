@@ -1,0 +1,19 @@
+title: "向量运算与索引"
+topic: "01_vectors_and_basics"
+difficulty: 2
+tags: ["vectors", "operations", "indexing"]
+judge_mode: run
+statement: |
+  创建向量 `v <- c(10, 20, 30, 40, 50)`，
+  输出第三个元素、后两个元素、以及所有元素的平方。
+
+expected_output: |
+  [1] 30
+  [1] 40 50
+  [1]  100  400  900 1600 2500
+hints:
+  - "R 索引从 1 开始：v[3]"
+  - "负索引或范围：v[4:5]"
+  - "向量化运算：v^2"
+starter_code: |
+  v <- c(10, 20, 30, 40, 50)

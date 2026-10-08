@@ -1,0 +1,15 @@
+title: "ifelse 向量化条件"
+topic: "02_logic_and_summary"
+difficulty: 2
+tags: ["ifelse", "vectorized"]
+judge_mode: run
+statement: |
+  创建向量 `v <- c(45, 72, 58, 91, 63)`，
+  用 `ifelse` 输出每个元素：>=60 输出 "Pass"，否则 "Fail"。
+
+expected_output: |
+  [1] "Fail" "Pass" "Fail" "Pass" "Pass"
+hints:
+  - "ifelse(v >= 60, 'Pass', 'Fail')"
+starter_code: |
+  v <- c(45, 72, 58, 91, 63)

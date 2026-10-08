@@ -1,0 +1,20 @@
+title: "薪资预测：线性回归"
+topic: "22_hr_model"
+difficulty: 3
+tags: ["sklearn", "linear_regression", "hr"]
+judge_mode: ai_open
+statement: |
+  用线性回归预测员工薪资。
+
+  步骤：
+  1. 读取 hr_employees.csv
+  2. 特征 X：performance_score, training_hours, age
+  3. 目标 y：salary
+  4. 80/20 划分（random_state=42）
+  5. 训练 LinearRegression，输出测试集 R²（保留 3 位小数）
+
+  提交完整代码。
+starter_code: |
+  import pandas as pd
+  from sklearn.linear_model import LinearRegression
+  from sklearn.model_selection import train_test_split

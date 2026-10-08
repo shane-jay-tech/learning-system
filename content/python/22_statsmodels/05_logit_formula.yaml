@@ -1,0 +1,18 @@
+title: "Logit 回归（公式接口）"
+topic: "22_statsmodels"
+difficulty: 3
+tags: ["statsmodels", "logit", "formula"]
+judge_mode: ai_open
+statement: |
+  用 statsmodels 的公式接口（smf.logit）做二元回归。
+
+  步骤：
+  1. 读取 survey_data.csv
+  2. 公式：satisfied ~ age + income + education_years
+  3. 拟合并输出参数摘要
+  4. 输出 age 系数的符号（正/负）
+
+  提交完整代码。
+starter_code: |
+  import pandas as pd
+  import statsmodels.formula.api as smf
