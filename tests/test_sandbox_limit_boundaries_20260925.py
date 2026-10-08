@@ -63,10 +63,14 @@ def _sandbox_progress_db(monkeypatch, tmp_path):
 def _pid_alive(pid: int) -> bool:
     """只读存活探测（不 kill、不写盘）；Windows 用 `tasklist`，其余用信号 0。"""
     if sys.platform == "win32":
+        # l1010-33 修：中文 Windows 的 tasklist 输出是 GBK（无匹配时的提示行含中文字节），
+        # text=True 按 UTF-8 解码会在 reader 线程抛 UnicodeDecodeError ⇒ stdout=None。
+        # 探测只依赖 ASCII 的 pid 子串：按字节取回再 ignore 解码即可。
         out = subprocess.run(
             ["tasklist", "/FI", "PID eq %d" % pid, "/NH"],
-            capture_output=True, text=True,
+            capture_output=True,
         ).stdout
+        out = (out or b"").decode("utf-8", errors="ignore")
         return "No tasks are running" not in out and str(pid) in out
     import os
     try:
