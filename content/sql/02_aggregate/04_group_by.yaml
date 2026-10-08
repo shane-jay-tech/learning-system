@@ -1,0 +1,15 @@
+title: "GROUP BY 分组计数"
+topic: "02_aggregate"
+difficulty: 2
+tags: ["group_by", "count"]
+statement: |
+  `employees` 表有 `department` 和 `salary` 列。
+  按 `department` 分组，输出每组的 `COUNT(*)`（列名用 `cnt`），按 cnt 降序。
+starter_code: |
+  -- SELECT department, COUNT(*) AS cnt FROM employees ...
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, department TEXT, salary REAL);
+  INSERT INTO employees VALUES (1,'A','eng',100),(2,'B','eng',120),(3,'C','hr',90),(4,'D','hr',95),(5,'E','eng',110);
+expected_rows:
+  - ["eng", 3]
+  - ["hr", 2]

@@ -1,0 +1,15 @@
+title: "排序+限制行数：按分数降序取前 3"
+topic: "01_select_where"
+difficulty: 2
+tags: ["order_by", "limit"]
+statement: |
+  查询 `students` 表按 `score` 降序排列，取前 3 行，返回 `name` 和 `score`。
+starter_code: |
+  -- SELECT name, score FROM students ORDER BY score DESC LIMIT 3;
+setup_sql: |
+  CREATE TABLE students (id INTEGER, name TEXT, score INTEGER);
+  INSERT INTO students VALUES (1,'Alice',92),(2,'Bob',87),(3,'Cathy',75),(4,'David',60),(5,'Eve',95);
+expected_rows:
+  - ["Eve", 95]
+  - ["Alice", 92]
+  - ["Bob", 87]

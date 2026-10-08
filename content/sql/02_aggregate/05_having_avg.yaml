@@ -1,0 +1,13 @@
+title: "HAVING 过滤分组均值"
+topic: "02_aggregate"
+difficulty: 3
+tags: ["having", "avg", "group_by"]
+statement: |
+  `employees` 表按 `department` 分组，输出平均薪资 > 100 的组（列：department, avg_salary），按 avg 降序。
+starter_code: |
+  -- SELECT department, AVG(salary) AS avg_salary FROM employees GROUP BY department HAVING ...
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, name TEXT, department TEXT, salary REAL);
+  INSERT INTO employees VALUES (1,'A','eng',100),(2,'B','eng',120),(3,'C','hr',90),(4,'D','hr',95),(5,'E','eng',110);
+expected_rows:
+  - ["eng", 110.0]

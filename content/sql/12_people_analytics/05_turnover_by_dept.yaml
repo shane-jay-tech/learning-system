@@ -1,0 +1,18 @@
+title: "各部门离职率排名"
+topic: "12_people_analytics"
+difficulty: 3
+tags: ["turnover", "join", "rank"]
+statement: |
+  `employees` 表有 `department` 和 `status` 列（'active' 或 'left'）。
+  输出各部门的离职率（left 占比），列名 `department` 和 `turnover_rate`（百分比保留 1 位小数），按离职率降序。
+starter_code: |
+  -- SELECT department,
+  --   ROUND(100.0 * SUM(CASE WHEN status = 'left' THEN 1 ELSE 0 END) / COUNT(*), 1) AS turnover_rate
+  -- FROM employees ...
+setup_sql: |
+  CREATE TABLE employees (id INTEGER, department TEXT, status TEXT);
+  INSERT INTO employees VALUES (1,'eng','active'),(2,'eng','left'),(3,'hr','active'),(4,'hr','active'),(5,'sales','left'),(6,'sales','left');
+expected_rows:
+  - ["sales", 100.0]
+  - ["hr", 0.0]
+  - ["eng", 50.0]
