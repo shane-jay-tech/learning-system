@@ -175,7 +175,7 @@ def test_parameters_traceable_to_ddl_defaults(dao):
     }
     # 代码侧兜底值（写死在 progress.py 的 else 分支；名字法取，不锚行号）
     import inspect
-    src = inspect.getsource(ProgressDAO.update_review_state)
+    src = inspect.getsource(ProgressDAO._upsert_review_state_locked)  # l1012-02 体迁锚随翻
     assert "interval, ease, streak = 3, 2.0, 0" in src, src
 
     assert defaults["interval_days"] == "3"

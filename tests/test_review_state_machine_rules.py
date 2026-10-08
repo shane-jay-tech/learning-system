@@ -231,7 +231,7 @@ def test_复习态取值域只有pass与fail没有第三态():
     """注意取值域要**按函数体切**：整份文件里还有 `"solved" if passed else "wrong"`
     这一对属于 problems_status，混进来会得出两个三元组（本班第一版就混了）。"""
     src = open(os.path.join(ROOT, "core", "progress.py"), encoding="utf-8").read()
-    body = src.split("def update_review_state")[1].split("def ")[0]
+    body = src.split("def _upsert_review_state_locked")[1].split("def ")[0]  # l1012-02 体迁锚随翻
     vals = set(re.findall(r'"([a-z]+)" if passed else "([a-z]+)"', body))
     assert vals == {("pass", "fail")}, f"last_result 取值域变了：{vals}"
     assert re.search(r"last_result", body), "update_review_state 不再写 last_result"

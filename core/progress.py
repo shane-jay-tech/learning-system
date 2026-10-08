@@ -185,8 +185,15 @@ class ProgressDAO:
         self._memo.clear()
 
     def record_attempt_and_status(self, lang: str, pid: str, code: str,
-                                  passed: bool, ai_feedback: str) -> int:
-        """单事务写入 attempts + problems_status，避免半成功导致两表不一致。"""
+                                  passed: bool, ai_feedback: str,
+                                  update_review: bool = False,
+                                  difficulty: int = 3) -> int:
+        """单事务写入 attempts + problems_status，避免半成功导致两表不一致。
+
+        l1012-02（决议#6 原子包，l1007-23 方案 §三）：可选 update_review=True 把
+        review_state UPSERT 并入同一 with（attempt+status+review 三写原子——消除
+        「attempt 落、review_state 失败」的排期缺失窗）；默认 False 逐位等价改前。
+        """
         status = "solved" if passed else "wrong"
         with self.conn:
             cur = self.conn.execute(
@@ -200,8 +207,52 @@ class ProgressDAO:
                 "VALUES (?,?,?, CURRENT_TIMESTAMP)",
                 (lang, pid, status),
             )
+            if update_review:
+                self._upsert_review_state_locked(lang, pid, passed, difficulty)
             self._clear_memo()
             return cur.lastrowid
+
+    def _upsert_review_state_locked(self, lang: str, pid: str,
+                                    passed: bool, difficulty: int) -> None:
+        """review_state 计算＋UPSERT 纯体（无 with——调用方持事务；l1012-02 拆段）。"""
+        from datetime import date, timedelta
+        row = self.conn.execute(
+            "SELECT interval_days, ease, review_streak FROM review_state WHERE lang=? AND problem_id=?",
+            (lang, pid),
+        ).fetchone()
+
+        if row:
+            interval, ease, streak = row[0], row[1], row[2]
+        else:
+            interval, ease, streak = 3, 2.0, 0
+
+        # l1006-02/l1004-13：值域夹钳护全通道——脏行（手改/损坏导出）在下一次写库时被夹回。
+        # ease 严档 2.0＝初值稳态上界（生产库普查 MAX(ease)=None、0 行，零回填成本）；
+        # interval/Review streak 与下界夹钳对称补齐，防 ease 失控恒顶格与负 streak 入库。
+        interval = min(max(interval, 0), 30)
+        ease = min(max(ease, 1.5), 2.0)
+        streak = max(streak, 0)
+
+        if passed:
+            streak += 1
+            interval = min(max(interval + 1, int(interval * ease)), 30)
+            if difficulty >= 4:
+                ease = max(1.5, ease - 0.1)
+        else:
+            streak = 0
+            interval = 1
+            ease = max(1.5, ease - 0.2)
+
+        next_due = (date.today() + timedelta(days=interval)).isoformat()
+        self.conn.execute(
+            "INSERT INTO review_state (lang, problem_id, interval_days, ease, review_streak, next_due_date, last_result, updated_ts) "
+            "VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP) "
+            "ON CONFLICT(lang, problem_id) DO UPDATE SET "
+            "interval_days=excluded.interval_days, ease=excluded.ease, "
+            "review_streak=excluded.review_streak, next_due_date=excluded.next_due_date, "
+            "last_result=excluded.last_result, updated_ts=CURRENT_TIMESTAMP",
+            (lang, pid, interval, ease, streak, next_due, "pass" if passed else "fail"),
+        )
 
     # 兼容旧 API（test_progress 等）
     # l1007-07 守卫告警（l1004-10 遗留 1 ③支，零破坏）：旧双 API 生产调用面=0
@@ -401,46 +452,14 @@ class ProgressDAO:
         return {"total": total, "solved": solved, "pct": solved / total}
 
     def update_review_state(self, lang: str, pid: str, passed: bool, difficulty: int = 3) -> None:
-        """更新间隔复习状态。通过则间隔加长，失败则重置。"""
-        from datetime import date, timedelta
-        row = self.conn.execute(
-            "SELECT interval_days, ease, review_streak FROM review_state WHERE lang=? AND problem_id=?",
-            (lang, pid),
-        ).fetchone()
+        """更新间隔复习状态。通过则间隔加长，失败则重置。
 
-        if row:
-            interval, ease, streak = row[0], row[1], row[2]
-        else:
-            interval, ease, streak = 3, 2.0, 0
-
-        # l1006-02/l1004-13：值域夹钳护全通道——脏行（手改/损坏导出）在下一次写库时被夹回。
-        # ease 严档 2.0＝初值稳态上界（生产库普查 MAX(ease)=None、0 行，零回填成本）；
-        # interval/Review streak 与下界夹钳对称补齐，防 ease 失控恒顶格与负 streak 入库。
-        interval = min(max(interval, 0), 30)
-        ease = min(max(ease, 1.5), 2.0)
-        streak = max(streak, 0)
-
-        if passed:
-            streak += 1
-            interval = min(max(interval + 1, int(interval * ease)), 30)
-            if difficulty >= 4:
-                ease = max(1.5, ease - 0.1)
-        else:
-            streak = 0
-            interval = 1
-            ease = max(1.5, ease - 0.2)
-
-        next_due = (date.today() + timedelta(days=interval)).isoformat()
+        l1012-02：计算＋UPSERT 纯体抽至 `_upsert_review_state_locked`（与原子包
+        共享同一段实现——单源，防两份口径漂移）；本壳只持事务。
+        """
         with self.conn:
-            self.conn.execute(
-                "INSERT INTO review_state (lang, problem_id, interval_days, ease, review_streak, next_due_date, last_result, updated_ts) "
-                "VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP) "
-                "ON CONFLICT(lang, problem_id) DO UPDATE SET "
-                "interval_days=excluded.interval_days, ease=excluded.ease, "
-                "review_streak=excluded.review_streak, next_due_date=excluded.next_due_date, "
-                "last_result=excluded.last_result, updated_ts=CURRENT_TIMESTAMP",
-                (lang, pid, interval, ease, streak, next_due, "pass" if passed else "fail"),
-            )
+            self._upsert_review_state_locked(lang, pid, passed, difficulty)
+
 
     def get_due_reviews(self, limit: int = 10) -> List[Dict]:
         """获取到期需要复习的题目。"""

@@ -219,8 +219,9 @@ def _record_attempt(lang: str, pid: str, code: str, passed: bool,
     own_dao = dao is None
     d = dao or ProgressDAO()
     try:
-        attempt_id = d.record_attempt_and_status(lang, pid, code, passed, feedback)
-        d.update_review_state(lang, pid, passed, difficulty)
+        # l1012-02（决议#6 原子包）：三写合一事务——attempt+status+review 同包
+        attempt_id = d.record_attempt_and_status(lang, pid, code, passed, feedback,
+                                                 update_review=True, difficulty=difficulty)
         # ④payload 归一（222f#3）：发射点 A 补 attempt_id，与 backfill_events 形态一致；
         # ③事件当日去重（l1004-07）：code_hash 当日同键跳过，报表 1:N→1:1（SRS/attempts 不动）。
         code_hash = hashlib.sha256(code.encode("utf-8")).hexdigest()[:16]
@@ -435,9 +436,10 @@ def _judge_open(lang: str, pdict: dict, answer: str, dao: Optional[ProgressDAO] 
         own_dao = dao is None
         d = dao or ProgressDAO()
         try:
-            attempt_id = d.record_attempt_and_status(lang, pid, answer, res["passed"], res["feedback"])
+            # l1012-02（决议#6 原子包）：三写合一事务（开放题臂同批）
             difficulty = int(pdict.get("difficulty") or 3)
-            d.update_review_state(lang, pid, res["passed"], difficulty)
+            attempt_id = d.record_attempt_and_status(lang, pid, answer, res["passed"], res["feedback"],
+                                                     update_review=True, difficulty=difficulty)
             dimensions = res.get("dimensions") or []
             if dimensions and attempt_id:
                 d.record_rubric_scores(lang, pid, attempt_id, dimensions,
