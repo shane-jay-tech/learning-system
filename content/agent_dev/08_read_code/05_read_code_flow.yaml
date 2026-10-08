@@ -1,0 +1,15 @@
+title: "读代码：从入口到核心逻辑的追踪路径"
+topic: "08_read_code"
+difficulty: 3
+tags: ["read_code", "call_graph"]
+judge_mode: ai_open
+statement: |
+  给定一个不熟悉的项目，描述你如何从入口点追踪到核心业务逻辑。
+
+  以本项目（learning-system）为例，说明：
+  1. 你从哪个文件开始读
+  2. 怎么找到路由/API 层
+  3. 怎么追到领域逻辑（domain/application 层）
+  4. 怎么确认数据模型
+starter_code: |
+  # 文字分析，无代码要求

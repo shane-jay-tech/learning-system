@@ -1,0 +1,18 @@
+title: "PR 评审清单：五步法"
+topic: "08_review_pr"
+difficulty: 3
+tags: ["review", "checklist", "pr"]
+judge_mode: ai_open
+statement: |
+  描述你做 PR 评审的五步清单，并说明每步关注什么。
+
+  步骤：
+  1. 整体描述理解
+  2. 逻辑正确性
+  3. 边界与异常
+  4. 测试覆盖
+  5. 风格与一致性
+
+  每步给出 1-2 句说明。
+starter_code: |
+  # 文字分析

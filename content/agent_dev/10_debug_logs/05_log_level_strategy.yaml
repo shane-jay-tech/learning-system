@@ -1,0 +1,12 @@
+title: "日志级别策略与排错流"
+topic: "10_debug_logs"
+difficulty: 3
+tags: ["logging", "debug", "strategy"]
+judge_mode: ai_open
+statement: |
+  描述 Agent 项目的日志级别策略（DEBUG/INFO/WARN/ERROR 各用于什么），
+  并说明当用户报告"回答质量突然下降"时你的排错流。
+
+  排错流需覆盖：模型端/API 端/数据端三层排查。
+starter_code: |
+  # 文字分析
