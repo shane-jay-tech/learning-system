@@ -243,7 +243,14 @@ def _record_attempt(lang: str, pid: str, code: str, passed: bool,
 
 
 def _run_test_cases(runner, lang: str, code: str, pdict: dict) -> tuple:
-    """执行所有 test cases，返回 (passed, last_run_result, diff_hint)。"""
+    """执行所有 test cases，返回 (passed, last_run_result, diff_hint)。
+
+    防踩注记（l1010-32，l1007-01 遗留登记）：stdin 超 _MAX_STDIN_BYTES（1MB）时
+    runner 侧 _safe_stdin 会在截断流尾部追加可见标记行——标记行进学生程序 stdin
+    是可见化语义的一部分。现库 97 个 stdin 用例实测全部远低于该阈值（零实际影响）；
+    未来若新增 1MB 级 stdin 题面且判读做严格字节级比对，须把标记行计入比对口径
+    （或改用 exit-side 信号），勿默认截断流与原流逐字节相等。
+    """
     expected = {}
     if pdict.get("setup_sql"):
         expected["setup_sql"] = pdict["setup_sql"]
