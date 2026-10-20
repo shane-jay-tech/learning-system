@@ -1,0 +1,29 @@
+# 出处：C++ 入门教材「变量与输入输出」章；同族题参照 content/cpp/01_io_and_vars/02_sum_two_ints.yaml（l927-27 答案域授权自拟，2026-09-28 用户拍板）
+title: "交换输出两个整数"
+topic: "01_io_and_vars"
+difficulty: 2
+tags: ["io", "variables"]
+statement: |
+  从标准输入读两个整数 `a` 和 `b`（中间用空格分隔），
+  把它们**交换**后输出：先输出原来的 `b`，再输出原来的 `a`，中间一个空格。
+  例如输入 `3 5`，应输出 `5 3`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int a, b;
+      cin >> a >> b;
+      // 交换 a 和 b（可以借助第三个临时变量），然后按 b a 的顺序输出
+
+      return 0;
+  }
+expected_output: |
+  5 3
+tests:
+  - stdin: "3 5\n"
+    expected_output: "5 3\n"
+hints:
+  - "int t = a; a = b; b = t; 是经典的三行交换"
+  - "不交换变量也行：直接先输出 b 再输出 a"
+  - "输出格式是「b 空格 a」，别多输出文字"

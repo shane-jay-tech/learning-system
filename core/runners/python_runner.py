@@ -62,11 +62,25 @@ def _safe_env(extra: Optional[dict] = None) -> dict:
 
 
 def _truncate(data: bytes, limit: int) -> bytes:
+    """l1007-02 案2 落地（l1004-02 遗留）：头切吃掉 CPython traceback 结论（在尾）。
+
+    改为头尾保留：头 60% ＋ 尾 40%（共占 limit，省略标记行计额度内），CPython
+    traceback 的异常类型（头）与出错位置（尾）都保得住。省略标记 ≤120B 护栏
+    （l1004-02 公共护栏：提示行计 byte 限额）。stdout/stderr 同用（两消费点）。"""
     if len(data) <= limit:
         return data
-    # 截断点可能落在多字节 UTF-8 字符中间：先丢弃半个字符再截断，避免出现 �
-    cut = data[:limit].decode("utf-8", errors="ignore").encode("utf-8")
-    return cut + f"\n[... 输出过长，已截断（>{limit} 字节）]".encode("utf-8")
+    marker = f"\n[... 输出过长，已截断：保留头尾，中段省略（原 {len(data)} 字节 > {limit} 上限）...]\n".encode("utf-8")
+    budget = max(limit - len(marker), 0)
+    head_n = int(budget * 0.6)
+    tail_n = budget - head_n
+
+    def _safe_decode(b: bytes) -> bytes:
+        # 截断点可能落在多字节 UTF-8 字符中间：先丢弃半个字符再截断，避免出现 �
+        return b.decode("utf-8", errors="ignore").encode("utf-8")
+
+    head = _safe_decode(data[:head_n])
+    tail = _safe_decode(data[-tail_n:]) if tail_n > 0 else b""
+    return head + marker + tail
 
 
 def _kill_tree(proc: subprocess.Popen) -> None:
@@ -95,10 +109,14 @@ _MAX_STDIN_BYTES = 1_000_000  # 1 MB
 
 
 def _safe_stdin(stdin: str) -> bytes:
-    """stdin 编码 + 上限，避免超大输入占满内存 / 孤立代理对抛 UnicodeEncodeError。"""
+    """stdin 编码 + 上限，避免超大输入占满内存 / 孤立代理对抛 UnicodeEncodeError。
+
+    l1007-01 案1 落地（l1004-02 遗留）：超限截断不再静默——尾部追加可见标记行，
+    让学生/判题侧能看出输入被剪（截断前后行为差：程序读到的是带标记的截断流）。"""
     data = stdin.encode("utf-8", errors="replace")
     if len(data) > _MAX_STDIN_BYTES:
-        data = data[:_MAX_STDIN_BYTES]
+        marker = f"\n[... stdin 超限被截断：仅保留前 {_MAX_STDIN_BYTES} 字节（原始 {len(data)} 字节）...]\n".encode("utf-8")
+        data = data[:_MAX_STDIN_BYTES - len(marker)] + marker
     return data
 
 

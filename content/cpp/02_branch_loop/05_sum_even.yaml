@@ -1,0 +1,29 @@
+# 出处：C++ 入门教材「循环与条件分支」章；同族题参照 content/cpp/02_branch_loop/03_sum_1_to_n.yaml（l927-27 答案域授权自拟，2026-09-28 用户拍板）
+title: "偶数之和"
+topic: "02_branch_loop"
+difficulty: 2
+tags: ["for", "loop", "condition"]
+statement: |
+  从标准输入读一个正整数 `n`，输出 `1` 到 `n`（含）之间所有**偶数**的和。
+  例如输入 `10`，应输出 `30`（2+4+6+8+10）。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int n;
+      cin >> n;
+      int sum = 0;
+      // 循环 1 到 n，用 if 判断 i 是偶数（i % 2 == 0）再累加
+
+      return 0;
+  }
+expected_output: |
+  30
+tests:
+  - stdin: "10\n"
+    expected_output: "30\n"
+hints:
+  - "i % 2 == 0 表示 i 是偶数"
+  - "也可以让 i 直接从 2 开始每次 +2，连 if 都省了"
+  - "n 本身是偶数时要算进去（含 n）"

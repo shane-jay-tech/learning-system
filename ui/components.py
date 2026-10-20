@@ -199,8 +199,24 @@ def ai_feedback_block(text: str):
 
 
 def stderr_block(text: str):
-    safe = html.escape(text)
-    st.markdown(f'<div class="io-box" style="background:#7F1D1D;">{safe}</div>', unsafe_allow_html=True)
+    """l1007-03 案3（l1004-02 材料档）：裸 stderr → 摘要首行＋<details> 展开全文。
+
+    摘要取首个非空行（通常是异常类型行）；全文折叠进 details，零信息丢失。
+    渲染面变更：io-box 红底逐字块 → 摘要行＋可展开全文。"""
+    safe_full = html.escape(text)
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    head = lines[0] if lines else "（stderr 为空）"
+    if len(lines) <= 1 and len(text) <= 200:
+        st.markdown(f'<div class="io-box" style="background:#7F1D1D;">{html.escape(text)}</div>',
+                    unsafe_allow_html=True)
+        return
+    st.markdown(
+        f'<div class="io-box" style="background:#7F1D1D;">{html.escape(head)}'
+        f'<br><details style="margin-top:6px;"><summary style="cursor:pointer;">展开完整 stderr'
+        f'（{len(text)} 字符 / {len(lines)} 行）</summary>'
+        f'<pre style="white-space:pre-wrap;">{safe_full}</pre></details></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def render_error_notice(title: str, reason: str = "", next_action: str = ""):

@@ -1,0 +1,28 @@
+# 出处：C++ 入门教材「变量、算术运算」章；同族题参照 content/cpp/01_io_and_vars/02_sum_two_ints.yaml（l927-27 答案域授权自拟，2026-09-28 用户拍板）
+title: "算总价"
+topic: "01_io_and_vars"
+difficulty: 2
+tags: ["io", "arithmetic"]
+statement: |
+  从标准输入读两个整数：第一行是商品**单价**，第二行是购买**数量**，
+  输出总价（单价 × 数量）。
+  例如单价 `25`、数量 `4`，应输出 `100`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int price, count;
+      // 用两个 cin >> 分别读入单价和数量（分两行输入也能读到）
+
+      return 0;
+  }
+expected_output: |
+  100
+tests:
+  - stdin: "25\n4\n"
+    expected_output: "100\n"
+hints:
+  - "cin >> price >> count; 连写两次也能读到分两行的输入"
+  - "总价 = price * count，用 cout << 直接输出"
+  - "只输出一个数字，不要带单位"

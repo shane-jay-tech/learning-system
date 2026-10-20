@@ -1,0 +1,37 @@
+# l927-24（l922-04 遗留）：行尾统一 LF。
+# 背景：core.autocrlf=true 且无本文件 ⇒ 每次检出把文本件 smudge 成 CRLF，
+# 24 个 content yaml 盘上恒为 CRLF（blob 本身是 LF）。本文件让检出层持久化 LF。
+# 二进制件显式标 binary，绝不做任何行尾/编码转换。
+* text=auto
+
+*.py   text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.cfg  text eol=lf
+*.ini  text eol=lf
+*.sql  text eol=lf
+*.sh   text eol=lf
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+# Windows 脚本保持 CRLF（cmd 解释器要求）
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# 二进制
+*.db   binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.woff  binary
+*.woff2 binary

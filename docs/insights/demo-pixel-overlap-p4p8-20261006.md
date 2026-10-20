@@ -40,3 +40,9 @@
 - 宿主 IAB 截图 API 故障：`browser screenshot activity capture failed for guest` → 重试 `surface preparation timed out after 3000ms`（显示窗格＋延时重试均无效）。六档截图未能落盘。
 - 替代证据链：rect 数字（§一/§三/§四）全部来自真实排版引擎 getBoundingClientRect；探针包装页 `tmp/shift-20261006/l1004-17/probe.html`（URL 参数 `?v=WxH&inject=1/2/3`）留档可复跑，人工浏览器打开即见渲染并可自行截图。
 - styles.css 零改动 ✓（探针在包装页向 iframe 注入 style，仓内文件零触碰）。
+
+## 补截图节（l1007-10，2026-10-07）
+
+l1004-17 缺位六档已由 CDP headless Edge 补齐（shot6.mjs 零依赖驱动，Page.captureScreenshot 通道——IAB 故障的替代通道与 l1004-28 同款）：shot-1440x900／768x1024／390x844／360x640／640x360／640x360-fix 六档 PNG 落 learning-system/tmp/（demo 仓 tmp 同份）。390/360 档 innerWidth 980＝桌面视口 fallback（meta viewport 未设时的真实渲染形态，与 l1004-17 rect 溢出结论互证）。640x360-fix 档=CSS 预演（iframe max-width 抑制）。
+
+

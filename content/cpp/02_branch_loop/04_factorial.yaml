@@ -1,0 +1,30 @@
+# 出处：C++ 入门教材「循环（for 累乘）」章；同族题参照 content/cpp/02_branch_loop/03_sum_1_to_n.yaml（l927-27 答案域授权自拟，2026-09-28 用户拍板）
+title: "算阶乘"
+topic: "02_branch_loop"
+difficulty: 3
+tags: ["for", "loop", "multiply"]
+statement: |
+  从标准输入读一个非负整数 `n`（`0 <= n <= 12`），输出 `n!`（阶乘）。
+  阶乘定义：`n! = 1 × 2 × 3 × ... × n`，并规定 `0! = 1`。
+  例如输入 `10`，应输出 `3628800`。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int n;
+      cin >> n;
+      long long result = 1;
+      // 用 for 循环从 1 累乘到 n（0 时循环不执行，result 保持 1，正好是 0!）
+
+      return 0;
+  }
+expected_output: |
+  3628800
+tests:
+  - stdin: "10\n"
+    expected_output: "3628800\n"
+hints:
+  - "for (int i = 1; i <= n; i++) result *= i;"
+  - "result 要初始化为 1（乘法的单位元），不能初始化为 0"
+  - "12! 以内 long long 绰绰有余；累乘比累加容易溢出，别用 int 硬撑大数"

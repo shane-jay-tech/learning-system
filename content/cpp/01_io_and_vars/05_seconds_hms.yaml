@@ -1,0 +1,29 @@
+# 出处：C++ 入门教材「算术运算符（整除与取余）」章；同族题参照 content/cpp/01_io_and_vars/02_sum_two_ints.yaml（l927-27 答案域授权自拟，2026-09-28 用户拍板）
+title: "秒数转时分秒"
+topic: "01_io_and_vars"
+difficulty: 3
+tags: ["io", "arithmetic", "mod"]
+statement: |
+  从标准输入读一个非负整数 `total`（总秒数），把它换算成
+  **小时 分钟 秒**，用空格分隔输出三个整数（小时按 3600 秒、分钟按 60 秒）。
+  例如输入 `7385`，应输出 `2 3 5`（2 小时 3 分 5 秒）。
+starter_code: |
+  #include <iostream>
+  using namespace std;
+
+  int main() {
+      int total;
+      cin >> total;
+      // 小时 = total / 3600；剩下的秒数再对 60 整除与取余
+
+      return 0;
+  }
+expected_output: |
+  2 3 5
+tests:
+  - stdin: "7385\n"
+    expected_output: "2 3 5\n"
+hints:
+  - "h = total / 3600，然后 total %= 3600 把剩下的秒数留下"
+  - "m = total / 60，s = total % 60"
+  - "整除 / 与取余 % 对正整数刚好完成换算，不需要浮点"
