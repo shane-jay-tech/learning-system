@@ -90,6 +90,7 @@ python scripts/audit_content.py  # 题库内容审计 —— 只读（实测 rc=
 python scripts/backup_data.py    # 学习数据备份 —— 写盘＋删档（写新 zip、默认 --keep 5 轮换删最旧备份，并对生产库做 WAL checkpoint）｜需日间，夜桥禁跑
 python scripts/prune_old_data.py # 过期数据清理 —— 连生产库；默认干跑不删行，加 --apply 即 DELETE＋VACUUM 删数据行｜需日间，夜桥禁跑
 python scripts/generate_system_report.py # 系统报告 —— 只读（实测零写盘，只打印指标；--strict 会走 pytest 收集，慢）｜可夜跑
+python scripts/validate_content.py # 内容校验器 —— 只读（content/ 全量 yaml：解析＋练习 schema 必填字段＋basename 同名三面计数；--domain 过滤域）｜可夜跑
 ```
 
 ## 目录
