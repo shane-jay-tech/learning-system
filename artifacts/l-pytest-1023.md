@@ -1,6 +1,6 @@
 # l1023-020 pytest 全量复跑现值（2026-10-23 夜班实测）
 
-- 全量命令：`python -m pytest -q --tb=no`（根目录，pytest.ini testpaths=tests），完整日志 `tmp/l1023-020/full-0228.log`（475 行，含 44 条 FAILED 名单）。
+- 全量命令：`python -m pytest -q --tb=no`（根目录，pytest.ini testpaths=tests），完整日志 `tmp/l1023-020/full-0228.log`（74 行，含 44 条 FAILED 名单）。
 - 树状态锚定：HEAD＝67c3231（本班 l1023-012 双 schema 提交；此后 018/020 仅新增 docs 类 artifact，代码面一致）；工作树干净。
 
 ## 一、现值计数
