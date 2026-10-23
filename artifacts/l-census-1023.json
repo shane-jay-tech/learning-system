@@ -1,0 +1,1799 @@
+{
+ "generated_at": "2026-10-24T00:41:31",
+ "scope": "content/ 全量复扫：两级目录一文件一题口径；paths 域例外为单层平铺（域根直录 6 件）",
+ "domains": {
+  "python": {
+   "topic_count": 27,
+   "problem_count": 136,
+   "is_flat": false,
+   "topics": {
+    "01_hello_and_vars": {
+     "count": 5,
+     "difficulties": {
+      "1": 4,
+      "2": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_hello_world.yaml",
+      "02_a_plus_b.yaml",
+      "03_greeting_var.yaml",
+      "04_math_var.yaml",
+      "05_swap_vars.yaml"
+     ]
+    },
+    "02_conditionals": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 3,
+     "tests_none": 0,
+     "tests_missing": 2,
+     "title_missing": 0,
+     "files": [
+      "01_odd_even.yaml",
+      "02_grade.yaml",
+      "03_leap_year.yaml",
+      "04_max_of_three.yaml",
+      "05_positive_check.yaml"
+     ]
+    },
+    "03_loops": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_print_1_to_n.yaml",
+      "02_factorial.yaml",
+      "03_sum_1_to_n.yaml",
+      "04_even_sum.yaml",
+      "05_max_in_list.yaml"
+     ]
+    },
+    "04_functions": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_add.yaml",
+      "02_max_of_two.yaml",
+      "03_circle_area.yaml",
+      "04_is_prime.yaml",
+      "05_average.yaml"
+     ]
+    },
+    "05_lists": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_list_sum.yaml",
+      "02_reverse.yaml",
+      "03_dedup_sorted.yaml",
+      "04_squares.yaml",
+      "05_mode.yaml"
+     ]
+    },
+    "06_strings": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_to_upper.yaml",
+      "02_count_vowels.yaml",
+      "03_reverse_str.yaml",
+      "04_replace.yaml",
+      "05_word_count.yaml"
+     ]
+    },
+    "07_dicts_sets": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "1": 1,
+      "3": 1
+     },
+     "tests_list": 4,
+     "tests_none": 0,
+     "tests_missing": 1,
+     "title_missing": 0,
+     "files": [
+      "01_word_freq.yaml",
+      "02_dict_lookup.yaml",
+      "03_intersection.yaml",
+      "04_invert_dict.yaml",
+      "05_char_hist.yaml"
+     ]
+    },
+    "08_files_exceptions": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 3,
+     "tests_none": 0,
+     "tests_missing": 2,
+     "title_missing": 0,
+     "files": [
+      "01_try_value.yaml",
+      "02_try_div.yaml",
+      "03_write_then_read.yaml",
+      "04_count_lines.yaml",
+      "05_file_sum.yaml"
+     ]
+    },
+    "09_pandas_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_mean.yaml",
+      "02_describe_count.yaml",
+      "03_sort_top3.yaml",
+      "04_new_column.yaml",
+      "05_value_counts.yaml"
+     ]
+    },
+    "10_pandas_filter_group": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_filter_high.yaml",
+      "02_groupby_mean.yaml",
+      "03_groupby_count.yaml",
+      "04_multi_filter.yaml",
+      "05_agg_multi.yaml"
+     ]
+    },
+    "11_matplotlib": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_line_max.yaml",
+      "02_bar_sum.yaml",
+      "03_scatter_mean.yaml",
+      "04_two_lines.yaml",
+      "05_bar_top.yaml"
+     ]
+    },
+    "12_io_excel": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_write_read_csv.yaml",
+      "02_read_sum.yaml",
+      "03_chinese_csv.yaml",
+      "04_to_excel.yaml",
+      "05_csv_filter.yaml"
+     ]
+    },
+    "13_scipy_stats": {
+     "count": 6,
+     "difficulties": {
+      "2": 4,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 6,
+     "title_missing": 0,
+     "files": [
+      "01_one_sample_t.yaml",
+      "02_two_sample_t.yaml",
+      "03_paired_t.yaml",
+      "04_chi2.yaml",
+      "05_correlation.yaml",
+      "06_anova_one_way.yaml"
+     ]
+    },
+    "14_sklearn_intro": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_lin_reg_coef.yaml",
+      "02_r_squared.yaml",
+      "03_predict.yaml",
+      "04_dt_classifier.yaml",
+      "05_kmeans.yaml"
+     ]
+    },
+    "15_ab_text": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "1": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_ab_chi2.yaml",
+      "02_cohens_d.yaml",
+      "03_word_freq_top.yaml",
+      "04_remove_stopwords.yaml",
+      "05_tfidf.yaml"
+     ]
+    },
+    "16_classes_oop": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_simple_class.yaml",
+      "02_method.yaml",
+      "03_inheritance.yaml",
+      "04_super.yaml",
+      "05_dunder.yaml"
+     ]
+    },
+    "17_decorators_props": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 3,
+     "tests_none": 0,
+     "tests_missing": 2,
+     "title_missing": 0,
+     "files": [
+      "01_simple_decorator.yaml",
+      "02_wraps.yaml",
+      "03_property.yaml",
+      "04_setter.yaml",
+      "05_param_decorator.yaml"
+     ]
+    },
+    "18_generators_iter": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "1": 1,
+      "3": 1
+     },
+     "tests_list": 3,
+     "tests_none": 0,
+     "tests_missing": 2,
+     "title_missing": 0,
+     "files": [
+      "01_fib.yaml",
+      "02_genexp_sum.yaml",
+      "03_yield_from.yaml",
+      "04_combinations.yaml",
+      "05_iterator_class.yaml"
+     ]
+    },
+    "19_regex": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "1": 2,
+      "3": 2
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_find_emails.yaml",
+      "02_count_digits.yaml",
+      "03_extract_date.yaml",
+      "04_mask_phone.yaml",
+      "05_extract_words.yaml"
+     ]
+    },
+    "20_hr_pandas": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_dept_headcount.yaml",
+      "02_turnover_rate.yaml",
+      "03_dept_satisfaction.yaml",
+      "04_training_vs_performance.yaml",
+      "05_pivot_analysis.yaml"
+     ]
+    },
+    "20_numpy_basics": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_create_array.yaml",
+      "02_boolean_filter.yaml",
+      "03_stats_summary.yaml",
+      "04_shape_and_sum.yaml",
+      "05_price_uplift.yaml"
+     ]
+    },
+    "21_datetime_ts": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_parse_date.yaml",
+      "02_tenure_days.yaml",
+      "03_group_by_month.yaml",
+      "04_finish_date.yaml",
+      "05_attendance_duration.yaml"
+     ]
+    },
+    "21_hr_viz": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 1,
+      "1": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_dept_bar.yaml",
+      "02_salary_box.yaml",
+      "03_turnover_trend.yaml",
+      "04_scatter_age_salary.yaml",
+      "05_simple_bar.yaml"
+     ]
+    },
+    "22_hr_model": {
+     "count": 5,
+     "difficulties": {
+      "3": 3,
+      "2": 1,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_logistic_turnover.yaml",
+      "02_feature_importance.yaml",
+      "03_confusion_matrix.yaml",
+      "04_cross_validation.yaml",
+      "05_salary_prediction.yaml"
+     ]
+    },
+    "22_statsmodels": {
+     "count": 5,
+     "difficulties": {
+      "3": 3,
+      "2": 1,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_simple_ols.yaml",
+      "02_r_squared.yaml",
+      "03_significance.yaml",
+      "04_multiple_ols_summary.yaml",
+      "05_logit_formula.yaml"
+     ]
+    },
+    "23_sklearn_advanced": {
+     "count": 5,
+     "difficulties": {
+      "3": 2,
+      "4": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_cross_validation.yaml",
+      "02_feature_importance.yaml",
+      "03_pipeline.yaml",
+      "04_grid_search.yaml",
+      "05_classification_report.yaml"
+     ]
+    },
+    "24_real_world_data": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_missing.yaml",
+      "02_dedup.yaml",
+      "03_clean_category.yaml",
+      "04_dept_avg.yaml",
+      "05_groupby_agg.yaml"
+     ]
+    }
+   }
+  },
+  "r": {
+   "topic_count": 18,
+   "problem_count": 92,
+   "is_flat": false,
+   "topics": {
+    "01_vectors_and_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 4
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_hello_world.yaml",
+      "02_vector_sum.yaml",
+      "03_vector_ops.yaml",
+      "04_vector_names.yaml",
+      "05_vector_filter.yaml"
+     ]
+    },
+    "02_logic_and_summary": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 4
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_mean.yaml",
+      "02_argmax.yaml",
+      "03_count_above.yaml",
+      "04_median_range.yaml",
+      "05_ifelse_vector.yaml"
+     ]
+    },
+    "02b_dataframe": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_make_df.yaml",
+      "02_filter_rows.yaml",
+      "03_col_mean.yaml",
+      "04_apply_rowsum.yaml",
+      "05_add_column.yaml"
+     ]
+    },
+    "03_dplyr": {
+     "count": 5,
+     "difficulties": {
+      "1": 3,
+      "2": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_filter.yaml",
+      "02_select.yaml",
+      "03_mutate.yaml",
+      "04_arrange.yaml",
+      "05_groupby_summarize.yaml"
+     ]
+    },
+    "04_ggplot": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_scatter.yaml",
+      "02_bar.yaml",
+      "03_color.yaml",
+      "04_boxplot.yaml",
+      "05_ggsave_dpi.yaml"
+     ]
+    },
+    "05_lm_anova": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_lm_coef.yaml",
+      "02_lm_r2.yaml",
+      "03_anova_p.yaml",
+      "04_tukey.yaml",
+      "05_multivar.yaml"
+     ]
+    },
+    "06_mixed_apa": {
+     "count": 6,
+     "difficulties": {
+      "3": 4,
+      "2": 1,
+      "1": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 6,
+     "title_missing": 0,
+     "files": [
+      "01_lmer_fixef.yaml",
+      "02_tidy_coef.yaml",
+      "03_cohens_d.yaml",
+      "04_eta_squared.yaml",
+      "05_apa_t.yaml",
+      "06_interpret_output.yaml"
+     ]
+    },
+    "07_glm": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_logistic_coef.yaml",
+      "02_odds_ratio.yaml",
+      "03_aic.yaml",
+      "04_predict_prob.yaml",
+      "05_pseudo_r2.yaml"
+     ]
+    },
+    "08_tidyr": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_pivot_longer.yaml",
+      "02_pivot_wider.yaml",
+      "03_separate.yaml",
+      "04_long_groupby.yaml",
+      "05_starts_with.yaml"
+     ]
+    },
+    "09_purrr_map": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_map_sqrt.yaml",
+      "02_map2.yaml",
+      "03_reduce.yaml",
+      "04_keep.yaml",
+      "05_split_model.yaml"
+     ]
+    },
+    "10_stringr_lubridate": {
+     "count": 6,
+     "difficulties": {
+      "1": 1,
+      "2": 4,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 6,
+     "title_missing": 0,
+     "files": [
+      "01_str_upper.yaml",
+      "02_str_replace.yaml",
+      "03_ymd_month.yaml",
+      "04_date_diff.yaml",
+      "05_str_detect.yaml",
+      "06_date_parsing.yaml"
+     ]
+    },
+    "11_survival": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 4
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_surv_obj.yaml",
+      "02_survfit_median.yaml",
+      "03_logrank.yaml",
+      "04_cox_hr.yaml",
+      "05_cox_multivar.yaml"
+     ]
+    },
+    "12_clustering": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_kmeans_basic.yaml",
+      "02_scale_first.yaml",
+      "03_cluster_size.yaml",
+      "04_hclust.yaml",
+      "05_silhouette.yaml"
+     ]
+    },
+    "13_rmarkdown": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_write_rmd.yaml",
+      "02_count_chunks.yaml",
+      "03_knit_expand.yaml",
+      "04_yaml_extract.yaml",
+      "05_render_concept.yaml"
+     ]
+    },
+    "14_real_world_data": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_missing.yaml",
+      "02_dedup.yaml",
+      "03_clean_dept.yaml",
+      "04_group_avg.yaml",
+      "05_outlier_detect.yaml"
+     ]
+    },
+    "14_sem_basics": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 1,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_sem_concept.yaml",
+      "02_lavaan_syntax.yaml",
+      "03_fit_indices.yaml",
+      "04_path_diagram.yaml",
+      "05_sem_model_fit.yaml"
+     ]
+    },
+    "15_cfa": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 1,
+      "3": 2,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_alpha_concept.yaml",
+      "02_cfa_concept.yaml",
+      "03_cfa_interpret.yaml",
+      "04_model_comparison.yaml",
+      "05_modification_indices.yaml"
+     ]
+    },
+    "16_mediation": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "1": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_mediation_concept.yaml",
+      "02_bootstrap_test.yaml",
+      "03_report_mediation.yaml",
+      "04_moderated_mediation.yaml",
+      "05_explain_mediation.yaml"
+     ]
+    }
+   }
+  },
+  "agent_dev": {
+   "topic_count": 15,
+   "problem_count": 82,
+   "is_flat": false,
+   "topics": {
+    "01_git_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 3,
+      "2": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_init.yaml",
+      "02_first_commit.yaml",
+      "03_log.yaml",
+      "04_diff.yaml",
+      "05_revert.yaml"
+     ]
+    },
+    "02_debug_read": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "1": 1,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_find_error_line.yaml",
+      "02_error_type.yaml",
+      "03_fix_name_error.yaml",
+      "04_fix_index.yaml",
+      "05_print_debug.yaml"
+     ]
+    },
+    "03_spec_writing": {
+     "count": 6,
+     "difficulties": {
+      "2": 4,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 6,
+     "title_missing": 0,
+     "files": [
+      "01_spec_dict.yaml",
+      "02_check_complete.yaml",
+      "03_score_spec.yaml",
+      "04_split_task.yaml",
+      "05_input_sample.yaml",
+      "06_open_write_spec.yaml"
+     ]
+    },
+    "04_review_agent": {
+     "count": 5,
+     "difficulties": {
+      "2": 4,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_fake_test.yaml",
+      "02_name_collision.yaml",
+      "03_swallow_except.yaml",
+      "04_overengineer.yaml",
+      "05_version_check.yaml"
+     ]
+    },
+    "05_modular_config": {
+     "count": 8,
+     "difficulties": {
+      "2": 2,
+      "1": 1,
+      "3": 4,
+      "4": 1
+     },
+     "tests_list": 1,
+     "tests_none": 0,
+     "tests_missing": 7,
+     "title_missing": 0,
+     "files": [
+      "01_env_config.yaml",
+      "02_named_constant.yaml",
+      "03_split_function.yaml",
+      "04_dep_injection.yaml",
+      "05_module_layers.yaml",
+      "06_why_layers.yaml",
+      "07_coupling.yaml",
+      "08_change_safely.yaml"
+     ]
+    },
+    "06_frontier": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_mcp.yaml",
+      "02_tool_schema.yaml",
+      "03_orchestrator.yaml",
+      "04_rag_steps.yaml",
+      "05_cot.yaml"
+     ]
+    },
+    "07_data_security": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 2,
+      "4": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_spot_pii.yaml",
+      "02_hardcoded_key.yaml",
+      "03_anon_vs_pseudo.yaml",
+      "04_minimization_case.yaml",
+      "05_prompt_injection_defense.yaml"
+     ]
+    },
+    "07_write_spec": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 1,
+      "1": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_feature_spec.yaml",
+      "02_api_spec.yaml",
+      "03_bug_report_spec.yaml",
+      "04_refactor_spec.yaml",
+      "05_spec_for_bugfix.yaml"
+     ]
+    },
+    "08_read_code": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "4": 1,
+      "3": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_what_does_it_do.yaml",
+      "02_find_bug_mutable.yaml",
+      "03_edge_case.yaml",
+      "04_silent_error.yaml",
+      "05_read_code_flow.yaml"
+     ]
+    },
+    "08_review_pr": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_spot_missing_test.yaml",
+      "02_spot_security_issue.yaml",
+      "03_review_naming.yaml",
+      "04_review_error_handling.yaml",
+      "05_pr_review_checklist.yaml"
+     ]
+    },
+    "09_decompose": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 1,
+      "1": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_split_login.yaml",
+      "02_split_dashboard.yaml",
+      "03_estimate_effort.yaml",
+      "04_dependency_order.yaml",
+      "05_decompose_simple.yaml"
+     ]
+    },
+    "10_debug_logs": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 1,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_read_traceback.yaml",
+      "02_layer_diagnosis.yaml",
+      "03_interpret_error_codes.yaml",
+      "04_write_debug_prompt.yaml",
+      "05_log_level_strategy.yaml"
+     ]
+    },
+    "11_real_tasks": {
+     "count": 8,
+     "difficulties": {
+      "3": 4,
+      "2": 1,
+      "4": 2,
+      "5": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 8,
+     "title_missing": 0,
+     "files": [
+      "01_review_pr_diff.yaml",
+      "02_write_bug_report.yaml",
+      "03_diagnose_error.yaml",
+      "04_iterative_instruction.yaml",
+      "05_decompose_feature.yaml",
+      "06_emergency_rollback.yaml",
+      "07_scope_creep.yaml",
+      "08_end_to_end.yaml"
+     ]
+    },
+    "12_spec_iteration": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_diagnose_bad_spec.yaml",
+      "02_rewrite_vague_spec.yaml",
+      "03_agent_went_wrong.yaml",
+      "04_spec_vs_agent_bug.yaml",
+      "05_iterative_refinement.yaml"
+     ]
+    },
+    "13_multi_round": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_requirement_change.yaml",
+      "02_regression_fix.yaml",
+      "03_priority_triage.yaml",
+      "04_scope_negotiation.yaml",
+      "05_full_iteration.yaml"
+     ]
+    }
+   }
+  },
+  "cpp": {
+   "topic_count": 13,
+   "problem_count": 67,
+   "is_flat": false,
+   "topics": {
+    "01_io_and_vars": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     },
+     "tests_list": 4,
+     "tests_none": 0,
+     "tests_missing": 1,
+     "title_missing": 0,
+     "files": [
+      "01_hello_world.yaml",
+      "02_sum_two_ints.yaml",
+      "03_swap_two_ints.yaml",
+      "04_total_price.yaml",
+      "05_seconds_hms.yaml"
+     ]
+    },
+    "02_branch_loop": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_odd_even.yaml",
+      "02_max_of_three.yaml",
+      "03_sum_1_to_n.yaml",
+      "04_factorial.yaml",
+      "05_sum_even.yaml"
+     ]
+    },
+    "03_arrays_strings": {
+     "count": 6,
+     "difficulties": {
+      "1": 1,
+      "2": 4,
+      "3": 1
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 1,
+     "title_missing": 0,
+     "files": [
+      "01_vector_sum.yaml",
+      "02_vector_max.yaml",
+      "03_reverse_string.yaml",
+      "04_word_count.yaml",
+      "05_count_char.yaml",
+      "06_reverse_words.yaml"
+     ]
+    },
+    "04_functions": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 1,
+      "3": 3
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_add.yaml",
+      "02_max_three.yaml",
+      "03_factorial_recursion.yaml",
+      "04_is_prime.yaml",
+      "05_swap_ref.yaml"
+     ]
+    },
+    "05_stl_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_sort_vector.yaml",
+      "02_word_freq.yaml",
+      "03_set_unique.yaml",
+      "04_substring.yaml",
+      "05_accumulate.yaml"
+     ]
+    },
+    "06_iter_algo": {
+     "count": 6,
+     "difficulties": {
+      "1": 4,
+      "3": 1,
+      "2": 1
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 1,
+     "title_missing": 0,
+     "files": [
+      "01_sort_desc.yaml",
+      "02_find.yaml",
+      "03_count.yaml",
+      "04_reverse.yaml",
+      "05_lambda_sort.yaml",
+      "06_custom_sort.yaml"
+     ]
+    },
+    "07_pointers_class": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 3,
+     "tests_none": 0,
+     "tests_missing": 2,
+     "title_missing": 0,
+     "files": [
+      "01_pointer_swap.yaml",
+      "02_new_array.yaml",
+      "03_class_basic.yaml",
+      "04_unique_ptr.yaml",
+      "05_shared_ptr.yaml"
+     ]
+    },
+    "08_inheritance": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 3,
+     "tests_none": 0,
+     "tests_missing": 2,
+     "title_missing": 0,
+     "files": [
+      "01_basic_inheritance.yaml",
+      "02_virtual.yaml",
+      "03_override.yaml",
+      "04_abstract_class.yaml",
+      "05_virtual_dtor.yaml"
+     ]
+    },
+    "09_operator_overload": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 4,
+     "tests_none": 0,
+     "tests_missing": 1,
+     "title_missing": 0,
+     "files": [
+      "01_money_add.yaml",
+      "02_vec_eq.yaml",
+      "03_stream_out.yaml",
+      "04_subscript.yaml",
+      "05_functor.yaml"
+     ]
+    },
+    "10_templates": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 4,
+     "tests_none": 0,
+     "tests_missing": 1,
+     "title_missing": 0,
+     "files": [
+      "01_func_template.yaml",
+      "02_class_template.yaml",
+      "03_pair.yaml",
+      "04_sum_template.yaml",
+      "05_specialization.yaml"
+     ]
+    },
+    "11_exceptions": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 5,
+     "tests_none": 0,
+     "tests_missing": 0,
+     "title_missing": 0,
+     "files": [
+      "01_basic_try.yaml",
+      "02_what.yaml",
+      "03_custom_exception.yaml",
+      "04_out_of_range.yaml",
+      "05_multi_catch.yaml"
+     ]
+    },
+    "12_file_io": {
+     "count": 5,
+     "difficulties": {
+      "2": 4,
+      "3": 1
+     },
+     "tests_list": 1,
+     "tests_none": 0,
+     "tests_missing": 4,
+     "title_missing": 0,
+     "files": [
+      "01_write_read.yaml",
+      "02_count_lines.yaml",
+      "03_sum_words.yaml",
+      "04_check_open.yaml",
+      "05_append.yaml"
+     ]
+    },
+    "13_move_semantics": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 1,
+     "tests_none": 0,
+     "tests_missing": 4,
+     "title_missing": 0,
+     "files": [
+      "01_move_string.yaml",
+      "02_lvalue_rvalue.yaml",
+      "03_move_count.yaml",
+      "04_moved_state.yaml",
+      "05_emplace.yaml"
+     ]
+    }
+   }
+  },
+  "sql": {
+   "topic_count": 12,
+   "problem_count": 60,
+   "is_flat": false,
+   "topics": {
+    "01_select_where": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_select_all.yaml",
+      "02_score_filter.yaml",
+      "03_where_gt.yaml",
+      "04_where_and.yaml",
+      "05_order_limit.yaml"
+     ]
+    },
+    "02_aggregate": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "3": 2,
+      "2": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_average_score.yaml",
+      "02_max_score.yaml",
+      "03_pass_fail_count.yaml",
+      "04_group_by.yaml",
+      "05_having_avg.yaml"
+     ]
+    },
+    "03_orderby_having": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_order_desc.yaml",
+      "02_lowest_2.yaml",
+      "03_distinct_grades.yaml",
+      "04_union_names.yaml",
+      "05_order_two_cols.yaml"
+     ]
+    },
+    "04_joins": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_inner_join.yaml",
+      "02_left_join_null.yaml",
+      "03_join_filter.yaml",
+      "04_three_table_join.yaml",
+      "05_join_groupby.yaml"
+     ]
+    },
+    "05_subqueries_case": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_above_avg.yaml",
+      "02_in_subquery.yaml",
+      "03_from_derived.yaml",
+      "04_case_grade.yaml",
+      "05_case_count.yaml"
+     ]
+    },
+    "06_window_functions": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_rank_in_class.yaml",
+      "02_class_avg.yaml",
+      "03_running_sum.yaml",
+      "04_lag.yaml",
+      "05_top2_per_class.yaml"
+     ]
+    },
+    "07_cte": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_simple_cte.yaml",
+      "02_chained_cte.yaml",
+      "03_cte_window.yaml",
+      "04_recursive_cte.yaml",
+      "05_cte_alias.yaml"
+     ]
+    },
+    "08_exists": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_basic_exists.yaml",
+      "02_not_exists.yaml",
+      "03_correlated_count.yaml",
+      "04_exists_and.yaml",
+      "05_except_via_not_exists.yaml"
+     ]
+    },
+    "09_string_funcs": {
+     "count": 5,
+     "difficulties": {
+      "1": 3,
+      "2": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_length.yaml",
+      "02_substr_initial.yaml",
+      "03_like.yaml",
+      "04_replace.yaml",
+      "05_upper_concat.yaml"
+     ]
+    },
+    "10_date_funcs": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_today.yaml",
+      "02_strftime_month.yaml",
+      "03_julianday_diff.yaml",
+      "04_group_by_month.yaml",
+      "05_recent_30_days.yaml"
+     ]
+    },
+    "11_null_handling": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_is_null.yaml",
+      "02_coalesce.yaml",
+      "03_nullif.yaml",
+      "04_count_compare.yaml",
+      "05_order_null.yaml"
+     ]
+    },
+    "12_people_analytics": {
+     "count": 5,
+     "difficulties": {
+      "3": 3,
+      "2": 1,
+      "4": 1
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 5,
+     "title_missing": 0,
+     "files": [
+      "01_avg_by_dept.yaml",
+      "02_having_high.yaml",
+      "03_headcount.yaml",
+      "04_never_submitted.yaml",
+      "05_turnover_by_dept.yaml"
+     ]
+    }
+   }
+  },
+  "paths": {
+   "topic_count": 1,
+   "problem_count": 6,
+   "is_flat": true,
+   "topics": {
+    "(domain_root_flat)": {
+     "count": 6,
+     "difficulties": {
+      "None": 6
+     },
+     "tests_list": 0,
+     "tests_none": 0,
+     "tests_missing": 6,
+     "title_missing": 0,
+     "files": [
+      "agent_mastery.yaml",
+      "cpp_foundation.yaml",
+      "people_analytics.yaml",
+      "python_advanced.yaml",
+      "quick_stats.yaml",
+      "r_advanced.yaml"
+     ]
+    }
+   }
+  }
+ },
+ "totals": {
+  "files": 443,
+  "topics": 86,
+  "problems": 443
+ },
+ "thin_topics_lt5": [],
+ "thin_topic_pairing_l1011": [
+  {
+   "task": "l1011-02",
+   "domain": "python",
+   "topic": "02_conditionals",
+   "batch_record": "3→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-03",
+   "domain": "python",
+   "topic": "22_hr_model",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-04",
+   "domain": "python",
+   "topic": "22_statsmodels",
+   "batch_record": "3→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-05",
+   "domain": "python",
+   "topic": "23_sklearn_advanced",
+   "batch_record": "3→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-06",
+   "domain": "python",
+   "topic": "24_real_world_data",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-07",
+   "domain": "r",
+   "topic": "01_vectors_and_basics",
+   "batch_record": "2→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-08",
+   "domain": "r",
+   "topic": "02_logic_and_summary",
+   "batch_record": "3→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-09",
+   "domain": "r",
+   "topic": "14_real_world_data",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-10",
+   "domain": "r",
+   "topic": "14_sem_basics",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-11",
+   "domain": "r",
+   "topic": "15_cfa",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-12",
+   "domain": "sql",
+   "topic": "01_select_where",
+   "batch_record": "→3",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-13",
+   "domain": "sql",
+   "topic": "02_aggregate",
+   "batch_record": "→2",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-14",
+   "domain": "sql",
+   "topic": "12_people_analytics",
+   "batch_record": "→1",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-15",
+   "domain": "agent_dev",
+   "topic": "07_data_security",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-16",
+   "domain": "agent_dev",
+   "topic": "08_read_code",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-17",
+   "domain": "agent_dev",
+   "topic": "08_review_pr",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-18",
+   "domain": "agent_dev",
+   "topic": "10_debug_logs",
+   "batch_record": "4→5",
+   "current_count": 5
+  },
+  {
+   "task": "l1011-19",
+   "domain": "agent_dev",
+   "topic": "08_read_code + 08_review_pr",
+   "batch_record": "撞号判定单（零修改）",
+   "current_count": {
+    "08_read_code": 5,
+    "08_review_pr": 5
+   }
+  }
+ ],
+ "parse_errors": []
+}
