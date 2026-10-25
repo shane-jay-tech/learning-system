@@ -70,7 +70,7 @@ def test_答案字段完备计数精确():
             if getattr(p, key, None):
                 fields[key] += 1
     assert dict(fields) == {
-        "expected_output": 122, "tests": 46, "rubric": 14, "reference_answer": 14,
+        "expected_output": 120, "tests": 48, "rubric": 14, "reference_answer": 14,
     }, f"python 答案字段计数漂移：{dict(fields)}"
     # python 题库不产出 expected_rows（那是 sql 的字段）
     assert "expected_rows" not in fields, "python 题库意外出现 expected_rows"

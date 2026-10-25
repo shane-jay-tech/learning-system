@@ -9,9 +9,13 @@ starter_code: |
   n = int(input())
 
   # 判断并输出
-
-expected_output: |
-  positive / negative / zero 三选一
+tests:
+  - stdin: "5\n"
+    expected_output: "positive\n"
+  - stdin: "-3\n"
+    expected_output: "negative\n"
+  - stdin: "0\n"
+    expected_output: "zero\n"
 hints:
   - "用 if / elif / else 三分支"
   - "判断条件：n > 0, n < 0, n == 0"
