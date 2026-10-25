@@ -18,3 +18,23 @@ starter_code: |
   import pandas as pd
   from sklearn.linear_model import LinearRegression
   from sklearn.model_selection import train_test_split
+rubric:
+  - "特征 X 取 performance_score/training_hours/age 三列，y 为 salary"
+  - "train_test_split 80/20（random_state=42）"
+  - "LinearRegression 训练后输出测试集 R²，保留 3 位小数"
+reference_answer: |
+  import pandas as pd
+  from sklearn.linear_model import LinearRegression
+  from sklearn.model_selection import train_test_split
+
+  df = pd.read_csv("content/datasets/hr_employees.csv")
+  X = df[["performance_score", "training_hours", "age"]]
+  y = df["salary"]
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  model = LinearRegression()
+  model.fit(X_train, y_train)
+  print(f"{model.score(X_test, y_test):.3f}")
+hints:
+  - "X 用双括号取多列：df[[\"performance_score\", \"training_hours\", \"age\"]]"
+  - "model.score(X_test, y_test) 就是 R²"
+  - "保留 3 位小数用 f-string 的 :.3f"

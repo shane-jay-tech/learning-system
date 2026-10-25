@@ -15,3 +15,20 @@ statement: |
   提交完整代码。
 starter_code: |
   import pandas as pd
+rubric:
+  - "正确读取 sales_data.csv 并按 department 分组"
+  - "同时聚合 salary 均值与 bonus 总和（agg 一次完成）"
+  - "结果列名恰为 mean_salary 与 total_bonus"
+reference_answer: |
+  import pandas as pd
+
+  df = pd.read_csv("content/datasets/sales_data.csv")
+  result = df.groupby("department").agg(
+      mean_salary=("salary", "mean"),
+      total_bonus=("bonus", "sum"),
+  )
+  print(result)
+hints:
+  - "groupby(\"department\") 之后用 .agg() 命名聚合：mean_salary=(\"salary\", \"mean\")"
+  - "bonus 的总和用 (\"bonus\", \"sum\")"
+  - "命名聚合写法保证列名恰为 mean_salary / total_bonus"

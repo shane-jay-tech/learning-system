@@ -70,7 +70,7 @@ def test_答案字段完备计数精确():
             if getattr(p, key, None):
                 fields[key] += 1
     assert dict(fields) == {
-        "expected_output": 117, "tests": 46, "rubric": 8, "reference_answer": 8,
+        "expected_output": 122, "tests": 46, "rubric": 14, "reference_answer": 14,
     }, f"python 答案字段计数漂移：{dict(fields)}"
     # python 题库不产出 expected_rows（那是 sql 的字段）
     assert "expected_rows" not in fields, "python 题库意外出现 expected_rows"
@@ -79,7 +79,7 @@ def test_答案字段完备计数精确():
 def test_judge_mode与hints完备():
     problems = _problems()
     judge = dict(collections.Counter(p.judge_mode for p in problems))
-    assert judge == {"run": 117, "ai_open": 8}, f"python judge_mode 分布漂移：{judge}"
+    assert judge == {"run": 122, "ai_open": 14}, f"python judge_mode 分布漂移：{judge}"
     missing = [p.id for p in problems if not p.hints]
     assert missing == [], f"python 缺 hints 名单漂移：{sorted(missing)}"
     # judge_mode=run 必须带可机判答案字段（expected_output 或 tests）
