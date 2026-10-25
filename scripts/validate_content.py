@@ -11,6 +11,10 @@
      - 路径定义 schema（paths/ 域，按目录判）：顶层 title / milestones 缺失或 milestones
        空、milestone 缺 id/title/topics/description 计 ERROR；顶层 subtitle/icon/
        estimated_hours 缺失计 WARN（l1023-012 实测 6 件现值全数满足，零新增告警）。
+     - 语义检测档（l1025-005，全 WARN）：expected_output（顶层＋tests 用例）占位文本
+       黑名单（TODO/占位/placeholder/待补/FIXME/TBD/xxx 任意位置；「示例」限 ≤12 字
+       短值防误伤）＋顶层 expected_output 与 tests 期望一致性抽检（并存件 97 个家族
+       顶层＝首用例，实测零误报）。l1023-007 遗留 P2「占位文本逃检」堵口。
   3. basename 唯一性——跨目录同名文件名计数（同名不同 topic 目录＝by design，仅提示不判错）。
 
 用法：
@@ -37,6 +41,51 @@ REQUIRED_KEYS = ("statement", "topic", "difficulty")
 PATHS_REQUIRED = ("title", "milestones")
 PATHS_WARN_KEYS = ("subtitle", "icon", "estimated_hours")
 MILESTONE_REQUIRED = ("id", "title", "topics", "description")
+
+# 语义检测档（l1025-005）：占位文本黑名单——硬标记任意位置命中即拦；
+# 「示例」仅短值（≤12 字）命中，避免误伤「输出示例：…」类长合法文本。
+PLACEHOLDER_HARD = ("todo", "占位", "placeholder", "待补", "fixme", "tbd", "xxx")
+PLACEHOLDER_SOFT_MAXLEN = 12
+
+
+def _is_placeholder(value):
+    """expected_output 占位判别：硬标记任意位置，或「示例」仅短值命中。"""
+    if not isinstance(value, str):
+        return False
+    v = value.strip()
+    low = v.lower()
+    if any(m in low for m in PLACEHOLDER_HARD):
+        return True
+    return "示例" in v and len(v) <= PLACEHOLDER_SOFT_MAXLEN
+
+
+def _semantic_issues(data):
+    """语义检测（l1025-005，全 WARN 级）：返回 [message, ...]。
+
+    ① expected_output（顶层与 tests 各用例）占位模式黑名单；
+    ② 顶层 expected_output 与 tests 期望一致性抽检——顶层非空且不匹配任何
+       用例期望＝陈旧默认值（97 件并存家族顶层＝首用例，实测零误报）。
+    """
+    issues = []
+    top = data.get("expected_output")
+    if _is_placeholder(top):
+        issues.append("expected_output 占位文本")
+    tests = data.get("tests")
+    test_expects = []
+    if isinstance(tests, list):
+        for ti, tc in enumerate(tests, 1):
+            if isinstance(tc, dict) and _is_placeholder(tc.get("expected_output")):
+                issues.append(f"tests#{ti} expected_output 占位文本")
+            if isinstance(tc, dict) and tc.get("expected_output") is not None:
+                test_expects.append(str(tc["expected_output"]).strip())
+    if (
+        isinstance(top, str)
+        and top.strip()
+        and test_expects
+        and top.strip() not in test_expects
+    ):
+        issues.append("顶层 expected_output 与 tests 期望不一致（抽检）")
+    return issues
 
 
 def _check_paths_data(data):
@@ -113,10 +162,12 @@ def scan(domain_filter=None, content_dir=None):
                    and not (k == "difficulty" and data.get("difficulty") == 0)]
         no_answer = not any(data.get(k) for k in ANSWER_KEYS)
         no_hints = not data.get("hints")
-        if missing or no_answer or no_hints:
+        semantic = _semantic_issues(data)
+        if missing or no_answer or no_hints or semantic:
             field_issues.append({"rel": rel, "severity": "error" if missing else "warn",
                                  "missing": missing,
-                                 "no_answer": no_answer, "no_hints": no_hints})
+                                 "no_answer": no_answer, "no_hints": no_hints,
+                                 "semantic": semantic})
 
     dup_basenames = {b: rels for b, rels in basename_map.items() if len(rels) > 1}
     return files, parse_errors, field_issues, path_issues, dup_basenames
@@ -152,6 +203,8 @@ def main(argv=None):
             bits.append("答案四键全空")
         if i["no_hints"]:
             bits.append("缺 hints")
+        for msg in i.get("semantic", []):
+            bits.append(msg)
         print(f"  {i['severity'].upper()} {i['rel']}: {'；'.join(bits)}")
 
     path_errors = [i for i in path_issues if i["severity"] == "error"]
