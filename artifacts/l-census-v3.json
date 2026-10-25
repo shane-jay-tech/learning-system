@@ -1,0 +1,729 @@
+{
+ "generated_at": "2026-10-26T03:32:28+08:00",
+ "scope": "content/ 全量复扫：两级目录一文件一题口径；paths 域例外为单层平铺（域根直录 6 件）",
+ "domains": {
+  "agent_dev": {
+   "topic_count": 15,
+   "problem_count": 82,
+   "difficulties": {
+    "1": 11,
+    "2": 32,
+    "3": 30,
+    "4": 8,
+    "5": 1
+   },
+   "topics": {
+    "01_git_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 3,
+      "2": 2
+     }
+    },
+    "02_debug_read": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "03_spec_writing": {
+     "count": 6,
+     "difficulties": {
+      "2": 4,
+      "3": 2
+     }
+    },
+    "04_review_agent": {
+     "count": 5,
+     "difficulties": {
+      "2": 4,
+      "3": 1
+     }
+    },
+    "05_modular_config": {
+     "count": 8,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 4,
+      "4": 1
+     }
+    },
+    "06_frontier": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     }
+    },
+    "07_data_security": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 2,
+      "4": 2
+     }
+    },
+    "07_write_spec": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "08_read_code": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     }
+    },
+    "08_review_pr": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "09_decompose": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "10_debug_logs": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 1,
+      "3": 2
+     }
+    },
+    "11_real_tasks": {
+     "count": 8,
+     "difficulties": {
+      "2": 1,
+      "3": 4,
+      "4": 2,
+      "5": 1
+     }
+    },
+    "12_spec_iteration": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     }
+    },
+    "13_multi_round": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     }
+    }
+   }
+  },
+  "cpp": {
+   "topic_count": 13,
+   "problem_count": 67,
+   "difficulties": {
+    "1": 10,
+    "2": 34,
+    "3": 23
+   },
+   "topics": {
+    "01_io_and_vars": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "02_branch_loop": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "03_arrays_strings": {
+     "count": 6,
+     "difficulties": {
+      "1": 1,
+      "2": 4,
+      "3": 1
+     }
+    },
+    "04_functions": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 1,
+      "3": 3
+     }
+    },
+    "05_stl_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     }
+    },
+    "06_iter_algo": {
+     "count": 6,
+     "difficulties": {
+      "1": 4,
+      "2": 1,
+      "3": 1
+     }
+    },
+    "07_pointers_class": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "08_inheritance": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "09_operator_overload": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "10_templates": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "11_exceptions": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "12_file_io": {
+     "count": 5,
+     "difficulties": {
+      "2": 4,
+      "3": 1
+     }
+    },
+    "13_move_semantics": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    }
+   }
+  },
+  "paths": {
+   "topic_count": 1,
+   "problem_count": 6,
+   "difficulties": {
+    "None": 6
+   },
+   "topics": {
+    "__flat__": {
+     "count": 6,
+     "difficulties": {
+      "None": 6
+     }
+    }
+   }
+  },
+  "python": {
+   "topic_count": 27,
+   "problem_count": 136,
+   "difficulties": {
+    "1": 30,
+    "2": 60,
+    "3": 38,
+    "4": 8
+   },
+   "topics": {
+    "01_hello_and_vars": {
+     "count": 5,
+     "difficulties": {
+      "1": 4,
+      "2": 1
+     }
+    },
+    "02_conditionals": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "03_loops": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "04_functions": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "05_lists": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "06_strings": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     }
+    },
+    "07_dicts_sets": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "08_files_exceptions": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "09_pandas_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     }
+    },
+    "10_pandas_filter_group": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "11_matplotlib": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     }
+    },
+    "12_io_excel": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "13_scipy_stats": {
+     "count": 6,
+     "difficulties": {
+      "2": 4,
+      "3": 2
+     }
+    },
+    "14_sklearn_intro": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "15_ab_text": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     }
+    },
+    "16_classes_oop": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     }
+    },
+    "17_decorators_props": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "18_generators_iter": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "19_regex": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 1,
+      "3": 2
+     }
+    },
+    "20_hr_pandas": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "20_numpy_basics": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     }
+    },
+    "21_datetime_ts": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     }
+    },
+    "21_hr_viz": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "22_hr_model": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     }
+    },
+    "22_statsmodels": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     }
+    },
+    "23_sklearn_advanced": {
+     "count": 5,
+     "difficulties": {
+      "3": 2,
+      "4": 3
+     }
+    },
+    "24_real_world_data": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     }
+    }
+   }
+  },
+  "r": {
+   "topic_count": 18,
+   "problem_count": 92,
+   "difficulties": {
+    "1": 15,
+    "2": 42,
+    "3": 32,
+    "4": 3
+   },
+   "topics": {
+    "01_vectors_and_basics": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 4
+     }
+    },
+    "02_logic_and_summary": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 4
+     }
+    },
+    "02b_dataframe": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "03_dplyr": {
+     "count": 5,
+     "difficulties": {
+      "1": 3,
+      "2": 2
+     }
+    },
+    "04_ggplot": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "05_lm_anova": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "06_mixed_apa": {
+     "count": 6,
+     "difficulties": {
+      "1": 1,
+      "2": 1,
+      "3": 4
+     }
+    },
+    "07_glm": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "08_tidyr": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "09_purrr_map": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "10_stringr_lubridate": {
+     "count": 6,
+     "difficulties": {
+      "1": 1,
+      "2": 4,
+      "3": 1
+     }
+    },
+    "11_survival": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 4
+     }
+    },
+    "12_clustering": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "13_rmarkdown": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     }
+    },
+    "14_real_world_data": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 2,
+      "4": 1
+     }
+    },
+    "14_sem_basics": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 1,
+      "4": 1
+     }
+    },
+    "15_cfa": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 1,
+      "3": 2,
+      "4": 1
+     }
+    },
+    "16_mediation": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 1,
+      "3": 3
+     }
+    }
+   }
+  },
+  "sql": {
+   "topic_count": 12,
+   "problem_count": 60,
+   "difficulties": {
+    "1": 13,
+    "2": 25,
+    "3": 21,
+    "4": 1
+   },
+   "topics": {
+    "01_select_where": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 3
+     }
+    },
+    "02_aggregate": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 1,
+      "3": 2
+     }
+    },
+    "03_orderby_having": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 3,
+      "3": 1
+     }
+    },
+    "04_joins": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     }
+    },
+    "05_subqueries_case": {
+     "count": 5,
+     "difficulties": {
+      "2": 3,
+      "3": 2
+     }
+    },
+    "06_window_functions": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "07_cte": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     }
+    },
+    "08_exists": {
+     "count": 5,
+     "difficulties": {
+      "2": 2,
+      "3": 3
+     }
+    },
+    "09_string_funcs": {
+     "count": 5,
+     "difficulties": {
+      "1": 3,
+      "2": 2
+     }
+    },
+    "10_date_funcs": {
+     "count": 5,
+     "difficulties": {
+      "1": 1,
+      "2": 2,
+      "3": 2
+     }
+    },
+    "11_null_handling": {
+     "count": 5,
+     "difficulties": {
+      "1": 2,
+      "2": 2,
+      "3": 1
+     }
+    },
+    "12_people_analytics": {
+     "count": 5,
+     "difficulties": {
+      "2": 1,
+      "3": 3,
+      "4": 1
+     }
+    }
+   }
+  }
+ }
+}
