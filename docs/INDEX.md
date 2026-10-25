@@ -15,7 +15,7 @@
 
 - **权威逐条索引**：`docs/insights/learn-insights-index-20260918.md`（表结构 `| docs/insights/<file>.md | 日期 | 主题 | git 入库 | 引用数 |`；09-17 旧索引按「历史快照原样保留」原则在册并已列入其表）。
 - **闭合哨兵**：`tests/test_insights_index_closure.py`——A（磁盘数）== B（索引表条目数）且 C（差集）空且无重复；零字面量设计，增删档只要同步登记即绿。
-- **当前闭合状态：未闭合**（l1023-020 全量跑 B 类点名）——磁盘 199 份 vs 索引表 193 条，**6 份未登记**：l1010-42-brace-balance-wiring-20261009、l1010-43-solved-with-timestamps-adjudication-20261009、learning-a4-20261008、learning-deadcode-20261008、privacy-recheck-20261008、toolchain-install-list-20261008。修复属另单，本索引只记录不代修。
+- **当前闭合状态：已闭合**（2026-10-26，l1025-008）——此前 6 份未登记（l1010-42/l1010-43/learning-a4/learning-deadcode/privacy-recheck/toolchain-install-list，l1023-020 点名）已全部补登权威索引表；复算 A=199、B=199、C=空、重复=0，哨兵 3 passed。
 - 入库月度分布（`git log --diff-filter=A` 实测）：2026-09＝137 份／2026-10＝62 份；文件名 8 位日期 token 跨度 20260905→20261009（63 份以任务号命名无日期 token，入库日期以 git 为准）。
 - 命名形态：任务号系前缀（l9xx/l10xx 等）65 份／主题命名 134 份。
 

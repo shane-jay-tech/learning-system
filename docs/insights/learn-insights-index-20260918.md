@@ -14,6 +14,7 @@
 > - 本次落笔读数（2026-09-22 04:02 建档＝l922-127／04:2x 追加 1 份＝l922-129／04:4x 追加 1 份＝l922-130／04:5x 追加 1 份＝l922-131，后三份同处 HEAD `1831cc7` 的在途批；末次复算时刻 2026-09-22T04:52+08:00）：**A=62、B=62、C=空、重复=0 ⇒ 等式闭合**。
 > - 重建前读数（同一组命令）：**A=59、B=37、C=22 行、重复=0 ⇒ 不闭合**，缺的 22 行即 09-19 之后各浪新档。
 > - 2026-09-23 追加 1 份＝l923-06（写序缺陷设计稿 `learn-shown-writeorder-design-20260923.md`，登记时未跟踪）：复算 **A=63、B=63、C=空、重复=0 ⇒ 等式闭合**；哨兵 `tests/test_insights_index_closure.py` 同批复跑 3 passed。
+> - 2026-10-26 补登 6 份（l1010-42/l1010-43/learning-a4/learning-deadcode/privacy-recheck/toolchain-install-list，10-08~10-09 入库未登——l1023-020 点名、l1025-008 落地）：复算 **A=199、B=199、C=空、重复=0 ⇒ 等式闭合**；哨兵 3 passed。
 > - 2026-09-23 再追加 1 份＝l923-17（F-1 outline 复位静态普查 `learn-focus-f1-outline-static-20260923.md`，登记时未跟踪）：复算 **A=64、B=64、C=空、重复=0 ⇒ 等式闭合**；同批哨兵复跑见 result（3 passed）。
 > - 2026-09-23 主班代登 1 份＝l923-24（CALIBER_NOTE 前提取证 `learn-caliber-note-premise-20260923.md`，登记时未跟踪）：复算 **A=65、B=65、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。登记人＝主班而非出档班，原因见本仓并行纪律：多路子班同时改本表会互相覆盖，故索引件由主班单点写。
 > - 2026-09-23 主班代登 1 份＝l923-28（cpp／sql／r 末档难度上抬设计稿 `learn-tail-difficulty-design-20260923.md`，登记时未跟踪）：复算 **A=67、B=67、C=空、重复=0 ⇒ 等式闭合**；哨兵同批复跑 3 passed。
@@ -241,3 +242,9 @@
 | docs/insights/test-count-attribution-20261005.md | 2026-10-05 | count-attribution-20261005 | yes | — |
 | docs/insights/tmp-l927-51-census-20261005.md | 2026-10-05 | l927-51-census-20261005 | yes | — |
 | docs/insights/traceback-trigger-20261008.md | 2026-10-08 | trigger-20261008 | yes | — |
+| docs/insights/l1010-42-brace-balance-wiring-20261009.md | 2026-10-09 | _brace_balance_error 链路接线裁决材料（l1010-42） | yes | — |
+| docs/insights/l1010-43-solved-with-timestamps-adjudication-20261009.md | 2026-10-09 | ProgressDAO.solved_with_timestamps docstring 失真处置材料（l1010-43） | yes | — |
+| docs/insights/learning-a4-20261008.md | 2026-10-08 | learning 基 A 类 4 个零引用件裁决与 rollback 缺口判定（k1010-08 派生） | yes | — |
+| docs/insights/learning-deadcode-20261008.md | 2026-10-08 | learning-system 死码候选普查（l1010-39） | yes | — |
+| docs/insights/privacy-recheck-20261008.md | 2026-10-08 | progress.db 取证口径守约复检（l1007-20 遗留） | yes | — |
+| docs/insights/toolchain-install-list-20261008.md | 2026-10-08 | Rscript/MinGW 装机清单——条件触发「不可用」分支（l1007-09 遗留） | yes | — |
