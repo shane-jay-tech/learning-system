@@ -27,7 +27,8 @@ def test_datasets_mounted_readable_and_readonly(tmp_path):
     )
     r = PythonRunner().run(code)
     assert "READONLY" in r.stdout, f"挂载件应为只读，实得：{r.stdout}"
-    assert "FILES 4" in r.stdout, f"datasets 应挂 4 件（3 CSV+生成器），实得：{r.stdout}"
+    # l1025-012：题面数据基座族扩容（l1025-001..003 新增 research_data/survey_data/ml_dataset/sales_data 四 CSV）→ 8 件
+    assert "FILES 8" in r.stdout, f"datasets 应挂 8 件（7 CSV+生成器），实得：{r.stdout}"
     assert "ROWS 500" in r.stdout, f"CSV 应可读且有数据，实得：{r.stdout}"
 
 

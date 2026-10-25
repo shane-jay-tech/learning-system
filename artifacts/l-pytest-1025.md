@@ -26,3 +26,10 @@
 
 - 27 例域钉翻正需逐域实测（同本班 python 法：loader 实测终值→翻钉），建议立「域 census 钉值翻正批」
 - 环境/门禁两族 14 例需逐名根因（多数疑为盘面漂移型：datasets 挂载面、README 指纹、insights 索引闭合）
+
+
+---
+
+## 【2026-10-26 订正】l1025-012 复核：41 例中 1 例系本班新增（归因方法缺陷）
+
+原 A/B 基线用 `git checkout 6c01115~1 -- content` 取批前态，但 checkout 不删除目标提交没有的文件——本班补题批2 新增的 4 份 datasets CSV 泄入"批前"树，datasets 挂载测试在污染基线下同报失败。l1025-012 以移出文件法取真批前态（4 CSV 移出）：`test_python_runner_datasets_mount::test_datasets_mounted_readable_and_readonly` **2 passed** ⇒ 该例为**本班新增失败**（FILES 4→8 钉未随数据基座扩容更新）。已在 l1025-012 处置单内翻钉 4→8（2 passed），净账订正为：**40 例预存＋1 例本班引入（已当场修复）＋crlf 偶发**。归因方法教训入档：A/B 基线取数必须用「移出/移入文件」或 worktree，禁用 checkout 覆盖法（不剪枝）。

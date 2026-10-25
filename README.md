@@ -113,9 +113,12 @@ core/runners/              Python / SQL / C++ / R 沙箱运行器
 ui/                        Streamlit 页面与组件
 content/                   python / cpp / r / sql / agent_dev 题库与知识点
 content/paths/             学习路径定义（YAML，与 README「学习闭环」的路径数同源）
-content/datasets/          SQL / R 练习用的示例数据（CSV ＋ 生成脚本）
+content/datasets/          Python 练习用的示例数据（CSV ＋ 生成脚本；PythonRunner 判题时整树只读挂载，
+                           l1023-019 档核正：唯一消费方＝python 题面，SQL/R/C++ runner 零引用）
                            hr_recruitment/hr_survey 两件＝确定性测试夹具资产（l1006-05 案B转正登记：
-                           tests/test_hr_dataset_determinism.py md5 硬钉＋生成器固有产物，题面暂未消费，hr 族扩题可直接引用）
+                           tests/test_hr_dataset_determinism.py md5 硬钉，题面暂未消费，hr 族扩题可直接引用）
+                           l1025-001..003 扩容：research_data/survey_data/ml_dataset/sales_data 四件
+                           ＝statsmodels/sklearn_advanced/real_world 补题批2 数据基座（确定性 seed=42）
 scripts/                   健康检查、备份、审计、性能与维护脚本（含 1 个 PowerShell 件）
 tests/                     测试套件
 docs/                      系统报告与巡检留痕 insights/
