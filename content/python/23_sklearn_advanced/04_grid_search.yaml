@@ -17,3 +17,27 @@ starter_code: |
   import pandas as pd
   from sklearn.ensemble import RandomForestClassifier
   from sklearn.model_selection import GridSearchCV, train_test_split
+rubric:
+  - "正确读取 ml_dataset.csv 并切分特征与 target"
+  - "param_grid 覆盖 n_estimators=[50,100,200] 与 max_depth=[3,5,None]"
+  - "GridSearchCV 五折交叉验证、scoring='accuracy'，输出 best_params_ 与 best_score_"
+reference_answer: |
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  from sklearn.model_selection import GridSearchCV
+
+  df = pd.read_csv("content/datasets/ml_dataset.csv")
+  X, y = df.drop(columns=["target"]), df["target"]
+  param_grid = {
+      "n_estimators": [50, 100, 200],
+      "max_depth": [3, 5, None],
+  }
+  grid = GridSearchCV(RandomForestClassifier(random_state=42), param_grid,
+                      cv=5, scoring="accuracy")
+  grid.fit(X, y)
+  print(grid.best_params_)
+  print(round(grid.best_score_, 4))
+hints:
+  - "param_grid 是字典：键为超参名、值为候选列表"
+  - "GridSearchCV(model, param_grid, cv=5, scoring='accuracy') 后 fit(X, y)"
+  - "最优参数取 grid.best_params_，最优得分取 grid.best_score_"

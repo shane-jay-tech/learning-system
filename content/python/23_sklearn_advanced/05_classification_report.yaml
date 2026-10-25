@@ -19,3 +19,26 @@ starter_code: |
   from sklearn.ensemble import RandomForestClassifier
   from sklearn.metrics import classification_report, confusion_matrix
   from sklearn.model_selection import train_test_split
+rubric:
+  - "特征取除 target 外全部列，train_test_split 80/20（random_state=42）"
+  - "训练 RandomForestClassifier(n_estimators=100)"
+  - "输出 classification_report（precision/recall/f1 齐全）与混淆矩阵"
+reference_answer: |
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  from sklearn.metrics import classification_report, confusion_matrix
+  from sklearn.model_selection import train_test_split
+
+  df = pd.read_csv("content/datasets/ml_dataset.csv")
+  X = df.drop(columns=["target"])
+  y = df["target"]
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  model = RandomForestClassifier(n_estimators=100, random_state=42)
+  model.fit(X_train, y_train)
+  y_pred = model.predict(X_test)
+  print(classification_report(y_test, y_pred))
+  print(confusion_matrix(y_test, y_pred))
+hints:
+  - "X = df.drop(columns=[\"target\"])，y = df[\"target\"]"
+  - "train_test_split 记得 test_size=0.2 和 random_state=42"
+  - "classification_report(y_test, y_pred) 与 confusion_matrix(y_test, y_pred) 直接打印"
