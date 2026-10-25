@@ -18,8 +18,8 @@ from core.loader import load_language
 
 LANG = "python"
 EXPECTED_TOPICS = 27
-EXPECTED_PROBLEMS = 125
-EXPECTED_DIFF = {1: 27, 2: 58, 3: 33, 4: 7}
+EXPECTED_PROBLEMS = 136
+EXPECTED_DIFF = {1: 30, 2: 60, 3: 38, 4: 8}
 EXPECTED_SLUGS = (
     "01_hello_and_vars", "02_conditionals", "03_loops", "04_functions", "05_lists",
     "06_strings", "07_dicts_sets", "08_files_exceptions", "09_pandas_basics",

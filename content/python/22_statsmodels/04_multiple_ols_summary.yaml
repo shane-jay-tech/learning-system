@@ -17,3 +17,21 @@ statement: |
 starter_code: |
   import pandas as pd
   import statsmodels.api as sm
+rubric:
+  - "正确读取 research_data.csv 并用 sm.add_constant 构造含截距的 X"
+  - "OLS 拟合 income ~ hours + iq + gpa，输出完整摘要表（model.summary()）"
+  - "正确取出 hours 的 p 值并与 0.05 比较，输出 True/False 布尔值"
+reference_answer: |
+  import pandas as pd
+  import statsmodels.api as sm
+
+  df = pd.read_csv("content/datasets/research_data.csv")
+  X = sm.add_constant(df[["hours", "iq", "gpa"]])
+  y = df["income"]
+  model = sm.OLS(y, X).fit()
+  print(model.summary())
+  print(bool(model.pvalues["hours"] < 0.05))
+hints:
+  - "sm.add_constant(df[[\"hours\", \"iq\", \"gpa\"]]) 先加截距列，再 sm.OLS(y, X).fit()"
+  - "model.summary() 直接打印完整 OLS 摘要表"
+  - "hours 的 p 值取 model.pvalues[\"hours\"]，与 0.05 比较后用 print() 输出 True/False"

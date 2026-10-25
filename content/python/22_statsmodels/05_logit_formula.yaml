@@ -16,3 +16,20 @@ statement: |
 starter_code: |
   import pandas as pd
   import statsmodels.formula.api as smf
+rubric:
+  - "正确读取 survey_data.csv 并用 smf.logit 拟合公式 satisfied ~ age + income + education_years"
+  - "输出参数摘要（模型摘要或 params）"
+  - "正确取出 age 系数并按符号输出 正/负"
+reference_answer: |
+  import pandas as pd
+  import statsmodels.formula.api as smf
+
+  df = pd.read_csv("content/datasets/survey_data.csv")
+  model = smf.logit("satisfied ~ age + income + education_years", data=df).fit()
+  print(model.summary())
+  sign = "正" if model.params["age"] > 0 else "负"
+  print(sign)
+hints:
+  - "公式接口用 import statsmodels.formula.api as smf，fit() 后才有参数"
+  - "model.summary() 输出含系数、标准误与 p 值的参数摘要"
+  - "age 系数取 model.params[\"age\"]，大于 0 输出 正，否则输出 负"
