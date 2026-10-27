@@ -7,6 +7,7 @@ sql 专属：expected_rows 形态（每题为行列表，行数＝该题结果�
 实测基线（2026-09-19）：
   题数 54 / topic 12；difficulty 直方图 {1:12, 2:22, 3:19, 4:1}
   setup_sql 54/54 存在；expected_rows 54/54 且恒为 list，行数直方图 {1:12,2:10,3:14,4:7,5:9,6:1,7:1}
+  （l1028-05 翻钉后现值：60 题 / 直方图 {1:13,2:25,3:21,4:1} / 行数 {1:13,2:13,3:16,4:7,5:9,6:1,7:1}）
   judge_mode 全 run；hints 缺失 0 题
 """
 import collections
@@ -15,9 +16,9 @@ from core.loader import load_language
 
 LANG = "sql"
 EXPECTED_TOPICS = 12
-EXPECTED_PROBLEMS = 54
-EXPECTED_DIFF = {1: 12, 2: 22, 3: 19, 4: 1}
-EXPECTED_ROWS_LEN = {1: 12, 2: 10, 3: 14, 4: 7, 5: 9, 6: 1, 7: 1}
+EXPECTED_PROBLEMS = 60  # l1028-05 翻钉 54→60
+EXPECTED_DIFF = {1: 13, 2: 25, 3: 21, 4: 1}  # l1028-05 翻钉
+EXPECTED_ROWS_LEN = {1: 13, 2: 13, 3: 16, 4: 7, 5: 9, 6: 1, 7: 1}  # l1028-05 翻钉（loader 实测）
 EXPECTED_SLUGS = (
     "01_select_where", "02_aggregate", "03_orderby_having", "04_joins",
     "05_subqueries_case", "06_window_functions", "07_cte", "08_exists",
@@ -58,7 +59,7 @@ def test_setup_sql全覆盖():
     problems = _problems()
     missing = [p.id for p in problems if not (p.setup_sql and p.setup_sql.strip())]
     assert missing == [], f"sql 缺 setup_sql：{missing}"
-    assert len(problems) == 54, "前置：sql 题数须为 54 才谈得上全覆盖"
+    assert len(problems) == 60, "前置：sql 题数须为 60 才谈得上全覆盖（l1028-05 翻钉 54→60）"
 
 
 def test_expected_rows形态与行数直方图精确():
@@ -71,7 +72,7 @@ def test_expected_rows形态与行数直方图精确():
             lens[len(p.expected_rows)] += 1
         else:
             shape[type(p.expected_rows).__name__] += 1
-    assert dict(shape) == {"list": 54}, f"sql expected_rows 外层形态漂移：{dict(shape)}"
+    assert dict(shape) == {"list": 60}  # l1028-05 翻钉, f"sql expected_rows 外层形态漂移：{dict(shape)}"
     assert dict(sorted(lens.items())) == EXPECTED_ROWS_LEN, (
         f"sql expected_rows 行数直方图漂移：{dict(sorted(lens.items()))} != {EXPECTED_ROWS_LEN}")
     # 行实测为「值列表」（无列名），且非空——照现状翻桩
@@ -79,7 +80,7 @@ def test_expected_rows形态与行数直方图精确():
            if not all(isinstance(row, list) and row for row in p.expected_rows)]
     assert bad == [], f"sql expected_rows 含非 list/空行：{bad}"
     total_rows = sum(len(p.expected_rows) for p in problems)
-    assert total_rows == 160, f"sql expected_rows 总行数漂移：{total_rows} != 160"
+    assert total_rows == 173  # l1028-05 翻钉, f"sql expected_rows 总行数漂移：{total_rows} != 160"
     # 值列表首行样例（01_select_all：id,name,score 三列）——防列数/口径静默变化
     first = next(p for p in problems if p.id == "sql/01_select_where/01_select_all")
     assert first.expected_rows[0] == [1, "Alice", 92], (
@@ -89,6 +90,7 @@ def test_expected_rows形态与行数直方图精确():
 def test_judge与hints完备():
     problems = _problems()
     judge = dict(collections.Counter(p.judge_mode for p in problems))
-    assert judge == {"run": 54}, f"sql judge_mode 分布漂移：{judge}"
+    assert judge == {"run": 60}, (  # l1028-05 翻钉 54→60
+        f"sql judge_mode 分布漂移：{judge}")
     missing = [p.id for p in problems if not p.hints]
     assert missing == [], f"sql 缺 hints 名单漂移：{sorted(missing)}"

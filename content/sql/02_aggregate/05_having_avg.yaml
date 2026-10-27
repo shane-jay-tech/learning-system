@@ -11,3 +11,7 @@ setup_sql: |
   INSERT INTO employees VALUES (1,'A','eng',100),(2,'B','eng',120),(3,'C','hr',90),(4,'D','hr',95),(5,'E','eng',110);
 expected_rows:
   - ["eng", 110.0]
+hints:
+  - "对分组后的聚合值过滤要用 HAVING，不是 WHERE"
+  - "AVG(salary) > 100 写在 HAVING 里"
+  - "hr 组均值 92.5 会被过滤掉，只剩 eng"

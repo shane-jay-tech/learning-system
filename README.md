@@ -51,7 +51,7 @@ streamlit run app.py
 
 ## 学习闭环
 
-- 5 种语言并行学，进度独立；408 题、85 知识点、6 条学习路径（三项计数会随题库与 `content/paths/` 扩充变动，逐数字的复跑命令与对账见 `docs/insights/learn-readme-numbers-20260922.md`；补题需同批同步的等值点清单见 `plan.md`「题库内容规范」）。
+- 5 种语言并行学，进度独立；437 题、85 知识点、6 条学习路径（三项计数会随题库与 `content/paths/` 扩充变动，逐数字的复跑命令与对账见 `docs/insights/learn-readme-numbers-20260922.md`；补题需同批同步的等值点清单见 `plan.md`「题库内容规范」）。
 - 每题：讲解 + 编辑器 + 沙箱运行 + AI 老师点评（难度分层）+ 多轮追问 + 错题本。
 - AI 出变式题、自适应间隔复习、学习面板、报告导出、AI 进展自查。
 - 开放题按 rubric 逐维度评分并追踪历史。
@@ -82,7 +82,7 @@ streamlit run app.py
 ```powershell
 # 属性标注（l927-32，2026-09-28 逐条实测副作用后追加；口径见 docs/insights/l927-32-note.md）：
 #   只读＝零写盘可夜跑 ／ 写盘＝会落盘 ／ 需日间＝连生产库或起进程，夜桥禁照块跑
-pytest                           # 单元与回归测试 —— 只读（实测仅写 .pytest_cache/ 与 __pycache__）｜全量约 400s，可夜跑
+pytest                           # 单元与回归测试 —— 只读（实测仅写 .pytest_cache/ 与 __pycache__）｜全量约 147s（含 python 子集 152s 口径见 l-pytest-1025），可夜跑
 python scripts/health_check.py   # 环境健康检查 —— 只读（实测仓内零文件变化、生产库 sha 不变）｜可夜跑
 python scripts/smoke_boot.py     # 快速启动冒烟测试 —— 起进程（绑 127.0.0.1:8599，脚本自带 terminate）｜需日间，夜桥禁跑
 python scripts/perf_baseline.py  # 性能基线 —— 连生产库（无参 ProgressDAO()，默认库 data/progress.db；连接期生成临时 -wal/-shm 侧车）｜需日间

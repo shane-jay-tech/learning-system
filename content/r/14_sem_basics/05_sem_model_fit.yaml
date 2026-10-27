@@ -22,3 +22,12 @@ starter_code: |
     F2 =~ y1 + y2 + y3
     F2 ~ F1
   '
+hints:
+  - "summary(fit, fit.measures=TRUE) 的输出里找 CFI 与 RMSEA 两行"
+  - "fitMeasures(fit, c('cfi','rmsea')) 可以只取这两个指标"
+  - "判断条件用 logical 与：cfi >= 0.90 & rmsea <= 0.08"
+rubric:
+  - "模型定义正确：F1 =~ x1+x2+x3、F2 =~ y1+y2+y3、F2 ~ F1，sem() 带 std.lv=TRUE"
+  - "能从 summary(fit, fit.measures=TRUE) 正确读出 CFI 与 RMSEA 的数值"
+  - "判断逻辑正确：CFI >= 0.90 且 RMSEA <= 0.08 同时满足才输出 TRUE"
+  - "能对拟合结果做一句合理解读（如达标=模型可接受，不达标指出哪个指标拖后腿）"

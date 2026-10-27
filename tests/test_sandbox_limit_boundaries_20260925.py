@@ -99,21 +99,27 @@ class TestStdoutCapBoundary:
         assert len(r.stdout.encode("utf-8")) == MAX_STDOUT_BYTES
 
     def test_one_byte_over_cap_truncates_to_cap_and_shows_hint(self, runner):
-        """边界样本·上沿：限额＋1 字节即截断，正文恰为限额字节，且带用户可读提示。"""
+        """边界样本·上沿（l1028-05 翻钉：头尾保留语义）：限额＋1 字节即截断，
+        总量不超限额、首尾都在、带用户可读提示。"""
         r = runner.run("import sys\nsys.stdout.write('A' * %d)" % (MAX_STDOUT_BYTES + 1))
         assert TRUNC_MARK in r.stdout, "越界必须给出可读提示，不能静默丢内容"
-        body, _, _mark = r.stdout.partition("\n[")
-        assert len(body.encode("utf-8")) == MAX_STDOUT_BYTES
+        assert len(r.stdout.encode("utf-8")) <= MAX_STDOUT_BYTES, "截断后总量不超限额"
+        assert r.stdout.startswith("A" * 100), "头部必须保留（traceback 异常类型在头）"
+        assert r.stdout.rstrip().endswith("A"), "尾部必须保留（出错位置在尾）"
         assert r.exit_code == 0
         assert r.ok is True  # 截断不是学生的错：不改判分口径
 
     def test_multibyte_char_is_never_split(self, runner):
-        """截断点落在 UTF-8 半个字符上：丢整字符，**不许**留替换符。"""
+        """截断点落在 UTF-8 半个字符上：丢整字符，**不许**留替换符（l1028-05 翻钉：头尾保留）。"""
         n = MAX_STDOUT_BYTES // 3 + 99  # 3 字节/字 ⇒ 限额处必切在半字符上
         assert n * 3 > MAX_STDOUT_BYTES
         r = runner.run("import sys\nsys.stdout.write('中' * %d)" % n)
         assert "\ufffd" not in r.stdout, "半个字符会变成 ? 乱码，学生读不懂"
-        assert r.stdout.count("中") == MAX_STDOUT_BYTES // 3
+        kept = r.stdout.count("中")
+        assert r.stdout.startswith("中中中"), "头部整字符保留"
+        assert r.stdout.rstrip().endswith("中"), "尾部整字符保留"
+        assert kept * 3 <= MAX_STDOUT_BYTES, "按字节计不超限额"
+        assert kept < n, "中段确有省略"
         assert TRUNC_MARK in r.stdout
 
     def test_windows_crlf_bytes_count_toward_the_cap(self, runner):

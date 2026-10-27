@@ -17,9 +17,9 @@ from core.loader import load_language
 
 LANG = "agent_dev"
 EXPECTED_TOPICS = 15
-EXPECTED_PROBLEMS = 78
-EXPECTED_DIFF = {1: 11, 2: 32, 3: 27, 4: 7, 5: 1}
-EXPECTED_RUBRIC_LINES = {3: 5, 4: 21, 5: 10, 6: 9, 7: 3}
+EXPECTED_PROBLEMS = 82  # l1028-05 翻钉 78→82
+EXPECTED_DIFF = {1: 11, 2: 32, 3: 30, 4: 8, 5: 1}  # l1028-05 翻钉
+EXPECTED_RUBRIC_LINES = {3: 5, 4: 25, 5: 10, 6: 9, 7: 3}  # l1028-05 翻钉（4 件新 rubric 均为 4 行）
 EXPECTED_SLUGS = (
     "01_git_basics", "02_debug_read", "03_spec_writing", "04_review_agent",
     "05_modular_config", "06_frontier", "07_data_security", "07_write_spec",
@@ -74,11 +74,11 @@ def test_rubric行数直方图与行前缀契约():
             list_style += 1
         else:
             str_style += 1
-    assert no_rubric == 30, f"agent_dev 无 rubric 题数漂移：{no_rubric} != 30"
+    assert no_rubric == 30, f"agent_dev 无 rubric 题数漂移：{no_rubric} != 30（l1028-05：4 件补 rubric 后回到 30）"
     assert dict(sorted(lines_dist.items())) == EXPECTED_RUBRIC_LINES, (
         f"agent_dev rubric 行数分布漂移：{dict(sorted(lines_dist.items()))} != {EXPECTED_RUBRIC_LINES}")
     # 双形态分布（照现状翻桩；yaml 侧实测 list 36 / str 12）
-    assert (list_style, str_style) == (36, 12), (
+    assert (list_style, str_style) == (40, 12), (  # l1028-05 翻钉（4 件新 rubric 均 list 式）
         f"agent_dev rubric 形态漂移：list式={list_style} str式={str_style}（基线 36/12）")
 
 
@@ -90,10 +90,10 @@ def test_judge_mode与答案面配对():
             if getattr(p, key, None):
                 fields[key] += 1
     assert dict(fields) == {
-        "expected_output": 30, "tests": 1, "rubric": 48, "reference_answer": 38,
+        "expected_output": 30, "tests": 1, "rubric": 52, "reference_answer": 38,  # l1028-05 翻钉
     }, f"agent_dev 答案字段计数漂移：{dict(fields)}"
     judge = dict(collections.Counter(p.judge_mode for p in problems))
-    assert judge == {"run": 30, "ai_open": 48}, f"agent_dev judge_mode 分布漂移：{judge}"
+    assert judge == {"run": 30, "ai_open": 52}, f"agent_dev judge_mode 分布漂移：{judge}"  # l1028-05 翻钉 48→52
     # ai_open 必须带 rubric（否则无评分点可依）
     bad = [p.id for p in problems if p.judge_mode == "ai_open" and not p.rubric]
     assert bad == [], f"ai_open 却无 rubric：{bad}"

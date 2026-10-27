@@ -126,12 +126,12 @@ def _judge_fields(lang, problem, code, dao):
 def test_loader层_缺失与显式run_归一等价(tmp_path):
     """70 道 run 题：删掉显式行后，loader 归一化结果与现状**逐字段全等**。"""
     tmp_content, stripped, kept = _mirror_corpus(tmp_path, strip_run=True)
-    assert len(stripped) == 70, "应恰有 70 道 run 题被模拟成「缺失」"
-    assert len(kept) == 14, "14 道 ai_open 题不该被改动"
+    assert len(stripped) == 76, "应恰有 76 道 run 题被模拟成「缺失」（l1028-05 翻钉 70→76）"
+    assert len(kept) == 16, "16 道 ai_open 题不该被改动（l1028-05 翻钉）"
     base, alt = _load_pair(tmp_content)
 
     assert [t.slug for t in base] == [t.slug for t in alt]
-    assert sum(len(t.problems) for t in base) == 84
+    assert sum(len(t.problems) for t in base) == 92  # l1028-05 翻钉 84→92
     for bt, at in zip(base, alt):
         assert bt.problems == at.problems, (
             "topic %s 归一化结果不等价：%s" % (
@@ -151,7 +151,7 @@ def test_loader层_缺失与显式run_归一等价(tmp_path):
 def test_loader层_阴性对照_删掉ai_open的judge_mode确实改变归一化(tmp_path):
     """非空转保证：若删行不改变任何东西，上面那条等价性测试就是恒真的废测试。"""
     ai_open = [f for f in _r_files() if _yaml_of(f).get("judge_mode") == AI_OPEN]
-    assert len(ai_open) == 14
+    assert len(ai_open) == 16  # l1028-05 翻钉
     tmp_content, _, _ = _mirror_corpus(tmp_path, strip_run=False)
     target = ai_open[0]
     (tmp_content / "r" / target.parent.name / target.name).write_bytes(
@@ -266,7 +266,7 @@ def test_runner层_全量70题_正确与错误输出双跑逐题一致():
     """确定性 runner：每道 run 题在「输出正确 / 输出错误」两种输入下都比一次。"""
     run_problems = [(d, {k: v for k, v in d.items() if k != "judge_mode"})
                     for d in (_yaml_of(f) for f in _r_files()) if d.get("judge_mode") == RUN]
-    assert len(run_problems) == 70
+    assert len(run_problems) == 76  # l1028-05 翻钉
     checked = 0
     for explicit, missing in run_problems:
         correct = explicit.get("expected_output") or ""
@@ -276,7 +276,7 @@ def test_runner层_全量70题_正确与错误输出双跑逐题一致():
             b = judge_mod._run_test_cases(runner, "r", CODE, missing)
             assert a == b, "题目形态双跑不一致：%r" % (explicit.get("title"),)
             checked += 1
-    assert checked == 140, "应覆盖 70 题 × 2 种输出"
+    assert checked == 152, "应覆盖 76 题 × 2 种输出（l1028-05 翻钉）"
 
 
 def test_runner层_真RRunner实题双跑_逐题RunResult一致():
@@ -325,7 +325,7 @@ def test_数据层_84题源文件显式值与loader归一化值一致():
         mode = _yaml_of(f).get("judge_mode")
         assert mode in (RUN, AI_OPEN), "%s 的 judge_mode 非法：%r" % (f, mode)
         src[mode] += 1
-    assert dict(src) == {RUN: 70, AI_OPEN: 14}
+    assert dict(src) == {RUN: 76, AI_OPEN: 16}  # l1028-05 翻钉
     loader_mod.invalidate_cache()
     try:
         loaded = Counter(p.judge_mode for t in load_language("r") for p in t.problems)

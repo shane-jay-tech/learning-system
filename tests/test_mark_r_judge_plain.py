@@ -565,7 +565,7 @@ def _real_r_files():
 def test_真题库_每行删掉再插回_字节完全相等():
     """84 行逐行证明：原文 + 恰一行 == 现状字节（含 16 个 CRLF 文件与带引号的 ai_open）。"""
     files = _real_r_files()
-    assert len(files) == 84
+    assert len(files) == 92  # l1028-05 翻钉 84→92
     checked = {"run": 0, "ai_open": 0}
     for f in files:
         raw = f.read_bytes()
@@ -582,7 +582,7 @@ def test_真题库_每行删掉再插回_字节完全相等():
         mode = yaml.safe_load(text)["judge_mode"]
         checked[mode] += 1
         assert mrj._assert_single_line_insert is not None
-    assert checked == {"run": 70, "ai_open": 14}, checked
+    assert checked == {"run": 76, "ai_open": 16}, checked  # l1028-05 翻钉
 
 
 def test_真题库_run题现状字节_等于原文加恰一行judge_mode_run():
@@ -625,15 +625,15 @@ def test_真题库_run题现状字节_等于原文加恰一行judge_mode_run():
             changed += 1
         else:
             assert _norm_lf(new) == _norm_lf(old), "%s（ai_open）不该被动过" % rel
-    assert changed == 69, "run 题数量漂移：%d（l1006-05 豁免 06_date_parsing 后 70→69）" % changed
+    assert changed == 69, "run 题数量漂移：%d（l1006-05 豁免后 70→69；l1028-05 注：新增 8 题不在 pre-D6 备份内被 skip，changed 计数不变，run 总量由 76 钉另守）" % changed
 
 
 def test_真题库_check通过_70_14分布门禁():
     """真仓库端到端只读门禁：--check + 精确分布，零写盘。"""
     root = Path.cwd()
     before = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in _real_r_files()}
-    r = _cli(root, "--check", "--expect-distribution", "run=70,ai_open=14")
+    r = _cli(root, "--check", "--expect-distribution", "run=76,ai_open=16")  # l1028-05 翻钉
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "PASS：84/84 判定模式全部显式" in r.stdout
+    assert "PASS：92/92 判定模式全部显式" in r.stdout  # l1028-05 翻钉
     after = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in _real_r_files()}
     assert after == before, "--check 不该写盘"

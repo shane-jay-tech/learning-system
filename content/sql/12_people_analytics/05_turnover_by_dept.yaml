@@ -14,5 +14,9 @@ setup_sql: |
   INSERT INTO employees VALUES (1,'eng','active'),(2,'eng','left'),(3,'hr','active'),(4,'hr','active'),(5,'sales','left'),(6,'sales','left');
 expected_rows:
   - ["sales", 100.0]
-  - ["hr", 0.0]
   - ["eng", 50.0]
+  - ["hr", 0.0]
+hints:
+  - "离职率 = left 人数 / 部门总人数，CASE WHEN status = 'left' 计数"
+  - "ROUND(..., 1) 保留 1 位小数；用 100.0 避免整数除法"
+  - "降序排列：100.0 的组在前、0.0 的组在后"

@@ -34,8 +34,8 @@ LANG = "r"
 
 # ---- 内容盘点快照基线（census）：内容扩容时有意翻桩 ----
 EXPECTED_TOPICS = 18
-EXPECTED_PROBLEMS = 84
-EXPECTED_DIFF = {1: 15, 2: 37, 3: 31, 4: 1}
+EXPECTED_PROBLEMS = 92  # l1028-05 翻钉 84→92
+EXPECTED_DIFF = {1: 15, 2: 42, 3: 32, 4: 3}
 EXPECTED_SLUGS = (
     "01_vectors_and_basics", "02_logic_and_summary", "02b_dataframe", "03_dplyr",
     "04_ggplot", "05_lm_anova", "06_mixed_apa", "07_glm", "08_tidyr", "09_purrr_map",
@@ -95,10 +95,11 @@ def test_census_答案面字段与判定模式分布():
             if getattr(p, key, None):
                 fields[key] += 1
     assert dict(fields) == {
-        "expected_output": 70, "rubric": 14, "reference_answer": 14,
+        "expected_output": 76, "rubric": 16, "reference_answer": 14,  # l1028-05 翻钉
     }, f"r 答案字段计数漂移：{dict(fields)}"
     judge = dict(collections.Counter(p.judge_mode for p in problems))
-    assert judge == {"run": 70, "ai_open": 14}, f"r judge_mode 分布漂移：{judge}"
+    assert judge == {"run": 76, "ai_open": 16}, (  # l1028-05 翻钉
+        f"r judge_mode 分布漂移：{judge}")
     assert [p.id for p in problems if not p.hints] == [], "r 缺 hints 名单漂移"
 
 

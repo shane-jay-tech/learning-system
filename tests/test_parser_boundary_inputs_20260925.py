@@ -224,7 +224,7 @@ class TestHugeInput:
         assert classify("python", r.stderr) == "syntax"
         assert locate("python", r.stderr) == 1
 
-    def test_huge_source_loses_the_verdict_behind_the_stderr_cap(self, runner):
+    def test_huge_source_keeps_the_verdict_after_headtail_truncation(self, runner):  # l1028-05 翻钉：D-11 已修复
         """**缺陷 D-11**（本单最有牙的一条）：CPython 把"错在哪"放在 stderr **末尾**，
         而 `_truncate` 从**尾部**切 100 KB ⇒ 超长源码行会把结论整条切掉，
         学生只剩「输出过长，已截断」。
@@ -233,8 +233,8 @@ class TestHugeInput:
         assert r.exit_code == 1
         assert TRUNC_MARK in r.stderr
         assert len(r.stderr.encode("utf-8")) <= MAX_STDERR_BYTES + 60
-        assert "SyntaxError" not in r.stderr, "本用例登记的是「结论已被切掉」这一实况"
-        assert r.stderr.rstrip().endswith("字节）]"), "最后一行只剩截断标记，不再是错误结论"
+        assert "SyntaxError" in r.stderr, "头尾保留后错误结论必须在 stderr 可见（D-11 修复验收，l1028-05 翻钉）"
+        assert "TypeError" in r.stderr or "parenthesis" in r.stderr or "x = " in r.stderr, "截断保留的是可读内容而非空壳"
         assert r.stderr.count(TRUNC_MARK) == 1
 
     def test_content_parser_has_no_input_size_guard(self, content_dir):

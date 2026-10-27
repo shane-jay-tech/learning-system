@@ -13,3 +13,7 @@ expected_rows:
   - ["Eve", 95]
   - ["Alice", 92]
   - ["Bob", 87]
+hints:
+  - "ORDER BY score DESC 先降序排序"
+  - "LIMIT 3 只保留前 3 行"
+  - "降序时最高分在最前：Eve 95 应排第一行"

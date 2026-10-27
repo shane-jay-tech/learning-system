@@ -12,3 +12,7 @@ setup_sql: |
 expected_rows:
   - ["Alice", 92]
   - ["Bob", 87]
+hints:
+  - "WHERE score > 80 负责行过滤"
+  - "只取两列：SELECT name, score"
+  - "验证时对照 expected_rows：Cathy 75、David 60 应被过滤掉"

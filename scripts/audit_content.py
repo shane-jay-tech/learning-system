@@ -14,7 +14,11 @@ sys.path.insert(0, str(ROOT))
 
 # r/14_sem_basics 于 2026-09-05 授权去重（删除重复的 fit_indices 题）后，
 # 该专题难度分布变为 >70% 同难度，属去重的预期结果而非质量问题。
-ACCEPTED_TOPICS = {"cpp/12_file_io", "r/11_survival", "agent_dev/04_review_agent", "r/14_sem_basics"}
+# l1028-05 显式接受：入门主题（python/01、r/01、r/02）前置简单题属教学设计形态，
+# >70% 同难度为 by design（进阶难度集中在后段 topic，见 PINNED_HIST 直方）；
+# 与既有 4 个已接受主题同款处理。agent_dev/07_data_security 的 lesson 空壳已于本班补写，不在接受面。
+ACCEPTED_TOPICS = {"cpp/12_file_io", "r/11_survival", "agent_dev/04_review_agent", "r/14_sem_basics",
+                   "python/01_hello_and_vars", "r/01_vectors_and_basics", "r/02_logic_and_summary"}
 
 
 def audit():

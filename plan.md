@@ -39,15 +39,15 @@
 
 - **每 topic 目标题数＝5**（补题补到 5 即止，不是「补到 6 消除薄」）。推导与依据见 `docs/insights/learn-thin-thick-topics-20260921.md:73`（「补题目标位应钉在 5（回到众数）」）。落笔时磁盘实取：**85 topic / 399 题**，每 topic 题数直方 `{2:4, 3:8, 4:10, 5:55, 6:6, 8:2}` ⇒ 众数恰为 5；薄于 5 的 22 个是补题对象，厚于 5 的 8 个属**合理厚**（综合实战/多路径复用），不削。
 - **下限哨兵另计，不与上面的「目标 5」混为一谈**：真正的门禁在 `tests/test_content_thin_topic_p0.py` —— `:58 MIN_QUESTIONS_PER_TOPIC = 2`（防「新建目录只放一题占位」）、`:62 NON_THIN_RATIO_FLOOR = 0.72`（比例式，绑磁盘实取）、`:67 MILESTONE_Q_PER_HOUR_FLOOR = 1.6`（里程碑题/时下界）。⇒ 「5」是**内容指引**，「>= 2 / 比例下界」才是**会红的东西**；补到 5 只会让三条判据更宽松，不会撞线。
-- **新专题目录的语言级精确桩**：`tests/test_content_census_python.py:18-19` 钉 python 的 topic 数与题数（现值 27/121）。**只在已有 topic 目录内补题不撞它**；新建 topic 目录必须同批改该文件的 `EXPECTED_TOPICS / EXPECTED_SLUGS`。
+- **新专题目录的语言级精确桩**：`tests/test_content_census_python.py:18-19` 钉 python 的 topic 数与题数（现值 27/136，l1028-05 翻钉）。**只在已有 topic 目录内补题不撞它**；新建 topic 目录必须同批改该文件的 `EXPECTED_TOPICS / EXPECTED_SLUGS`。
 
 ### 补题时必须同批同步的等值点（任务书口径的 4 处）
 
 | # | 落点 | 现值 | 复算命令（仓库根执行） |
 |---|---|---|---|
-| 1 | `tests/test_content_difficulty_pins.py:29` 的 `PINNED_HIST` | python 行 `{1:27, 2:56, 3:31, 4:7, 5:0}`（合计 121） | `python -m pytest tests/test_content_difficulty_pins.py -q` |
-| 2 | `tests/test_content_difficulty_pins.py:80` | `assert sum(per_lang.values()) == 399` | `python -c "import pathlib;print([ (i,l.strip()) for i,l in enumerate(pathlib.Path('tests/test_content_difficulty_pins.py').read_text(encoding='utf-8').splitlines(),1) if '== 399' in l ])"` |
-| 3 | `tests/test_content_census.py:27` | `assert total == 399` | 同上换文件名（命中 `!= 399（README 官方口径，变更须有意）`） |
+| 1 | `tests/test_content_difficulty_pins.py:29` 的 `PINNED_HIST` | python 行 `{1:30, 2:60, 3:38, 4:8, 5:0}`（合计 136，l1028-05 翻钉后现值） | `python -m pytest tests/test_content_difficulty_pins.py -q` |
+| 2 | `tests/test_content_difficulty_pins.py:80` | `assert sum(per_lang.values()) == 437`（l1028-05 翻钉，原 399→408→437） | `python -c "import pathlib;print([ (i,l.strip()) for i,l in enumerate(pathlib.Path('tests/test_content_difficulty_pins.py').read_text(encoding='utf-8').splitlines(),1) if '== 399' in l ])"` |
+| 3 | `tests/test_content_census.py:27` | `assert total == 437`（l1028-05 翻钉） | 同上换文件名（命中 `!= 399（README 官方口径，变更须有意）`） |
 | 4 | `README.md:52` 对外口径 | 「399 题、85 知识点、6 条学习路径」 | `python -c "import pathlib;print(pathlib.Path('README.md').read_text(encoding='utf-8').splitlines()[51])"` |
 
 四处**必须同一批**改，缺任一处即全量红（1/2/3 直接判红；4 经 `scripts/generate_system_report.py:214` 的 README 数字核对间接判红）。
@@ -71,10 +71,12 @@
 补 **python** 题除上表外还会同时变红，改动者须一并处理（否则违反「全量零新增红」）：
 
 - `tests/test_content_thin_topic_p0.py:50-55` 的 `P0_SNAPSHOT` —— 四个 P0 目录的**难度多重集**快照，含 `python/20_numpy_basics: [2, 3, 4]`、`python/21_datetime_ts: [2, 3, 4]`。该例的失败信息本身就写着「请同批改 PINNED_HIST ＋ 两处 `== 399` 等值断言 ＋ README:52，并把本快照与 `docs/insights/learn-thin-thick-topics-20260921.md` 的落点表一起刷新」⇒ 落点表（同一 insight 档 §四）是**第 5 处**文档口径。
-- `tests/test_content_census_python.py:19,20,71,80` —— `EXPECTED_PROBLEMS 121`、`EXPECTED_DIFF {1:27,2:56,3:31,4:7}`、答案字段计数 `{expected_output:113, tests:46, rubric:8, reference_answer:8}`、`judge_mode {run:113, ai_open:8}` 四组精确桩。
+- `tests/test_content_census_python.py:19,20,71,80` —— `EXPECTED_PROBLEMS 136`、`EXPECTED_DIFF {1:30,2:60,3:38,4:8}`、答案字段计数 `{expected_output:120, tests:48, rubric:14, reference_answer:14}`、`judge_mode {run:122, ai_open:14}` 四组精确桩（l1028-05 翻钉后现值）。
 - **新题难度建议 ≤3**：`difficulty >= 4` 会扩宽 `core/progress.py` 的 SRS ease 惩罚可达面并连带要求改 `PINNED_TOP_TIER`（`tests/test_content_difficulty_pins.py:38-58`）。SRS/判题属红线域，补题不得顺手扩。
 
-### 399 → 403（l923-03 已落地）与 403 → 408（l927-27 已落地）
+### 399 → 403（l923-03 已落地）与 403 → 408（l927-27 已落地）与 408 → 437（l1028-05 已落地）
+
+- 408 → 437（l1028-05）：13 道薄题修复（12 件补 hints、r/14_real_world_data/05 整写、sql/12_people_analytics/05 降序矛盾修正）＋全部域 census 钉值按 loader 实测翻正（总量 408→437；r 84→92、sql 54→60、agent_dev 78→82、python 125→136 世代）；README:54 同批刷 437。
 
 `python/20_numpy_basics` 与 `python/21_datetime_ts` 各 3→5、**净增 4 题**（难度取 2/3 档）⇒ 官方对外口径 **399 → 403**，python 侧 121 → 125（l923-03 落地，等值点 4 处＋追加面 2 处已同批刷）。
 

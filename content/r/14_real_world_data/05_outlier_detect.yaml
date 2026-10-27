@@ -4,12 +4,21 @@ difficulty: 3
 tags: ["outliers", "filtering", "real_world"]
 judge_mode: run
 statement: |
-  从 data.csv 读取数据框 df（含 salary 列），
-  用 IQR 方法检测并移除 salary 的离群值（低于 Q1-1.5IQR 或高于 Q3+1.5IQR），
-  输出清洗后的行数。
+  下面是 10 名员工的 salary 数据（data.frame 内嵌，无需外部文件），
+  其中混入了离群值。
 
+  用 IQR 方法检测并移除 salary 的离群值
+  （低于 Q1-1.5×IQR 或高于 Q3+1.5×IQR 的行视为离群），
+  输出清洗后剩余的行数。
+starter_code: |
+  df <- data.frame(
+    emp_id = 1:10,
+    salary = c(5200, 4800, 5600, 5100, 4950, 5300, 5050, 4900, 24000, 5150)
+  )
+  # 在下面写代码：IQR 法过滤离群值，cat 出剩余行数
 hints:
   - "quantile(df$salary, c(0.25, 0.75)) 取四分位"
   - "IQR() 函数直接返回四分位距"
-starter_code: |
-  df <- read.csv('data.csv')
+  - 'cat(nrow(df_clean), "\n", sep="")'
+expected_output: |
+  9

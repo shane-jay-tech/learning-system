@@ -13,3 +13,12 @@ statement: |
   4. 怎么确认数据模型
 starter_code: |
   # 文字分析，无代码要求
+hints:
+  - "入口先看启动文件/路由注册表，再顺 HTTP 处理函数往下追"
+  - "分层线索：路由层只做参数解析，领域逻辑在 domain/application 层"
+  - "数据模型看 migrations/schema 定义，别凭字段名猜表结构"
+rubric:
+  - "入口选择有依据：启动文件/路由注册表/主面板三选一并说明为什么"
+  - "追到领域层的路径清晰：路由→处理函数→application→domain，不跳步"
+  - "确认数据模型的方法正确：看 migrations/schema 定义而非猜字段"
+  - "体现出「先主干后分支」的阅读次序意识"

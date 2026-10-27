@@ -41,8 +41,11 @@ class TestGridWindowAlignment:
         assert "for dow in range(7)" in src
 
     def test_sql_window_covers_full_oldest_cell(self):
-        """窗口必须是 -91 days：-90 days 的边界落在最老日格当天中途，欠计数。"""
-        src = _heatmap_src()
+        """窗口必须是 -91 days：-90 days 的边界落在最老日格当天中途，欠计数。
+
+        l1028-05 翻钉：HEATMAP_SQL 已从 _render_heatmap 函数体上提为模块常量
+        （dashboard.py:588-592），扫描面从函数体扩到整文件——窗口语义钉不变。"""
+        src = DASHBOARD.read_text(encoding="utf-8")
         assert "datetime('now', '-91 days')" in src
         assert "'-90 days'" not in src, "旧窗口残留：热力图最老一格会回到系统性欠计数"
 

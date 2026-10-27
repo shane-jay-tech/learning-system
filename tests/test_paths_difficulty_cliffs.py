@@ -56,11 +56,11 @@ def test_断崖平台计数在现值分布区间内():
     # l922-11 实测形状（mean 口径）：quick_stats 无断崖双平台；agent_mastery 两断崖三平台。
     qs = milestone_means("quick_stats")
     qc, qp = cliff_plateau_counts(qs)
-    assert (qc, qp) == (0, 2), f"quick_stats 断崖/平台 = {(qc, qp)}，契约形状 (0, 2)"
+    assert (qc, qp) == (0, 3), f"quick_stats 断崖/平台 = {(qc, qp)}，契约形状 (0, 3)（l1028-05 翻钉：14_sem/15_cfa 4 档题抬升里程碑 mean，平台 2→3）"
 
     am = milestone_means("agent_mastery")
     ac, ap = cliff_plateau_counts(am)
-    assert (ac, ap) == (2, 3), f"agent_mastery 断崖/平台 = {(ac, ap)}，契约形状 (2, 3)"
+    assert (ac, ap) == (1, 3), f"agent_mastery 断崖/平台 = {(ac, ap)}，契约形状 (1, 3)（l1028-05 翻钉：07/08/10 三题升 4 档抹平一段断崖，2→1）"
 
     # 全六路径总量的下限（不设上限——内容建设可新增断崖/平台，破坏既有形状才是红）
     total_cliffs = total_plateaus = 0
@@ -72,5 +72,5 @@ def test_断崖平台计数在现值分布区间内():
         total_cliffs += c
         total_plateaus += p
     assert paths == 6, f"path 数应为 6，实得 {paths}"
-    assert total_cliffs >= 2, f"全路径断崖计数 {total_cliffs} 低于现值下限 2（quick_stats 0 + agent_mastery 2）"
+    assert total_cliffs >= 1, f"全路径断崖计数 {total_cliffs} 低于现值下限 1（l1028-05：quick_stats 0 + agent_mastery 1）"
     assert total_plateaus >= 3, f"全路径平台计数 {total_plateaus} 低于现值下限 3（agent_mastery 段）"

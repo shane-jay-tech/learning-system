@@ -41,5 +41,5 @@ def test_unreadable_lesson_warns_and_mainflow_continues(tmp_path, monkeypatch, c
         topics = loader.load_language("python", content_dir=str(tmp_path))
     assert len(topics) == 1, "主流程不受影响（topic 照常产出）"
     assert topics[0].lesson_md == ""
-    assert "Read lesson failed" in caplog.text, "warning 单通道现状"
+    assert "Isolate broken content file" in caplog.text, "warning 单通道现状（l1028-05 翻钉：loader 隔离机制上线，警告语随实现更新）"
     assert any(r.levelno == logging.WARNING for r in caplog.records)

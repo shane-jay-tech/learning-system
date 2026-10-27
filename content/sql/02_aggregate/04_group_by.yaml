@@ -13,3 +13,7 @@ setup_sql: |
 expected_rows:
   - ["eng", 3]
   - ["hr", 2]
+hints:
+  - "GROUP BY department 后 COUNT(*) 数的是每组的行数"
+  - "COUNT(*) AS cnt 给计数列起别名"
+  - "ORDER BY cnt DESC 让人数多的组排前面"

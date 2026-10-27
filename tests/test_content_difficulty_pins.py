@@ -32,12 +32,13 @@ LANGS = tuple(ALL_LANGS)
 #   core/progress.py 的 SRS ease 惩罚可达面）。规范口径见 plan.md「题库内容规范」。
 # 2026-09-30 l927-27 更新 cpp 行：01_io_and_vars 补 3、02_branch_loop 补 2（难度 2/3 档），
 #   62 → 67 题、全库 403 → 408；4/5 档题名单未动（同 l923-03 理由）。
+# l1028-05 翻钉：l1025 补题批2 扩容后 loader 实测终值（全库 437）
 PINNED_HIST = {
-    "python":    {1: 27, 2: 58, 3: 33, 4: 7, 5: 0},    # 125
-    "sql":       {1: 12, 2: 22, 3: 19, 4: 1, 5: 0},    # 54
+    "python":    {1: 30, 2: 60, 3: 38, 4: 8, 5: 0},    # 136
+    "sql":       {1: 13, 2: 25, 3: 21, 4: 1, 5: 0},    # 60
     "cpp":       {1: 10, 2: 34, 3: 23, 4: 0, 5: 0},    # 67
-    "r":         {1: 15, 2: 37, 3: 31, 4: 1, 5: 0},    # 84
-    "agent_dev": {1: 11, 2: 32, 3: 27, 4: 7, 5: 1},    # 78
+    "r":         {1: 15, 2: 42, 3: 32, 4: 3, 5: 0},    # 92
+    "agent_dev": {1: 11, 2: 32, 3: 30, 4: 8, 5: 1},    # 82
 }
 
 # 末档（difficulty >= 4）全量题 id 快照；p.id 自带 "<lang>/<slug>/<prob>" 前缀
@@ -53,6 +54,10 @@ PINNED_TOP_TIER = {
         "sql/12_people_analytics/04_never_submitted",
         "r/14_real_world_data/04_group_avg",
         "agent_dev/05_modular_config/07_coupling",
+        "r/15_cfa/05_modification_indices",  # l1028-05 增补
+        "r/14_sem_basics/05_sem_model_fit",  # l1028-05 增补
+        "python/23_sklearn_advanced/04_grid_search",  # l1028-05 增补
+        "agent_dev/07_data_security/05_prompt_injection_defense",  # l1028-05 增补
         "agent_dev/07_data_security/04_minimization_case",
         "agent_dev/08_read_code/02_find_bug_mutable",
         "agent_dev/11_real_tasks/05_decompose_feature",
@@ -85,7 +90,7 @@ def test_合计408与直方自洽():
     （口径 399 → 403 由 l923-03 补 python 4 题、403 → 408 由 l927-27 补 cpp 5 题；
     变更须有意，联动清单见 plan.md「题库内容规范」）"""
     per_lang = {lang: sum(h.values()) for lang, h in PINNED_HIST.items()}
-    assert sum(per_lang.values()) == 408, per_lang
+    assert sum(per_lang.values()) == 437, per_lang  # l1028-05 翻钉
     live = {lang: sum(h.values()) for lang, h in _hist_by_lang().items()}
     assert live == per_lang, f"语言级题量漂移：{live} != {per_lang}"
 

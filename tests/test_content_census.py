@@ -25,7 +25,7 @@ def test_总数_408_且每题statement非空():
         for p in problems:
             total += 1
             assert p.statement and p.statement.strip(), f"{lang}/{slug}/{p.id} 题干为空"
-    assert total == 408, f"题库总量漂移：{total} != 408（README 官方口径，变更须有意）"
+    assert total == 437, f"题库总量漂移：{total} != 437（l1028-05 翻钉：408→437 系 l1025 补题批2 扩容实测终值，loader 复算）"
 
 def test_答案字段按键集非空():
     for lang, slug, problems in _all_problems():

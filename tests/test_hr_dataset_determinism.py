@@ -153,8 +153,9 @@ def test_锚点_题面运行时读三件csv():
         for p in REPO.glob("content/*/*/*.yaml")
         if any(n in p.read_text(encoding="utf-8") for n in DATASET_STEMS)
     )
-    assert len(refs) == 12, (
-        f"引用这三件数据集的题面从 12 件变成 {len(refs)} 件 ⇒ 爆炸半径要重估、"
+    assert len(refs) == 13, (  # l1028-05 翻钉 12→13：22_hr_model/05_Salary_prediction 入列，
+        # 其答案对平已并入 census_python 答案字段计数（expected_output 120），半径重估已完成
+        f"引用这三件数据集的题面从 13 件变成 {len(refs)} 件 ⇒ 爆炸半径要重估、"
         f"答案对平用例可能也要扩面：{refs}"
     )
     assert all(r.startswith("content/python/2") for r in refs)

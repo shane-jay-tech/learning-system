@@ -12,3 +12,7 @@ setup_sql: |
 expected_rows:
   - [1, "Alice", 92]
   - [2, "Bob", 87]
+hints:
+  - "BETWEEN 80 AND 95 是闭区间（含两端）"
+  - "LIKE '%a%' 匹配名字里任意位置含 a 的行"
+  - "两个条件用 AND 连接；Cathy 75 不满足 BETWEEN 会被过滤"
