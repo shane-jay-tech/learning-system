@@ -47,7 +47,7 @@ streamlit run app.py
 
 浏览器自动打开 http://localhost:8511（与心理系统 8501 错开）。
 
-> **AI 判题链路前提（l1007-14）**：AI 点评依赖 `openai` 包。`.venv` 默认未装（`python -c "import openai"` 报 ModuleNotFoundError）；需 AI 判题时用**根解释器**起服务（根 Python 已装 openai），或经主班批准后向 `.venv` 补装。自检：`python -c "import openai"`。
+> **AI 判题链路前提（l1007-14；l1114 更新）**：AI 点评依赖 `openai` 包。`.venv` 已于 l1114 批补装 openai 2.44.0（与根解释器同版，已入 `requirements-lock.txt`），`.venv` 起服务即可用 AI 判题，无需再借根解释器。子进程脚本路径由环境变量 `LLM_SCRIPT` 控制（`start.bat` 已显式设置，默认 `D:/code/scripts/llm_call.py`，见 `core/config.py`）。自检：`.venv\Scripts\python.exe -c "import openai"`。
 
 ## 学习闭环
 

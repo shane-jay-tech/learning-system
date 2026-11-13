@@ -4,6 +4,8 @@ title Learning System
 cd /d "%~dp0"
 set "PYTHONUTF8=1"
 set "PYTHONIOENCODING=utf-8"
+REM AI 判题子进程脚本路径（core/config.py 默认值同此；显式 set 便于迁移机器时改这一处）
+set "LLM_SCRIPT=D:/code/scripts/llm_call.py"
 if not exist ".venv\Scripts\python.exe" (
   echo Creating virtual environment...
   python -m venv .venv

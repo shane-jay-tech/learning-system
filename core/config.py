@@ -3,7 +3,13 @@ import os
 
 
 def get_llm_script_path() -> str:
-    """取 D:/code/scripts/llm_call.py 路径，可被环境变量 LLM_SCRIPT 覆盖。"""
+    """取 llm_call.py（AI 判题子进程脚本）路径。
+
+    默认值 D:/code/scripts/llm_call.py（仓外共享脚本，本仓不携带）。
+    可用环境变量 **LLM_SCRIPT** 覆盖——迁移机器/自定义脚本位置时在启动前
+    `set LLM_SCRIPT=<路径>`（start.bat 已显式设置本变量；llm_call.py 依赖
+    openai 包，须保证运行本应用的解释器环境已安装）。
+    """
     return os.environ.get("LLM_SCRIPT", "D:/code/scripts/llm_call.py")
 
 

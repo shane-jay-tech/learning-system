@@ -146,6 +146,6 @@ def test_源码锚点与start_bat接线仍与磁盘一致():
     wiring = [l for l in bat if "find_port.py" in l]
     assert len(wiring) == 1, f"start.bat 里 find_port 接线应恰 1 条，实得 {len(wiring)}"
     assert "for /f" in wiring[0] and "PORT" in wiring[0], wiring[0]
-    assert bat.index(wiring[0]) + 1 == 26, (
-        f"start.bat 接线行号漂到 {bat.index(wiring[0]) + 1}（本桩钉 :26）"
+    assert bat.index(wiring[0]) + 1 == 28, (
+        f"start.bat 接线行号漂到 {bat.index(wiring[0]) + 1}（本桩钉 :28；l1114 批 start.bat 显式 set LLM_SCRIPT 增 2 行，桩自 :26 同步至 :28）"
         "⇒ 要么入口动了、要么该同步本桩，两者都必须显式改")
