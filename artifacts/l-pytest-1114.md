@@ -34,6 +34,7 @@ docs/insights/learn-insights-index-20260918.md（权威索引）：表尾补登 
 
 ---
 
-## 【2026-11-14 第三轮】l1114 全量终验
+## 【2026-11-14 第三轮】pywebview 装入后全量 0F（任务 2 复测 ＝ 任务 1 终验收口）
 
-（本段读数在任务 2/3 改动全部落地后的最终树上复跑，后补。）
+树 = 任务 1 索引修复 ＋ 任务 3 先行落地的 start.bat set LLM_SCRIPT／config.py docstring／test_find_port 桩同步 :26→:28 ＋ .venv 装入 pywebview 6.2.1。
+**1353 项：0 failed / 1344 passed / 7 skipped / 2 xfailed，247.76s（0:04:07）**（本轮收集先于 tests/test_content_parity.py 落盘，该 6 例单跑 6 passed，终验见第四轮）。7 skip = g++×4＋Rscript×3 环境缺失显式 skip 带原因。**10-26 起的 41F 至此全量清算：0F 达成。**
