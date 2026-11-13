@@ -48,7 +48,7 @@
 | 1 | `tests/test_content_difficulty_pins.py:29` 的 `PINNED_HIST` | python 行 `{1:30, 2:60, 3:38, 4:8, 5:0}`（合计 136，l1028-05 翻钉后现值） | `python -m pytest tests/test_content_difficulty_pins.py -q` |
 | 2 | `tests/test_content_difficulty_pins.py:80` | `assert sum(per_lang.values()) == 437`（l1028-05 翻钉，原 399→408→437） | `python -c "import pathlib;print([ (i,l.strip()) for i,l in enumerate(pathlib.Path('tests/test_content_difficulty_pins.py').read_text(encoding='utf-8').splitlines(),1) if '== 399' in l ])"` |
 | 3 | `tests/test_content_census.py:27` | `assert total == 437`（l1028-05 翻钉） | 同上换文件名（命中 `!= 399（README 官方口径，变更须有意）`） |
-| 4 | `README.md:52` 对外口径 | 「399 题、85 知识点、6 条学习路径」 | `python -c "import pathlib;print(pathlib.Path('README.md').read_text(encoding='utf-8').splitlines()[51])"` |
+| 4 | `README.md:54` 对外口径 | 「437 题、85 知识点、6 条学习路径」（l1028-05 翻钉后现值；l1114 起有哨兵 `tests/test_content_parity.py` 对账） | `python -c "import pathlib;print(pathlib.Path('README.md').read_text(encoding='utf-8').splitlines()[53])"` |
 
 四处**必须同一批**改，缺任一处即全量红（1/2/3 直接判红；4 经 `scripts/generate_system_report.py:214` 的 README 数字核对间接判红）。
 另注：`tests/test_scripts.py:310` 是 `assert metrics["total_problems"] >= 399` 的**下界护栏**，纯增量补题**不需改它**（它挡的是净减）；`tests/test_paths.py:29` 的 `len(paths) >= 3` 同为下界，与补题无关，且收紧它属改测试语义、待人工。

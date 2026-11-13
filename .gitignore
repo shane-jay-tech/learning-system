@@ -14,6 +14,7 @@ data/backups/
 coverage.xml
 htmlcov/
 *.log
+logs/
 data/*.db-shm
 data/*.db-wal
 /tmp/

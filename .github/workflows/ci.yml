@@ -1,0 +1,37 @@
+# CI（l1114 任务5 首建）——push 触发：全量 pytest + content 校验
+# 快集口径说明：本仓测试套以秒级离线单元测试为主（AI 面离线桩化、g++/Rscript
+# 缺失自动 skip、平台差异测试自带 posix/win32 双分支），本地全量 ~4 分钟，
+# 故快集 = 全量 tests/；无显示器环境仅跑校验不启动 streamlit/GUI。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install locked deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-lock.txt
+
+      - name: Content validator (standalone)
+        run: python scripts/validate_content.py
+
+      - name: Pytest (fast set = full suite)
+        env:
+          PYTHONUTF8: "1"
+        run: python -X utf8 -m pytest tests/ -q
+
+      - name: Content parity sentinel (docs-vs-disk reconciliation)
+        run: python -m pytest tests/test_content_parity.py -q -ra
