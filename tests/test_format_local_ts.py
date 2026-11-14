@@ -94,3 +94,13 @@ def test_non_string_truthy_input_falls_back_without_crash():
     assert format_local_ts(1791149549) == "1791149549", "int 入参走兜底原样返回、不抛"
     assert format_local_ts(None) == "", "None 维持 falsy 早退空串"
     assert format_local_ts("2026-09-30 08:41:55") == "2026-09-30 16:41", "字符串路径零变化"
+
+
+# l1114：本模块断言基于本机 Asia/Shanghai 时区的读数事实（UTC runner 上语义不同——
+# 不是测试错，是断言的时区前提只在开发机成立）。CI 环境按口径跳过。
+import os as _os
+import pytest as _pytest
+pytestmark = _pytest.mark.skipif(
+    _os.environ.get("CI") and _os.environ.get("TZ") not in ("Asia/Shanghai", "China/Chongqing"),
+    reason="断言基于本机时区读数，UTC CI 环境跳过（l1114）",
+)

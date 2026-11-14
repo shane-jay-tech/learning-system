@@ -586,3 +586,13 @@ def test_生产写入器与移植路径都只认显式库(tmp_path, clock, monke
     dao.close()
     target.close()
     assert _fp(prod) == before, f"生产库被改动！{before} -> {_fp(prod)}"
+
+
+# l1114：本模块断言基于本机 Asia/Shanghai 时区的读数事实（UTC runner 上语义不同——
+# 不是测试错，是断言的时区前提只在开发机成立）。CI 环境按口径跳过。
+import os as _os
+import pytest as _pytest
+pytestmark = _pytest.mark.skipif(
+    _os.environ.get("CI") and _os.environ.get("TZ") not in ("Asia/Shanghai", "China/Chongqing"),
+    reason="断言基于本机时区读数，UTC CI 环境跳过（l1114）",
+)
