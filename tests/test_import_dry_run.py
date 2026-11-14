@@ -29,6 +29,10 @@ from scripts.import_dry_run import (
 def tmp_db(tmp_path):
     """在临时目录里造一个与生产库同构的库（结构从真库的 schema 现取，不抄字面量）。"""
     prod = ROOT / "data" / "progress.db"
+    if not prod.exists():
+        # l1114：真库是用户学习数据（gitignore 口径正确），CI 裸环境无库——
+        # 按"结构从真库现取"的设计该测试属本机集成测试，口径化跳过。
+        pytest.skip("真库 data/progress.db 不存在（CI 裸环境跳过，l1114）")
     src = sqlite3.connect(f"file:{prod.as_posix()}?mode=ro", uri=True)
     try:
         ddl = "".join(r[0] + ";\n" for r in src.execute(
